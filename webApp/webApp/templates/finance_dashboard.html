@@ -1,0 +1,147 @@
+<head>
+    <meta charset='utf-8' />
+    <title> Finance Dashboard </title>
+</head>
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+<div class="container-fluid mt-5">
+    <h1 class="text-center">Student Table</h1>
+
+    <div class="table-responsive" style="max-height: 70vh; overflow-y: auto;">
+        <table class="table table-bordered table-hover w-100">
+            <thead class="thead-light">
+                <tr>
+                    <th style="position: sticky; top: 0; z-index: 10;" onclick="sortTable(0)">First Name</th>
+                    <th style="position: sticky; top: 0; z-index: 10;" onclick="sortTable(1)">Second Name</th>
+                    <th style="position: sticky; top: 0; z-index: 10;" onclick="sortTable(2)">Payment Method</th>
+                    <th style="position: sticky; top: 0; z-index: 10;" onclick="sortTable(3)">Payment Reference</th>
+                    <th style="position: sticky; top: 0; z-index: 10;" onclick="sortTable(4)">Description</th>
+                    <th style="position: sticky; top: 0; z-index: 10;" onclick="sortTable(5)">Monthly Amount</th>
+                    <th style="position: sticky; top: 0; z-index: 10;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr data-student-id="{{ student.id }}">
+                    <td>{{ student.firstName }}</td>
+                    <td>{{ student.secondName }}</td>
+                    
+                    <!-- Editable Payment Method -->
+                    <td ondblclick="makeEditable(this, 'payment_method', {{ student.id }}, 'select')">
+                        <span>{{ student.payment_method }}</span>
+                    </td>
+
+                    <!-- Editable Payment Reference -->
+                    <td ondblclick="makeEditable(this, 'payment_reference', {{ student.id }}, 'input')">
+                        <span>{{ student.payment_reference }}</span>
+                    </td>
+
+                    <!-- Editable Description -->
+                    <td ondblclick="makeEditable(this, 'description', {{ student.id }}, 'textarea')">
+                        <span>{{ student.description|safe }}</span>
+                    </td>
+
+                    <!-- Editable Monthly Amount -->
+                    <td ondblclick="makeEditable(this, 'monthly_amount', {{ student.id }}, 'input')">
+                        <span>£{{ student.monthly_amount }}</span>
+                    </td>
+
+                    <td>
+                        <a class="btn btn-primary btn-sm" href='/admin_student_info?studentid={{ student.id }}' >View Student Info</a>
+                        <button id = "copy-{{ student.id }}" class="btn btn-secondary btn-sm" onclick="copyLink({{ student.id }})">Copy Link</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+// Function to make fields editable
+function makeEditable(element, key, studentID, type) {
+    if (element.querySelector('input, select, textarea')) return; // Prevent duplicate inputs
+
+    const currentValue = element.querySelector('span').innerText.trim().replace(/<br\s*\/?>/g, '\n');
+    element.innerHTML = ''; // Clear existing content
+
+    let input;
+    if (type === 'select') {
+        input = document.createElement('select');
+        ['GoCardless', 'Stripe', 'Invoice', 'Other'].forEach(optionValue => {
+            const option = document.createElement('option');
+            option.value = optionValue;
+            option.innerText = optionValue;
+            if (optionValue === currentValue) option.selected = true;
+            input.appendChild(option);
+        });
+    } else if (type === 'textarea') {
+        input = document.createElement('textarea');
+        input.value = currentValue;
+        input.rows = 3; // Provide more space for description
+    } else {
+        input = document.createElement('input');
+        if(key == "monthly_amount") {
+            input.type = 'number';
+        }
+        else {
+            input.type = 'text';
+        }
+        input.value = currentValue;
+    }
+
+    const saveButton = document.createElement('button');
+    saveButton.innerText = 'Save';
+    saveButton.classList.add('btn', 'btn-success', 'btn-sm', 'ml-2');
+    saveButton.onclick = () => saveEditableField(studentID, key, input.value, element);
+
+    element.appendChild(input);
+    element.appendChild(saveButton);
+    input.focus();
+}
+
+// Function to save the updated field
+function saveEditableField(studentID, key, value, element) {
+    fetch('/edit_student_info', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ "studentID": studentID, "key": key, "value": value })
+    })
+    .then(response => {
+        if (response.ok) {
+            const formattedValue = key === 'description' ? value.replace(/\n/g, '<br>') : value; // Preserve new lines
+            element.innerHTML = `<span>${formattedValue}</span>`;
+        } else {
+            alert('Failed to update. Please try again.');
+        }
+    })
+    .catch(err => console.error('Error:', err));
+}
+
+// Sorting logic (optional)
+function sortTable(columnIndex) {
+    const table = document.querySelector('table tbody');
+    const rows = Array.from(table.rows);
+
+    rows.sort((a, b) => {
+        const aText = a.cells[columnIndex].innerText.toLowerCase();
+        const bText = b.cells[columnIndex].innerText.toLowerCase();
+        return aText.localeCompare(bText);
+    });
+
+    rows.forEach(row => table.appendChild(row));
+}
+
+// Example actions
+function viewTimetable(studentID) {
+}
+
+function copyLink(studentID) {
+    const link = `https://ateamacad.co.uk/admin_student_info?studentid=${studentID}`;
+    navigator.clipboard.writeText(link).then(() => {
+        document.getElementById("copy-" + studentID).innerHTML = "Copied!"
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make New Exam Student</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fc;
+        }
+
+        .card {
+            border-radius: 0.75rem;
+            border: 2px solid #e74a3b;
+        }
+
+        .card-header {
+            background-color: #4e73df;
+            color: white;
+            text-align: center;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #e74a3b;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .form-group label {
+            font-weight: bold;
+        }
+
+        .form-control {
+            border-radius: 0.25rem;
+        }
+
+        .btn-primary {
+            background-color: #4e73df;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #2e59d9;
+        }
+
+        .form-text {
+            font-size: 0.875rem;
+            color: #858796;
+        }
+
+        .recaptcha-container {
+            text-align: center;
+            margin-top: 1rem;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+
+
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-body">
+                <div class="form-group row">
+                    <div class="col-md-6">
+                        <label for="firstName">First Name</label>
+                        <input type="text" class="form-control" id="firstName" placeholder="John" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="secondName">Second Name</label>
+                        <input type="text" class="form-control" id="secondName" placeholder="Smith" required>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-6">
+                        <label for="gender">Gender</label>
+                        <select class="form-control" id="gender">
+                            <option value="" selected>Choose an option</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="dob">Date of Birth</label>
+                        <input type="date" class="form-control" id="dob" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="UCI">UCI</label>
+                    <input type="text" class="form-control" id="UCI" placeholder="999990140001X">
+                </div>
+                <div class="form-group">
+                    <label for="ULN">ULN</label>
+                    <input type="text" class="form-control" id="ULN" placeholder="12345678910">
+                </div>
+                <div class="form-group">
+                    <label for="studentEmail">Student Email</label>
+                    <input type="email" class="form-control" id="studentEmail" placeholder="johnsmith@gmail.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="parentEmail">Parent Email</label>
+                    <input type="email" class="form-control" id="parentEmail" placeholder="MarySmith@gmail.com">
+                </div>
+                <div class="form-group">
+                    <label for="contactNo">Emergency Contact No</label>
+                    <input type="text" class="form-control" id="contactNo" placeholder="07 123 456789">
+                </div>
+                <div class="form-group">
+                    <label for="subjects">Which Subjects / Specification would you like to do? Also include any questions you would like to be answered. Please be specific with which exams you wish to take including information such as tier (GCSE / A-LEVEL) subject (Maths/English) difficulty (Higher/Foundation) and exam code if known (8MA0)</label>
+                    <textarea class="form-control" id="subjects" rows="4" placeholder="Subjects and questions"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="access_arrangements">Special Access Arrangements</label>
+                    <input type="text" class="form-control" id="access_arrangements" placeholder="Exam Reader / Extra Time">
+                </div>
+                <div class="form-group">
+                    <label for="fileUpload">Identification upload (Passport, Drivers License etc)</label>
+                    <input type="file" class="form-control-file" id="fileUpload" required>
+                </div>
+                <div class="form-group">
+                    <label for="prevResults">Previous Results Upload (e.g., Previous Exam Certificates)</label>
+                    <input type="file" class="form-control-file" id="prevResults">
+                </div>
+
+                <div class="form-group">
+                    <label for="prevResults">Access Arrangements supporting documents Upload (e.g.JCQ / School Report)</label>
+                    <input type="file" class="form-control-file" id="accessDoc">
+                </div>
+
+                <button type="button" class="btn btn-primary mt-4" onclick="createStudent()">Register Exam Interest</button>
+            </div>
+        </div>
+    </div>
+    
+
+    <script>
+        function createStudent() {
+            var firstName = document.getElementById("firstName").value;
+            var secondName = document.getElementById("secondName").value;
+            var gender = document.getElementById("gender").value;
+            var dob = document.getElementById("dob").value;
+            var uci = document.getElementById("UCI").value;
+            var uln = document.getElementById("ULN").value;
+            var studentEmail = document.getElementById("studentEmail").value;
+            var parentEmail = document.getElementById("parentEmail").value;
+            var contactNo = document.getElementById("contactNo").value;
+            var subjects = document.getElementById("subjects").value;
+            var access_arrangements = document.getElementById("access_arrangements").value;
+            var fileUpload = document.getElementById("fileUpload").files[0];
+            var prevResults = document.getElementById("prevResults").files[0];
+            var accessDoc = document.getElementById("accessDoc").files[0];
+
+        
+            if (!firstName || !secondName || !dob || !studentEmail || !fileUpload) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+        
+            if (!studentEmail && !parentEmail) {
+                alert('Please provide at least one email address.');
+                return;
+            }
+        
+            var formData = new FormData();
+            formData.append("firstName", firstName);
+            formData.append("secondName", secondName);
+            formData.append("gender", gender);
+            formData.append("dob", dob);
+            formData.append("uci", uci);
+            formData.append("uln", uln);
+            formData.append("studentEmail", studentEmail);
+            formData.append("parentEmail", parentEmail);
+            formData.append("contactNo", contactNo);
+            formData.append("subjects", subjects);
+            formData.append("access_arrangements", access_arrangements);
+            formData.append("fileUpload", fileUpload);
+            formData.append("prevResults", prevResults);
+            formData.append("accessDoc", accessDoc)
+        
+            $.ajax({
+                url: '/register_potential_exam_student',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    alert("The Enquiry was sent");
+                    location.reload();
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            });
+        }
+        
+    </script>
+
+</body>
+
+</html>

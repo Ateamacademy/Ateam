@@ -1,0 +1,147 @@
+<script type="text/javascript"
+  async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+<style>
+    #drop-area {
+        border: 2px dashed #ccc;
+        border-radius: 20px;
+        width: 500px;
+        height: 300px;
+        text-align: center;
+        padding: 20px;
+        margin: 20px auto;
+    }
+    #drop-area.highlight {
+        border-color: purple;
+    }
+    #fileInput {
+        display: none;
+    }
+    #response {
+        margin-top: 20px;
+        font-weight: bold;
+    }
+</style>
+
+
+
+<div class="col">
+    <div class="card" style="display: flex;">
+        <div id="drop-area" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="drop(event)" style="text-align: center;">
+            <p>Drag & Drop images here</p>
+            <input type="file" id="fileInput" accept="image/*" onchange="handleFiles(event)">
+        </div>
+        
+        <button class = "btn btn-success" onclick="sendImage()"> Get Feedback </button>
+        
+
+        <div id="correct"> </div> 
+        <div id="feedback2"> </div>
+        
+        <div class="mt-4 mb-4" id="good_response" style="display: none;">
+            Was this a good response? 
+
+            <button class="btn btn-success" onclick="good_response('true')"> Yes </button>
+            <button class="btn btn-danger" onclick="good_response('false')"> No </button>
+
+        </div>
+
+        <script>
+            function good_response(value) {
+                $.ajax({
+                    url: '/good_response',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({"type" : "student", "value" : value}),
+                    success: function(response) {
+                        document.getElementById("good_response").style.display = "none";
+                    },
+                    error: function(error) {
+                      alert("The response could not be submitted ")
+                    }
+                });
+            }
+        </script>
+
+
+        <script>
+            function dragOver(e) {
+                e.preventDefault();
+                e.target.classList.add('highlight');
+            }
+        
+            function dragLeave(e) {
+                e.preventDefault();
+                e.target.classList.remove('highlight');
+            }
+        
+            function drop(e) {
+                e.preventDefault();
+                e.target.classList.remove('highlight');
+                const files = e.dataTransfer.files;
+                handleFiles(files);
+            }
+        
+            function handleFiles(files) {
+                const file = files[0];
+                const reader = new FileReader();
+        
+                reader.onload = function(e) {
+                    const img = document.createElement("img");
+                    img.src = e.target.result;
+                    img.style.width = "300px";
+                    document.getElementById("drop-area").innerHTML = '';
+                    document.getElementById("drop-area").appendChild(img);
+                    //document.getElementById("drop-area").offsetHeight = img.offsetHeight;
+                };
+        
+                reader.readAsDataURL(file);
+            }
+        
+            function sendImage() {
+
+                 const imgData = document.querySelector('#drop-area img').src;
+                fetch('/getFeedback', {
+                    method: 'POST',
+                    body: JSON.stringify({ image: imgData }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Display the feedback on the webpage
+                    document.getElementById("feedback2").innerHTML = data.text;
+                    document.getElementById("good_response").style.display = "block";
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+                
+
+            }
+        </script>
+        
+    </div>
+</div>
+
+
+
+{% endblock %}

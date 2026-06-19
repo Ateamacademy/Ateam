@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> {{ tutorInfo.firstName }}'s Info </title>
+
+    <link rel="stylesheet" href="static\css\admin_tutor_info.css" />
+</head>
+
+
+{% extends "base_page.html" %}
+
+{% block middleContent %} 
+
+<style>
+    .position-relative {
+        display: inline-block;
+    }
+    
+    .profile-picture {
+        transition: 0.3s;
+    }
+    
+    .profile-picture:hover {
+        filter: brightness(0.7);
+    }
+    
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .position-relative:hover .overlay {
+        opacity: 1;
+    }
+    
+    .overlay i {
+        font-size: 24px; /* Adjust as needed */
+    }
+    
+</style>
+
+
+    
+
+<body>
+    <div class="container py-5">
+
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <div class="position-relative">
+                            {% if tutorInfo.gender == 'Male' %}
+                            <img src="userFiles/{{ tutorInfo.id }}/profile_picture.jpg" alt="avatar" class="rounded-circle img-fluid" style="width: 150px; border: 2px solid #555;" onerror="this.onerror=null; this.src='https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp';">
+                            {% elif tutorInfo.gender == 'Female' %}
+                                <img src="userFiles/{{ tutorInfo.id }}/profile_picture.jpg" alt="avatar" class="rounded-circle img-fluid" style="width: 150px; border: 2px solid #555;" onerror="this.onerror=null; this.src='https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava6.webp';">
+                            {% else %}
+                                <img src="userFiles/{{ tutorInfo.id }}/profile_picture.jpg" alt="avatar" class="rounded-circle img-fluid" style="width: 150px; border: 2px solid #555;" onerror="this.onerror=null; this.src='static/images/default-avatar.jpg';">
+                            {% endif %}
+                            <div class="overlay">
+                                <i class="fas fa-pencil-alt"></i>
+                            </div>
+                        </div>
+                        
+                        <h5 class="my-3">{{ tutorInfo.firstName }}</h5>
+                        <p class="text-muted mb-1">{{ tutorInfo.role }}</p>
+                        <div class="d-flex justify-content-center mb-2"></div>
+                    
+                        <a href="/allTimetable?tutorid={{ tutorInfo.id }}&offset=0">
+                            <button class="btn btn-primary"> View Timetable </button>
+                        </a>
+                        {% if session['role'] == "admin" %}
+                            <a href="/payslips?userID={{tutorInfo.id}}" class="btn btn-primary"> View Payslips </a>
+                        {% else %}
+                            <a href="/payslips" class="btn btn-primary"> View Payslips </a>
+                        {% endif %}
+                        {% if session['role'] == "admin" %}
+                            <a href="/resetPassword?role={{ tutorInfo.role }}&id={{ tutorInfo.id }}">
+                                <button class="btn btn-danger"> Reset Password </button>
+                            </a>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Modal for Upload -->
+                    <div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="uploadModalLabel">Upload Profile Picture</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="uploadForm" enctype="multipart/form-data" method="POST" action="/upload_profile_picture">
+                                        <input type="hidden" name="tutor_id" id="tutor_id" value="">
+                                        <div class="form-group">
+                                            <label for="file">Choose an image (JPG):</label>
+                                            <input type="file" class="form-control-file" id="file" name="file" accept="image/jpeg" required>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary" onclick="submitUpload()">Upload</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <div class="card mb-4 mb-lg-0">
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush rounded-3" id="subjectList">
+                            
+                            <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                <p class="mb-0"> Subjects </p>
+                                <button id="edit_save_btn" class="btn btn-primary" onclick="edit()"> Edit Subject List </button>
+                            </li>
+
+                            {% for subject in subjects %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center p-3" id="{{ subject }}">
+                                <p class="mb-0 subjectItem" id='{{ subject.id }}'> {{ subject.name }} </p>
+
+                                <button class="btn btn-danger trashcan" style="background-color: white; border-color:white; display:none;" onclick="removeItem(&#34;{{ subject }}&#34;)"> 
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="red" class="bi bi-trash" viewBox="0 0 16 16">
+                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
+                                        <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
+                                    </svg> 
+                                </button>
+                            </li>
+                            {% endfor %}
+
+
+                            <script> 
+                                var num = 0;
+                                var subjectList = document.getElementById("subjectList");
+                                var edit_save = document.getElementById("edit_save_btn");
+
+                                function edit() {
+                                    edit_save.innerHTML = "Save Subjects";
+                                    edit_save.classList.remove("btn-primary");
+                                    edit_save.classList.add("btn-success");
+                                    edit_save.setAttribute("onclick", "save()");
+
+                                    document.getElementById("plusButton").style.display = "inline";
+
+                                    $('.trashcan').css('display', 'inline')
+
+                                };
+
+                                function save() {
+                                    edit_save.innerHTML = "Edit Subject List";
+                                    edit_save.classList.remove("btn-success");
+                                    edit_save.classList.add("btn-primary");
+                                    edit_save.setAttribute("onclick", "edit()")
+                                    var subjects = [];
+
+                                    var newSubjects = document.getElementsByClassName("subjectItem");
+                                    for(i in newSubjects) {
+                                        subjects.push(newSubjects[i].id);
+                                    };
+
+                                    newSubjects = document.getElementsByClassName("newSubjects");
+                                    for(i in newSubjects) {
+                                        if(newSubjects[i].value === undefined) {
+
+                                        }
+                                        else {
+                                            subjects.push(newSubjects[i].value);
+                                        }
+                                    };
+
+                                    role = "{{ tutorInfo.role }}";
+                                    
+                                    $.ajax({
+                                        url: '/updateLessons',
+                                        type: 'POST',
+                                        contentType: 'application/json',
+                                        data: JSON.stringify({"id": {{ tutorInfo.id }}, "subjects": subjects, "role" : role}),
+
+                                        success: function(response) {
+                                            console.log("success")
+                                        },
+                                        error: function(error) {
+                                            console.log(error);
+                                        }
+                                    });
+
+                                    document.getElementById("plusButton").style.display = "none";
+
+                                    $('.trashcan').css('display', 'none');
+
+                                };
+
+                                function addSubject(allSubjects, tutorSubjects) {
+                                    console.log(allSubjects)
+
+                                    var node = document.createElement('li');
+                                    node.classList.add("list-group-item");
+                                    node.classList.add("d-flex");
+                                    node.classList.add("justify-content-between");
+                                    node.classList.add("align-items-center");
+                                    node.classList.add("p-3");
+
+                                    var selectField = document.createElement('select');
+                                    selectField.classList.add("newSubjects")
+                                   
+                                    for(i in allSubjects) {
+                                        if(tutorSubjects.includes(allSubjects[i]) == false) {
+                                            let newOption = new Option(allSubjects[i].name, allSubjects[i].id);
+                                            selectField.add(newOption, undefined);
+                                        }
+                                    };
+
+                                    const button = document.createElement('button');
+                                    button.classList.add("btn");
+                                    button.classList.add("btn-danger");
+                                    button.classList.add("trashcan");
+                                    button.setAttribute("style", "background-color: white; border-color:white;")
+                                    button.setAttribute("id", "btn-".concat(num.toString()))
+                                    button.setAttribute("onclick", "removeTemp(this.id)")
+
+                                    const iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                                    const iconPath1 = document.createElementNS('http://www.w3.org/2000/svg','path');
+                                    const iconPath2 = document.createElementNS('http://www.w3.org/2000/svg','path');
+                                  
+                                    iconSvg.setAttribute('fill', 'red');
+                                    iconSvg.setAttribute('width', '20');
+                                    iconSvg.setAttribute('height', '20');
+                                    iconSvg.setAttribute('viewBox', '0 0 16 16');
+                                    iconSvg.classList.add('bi');
+                                    iconSvg.classList.add('bi-trash');
+
+                                  
+                                    iconPath1.setAttribute('d','M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z' );
+                                    iconPath2.setAttribute('d', 'M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z' );
+
+                                    iconSvg.appendChild(iconPath1);
+                                    iconSvg.appendChild(iconPath2);
+
+                                    button.append(iconSvg);
+
+                                    node.append(selectField);
+                                    node.append(button);
+                                    subjectList.appendChild(node);
+                                };
+
+                                function removeItem(id) {
+                                    var child = document.getElementById(id);
+                                    subjectList.removeChild(child);
+                                };
+
+                                function removeTemp(id) {
+                                    subjectList.removeChild(document.getElementById(id).parentNode);
+
+                                };
+                            </script>
+                        </ul>
+
+                        <div id="plusButton" style="display:none;">
+                            <button class="btn addSubject" onclick="addSubject({{ allSubjects }}, {{ subjects }})">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="black" class="bi bi-plus" viewBox="0 0 16 16">
+                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <script> 
+                function editInfo(key, value) {
+                    div = document.getElementById("div-".concat(key));
+                    div.removeChild(div.firstElementChild);
+
+                    input = document.createElement("input");
+                    input.setAttribute("value", value);
+                    input.setAttribute("id", "p-".concat(key))
+                    
+                    div.append(input);
+
+                    btn = document.getElementById("btn-".concat(key));
+                    btn.classList.add("btn");
+                    btn.classList.add("btn-success");
+                    btn.innerHTML = "Save";
+                    btn.setAttribute("onclick", "saveChanges(".concat("'").concat(key).concat("')"));
+
+                    buttons = document.getElementsByClassName("editBtn");
+                    for(i in buttons) {
+                        
+                        if(buttons[i].id != "btn-".concat(key)) {
+                            buttons[i].setAttribute("disabled", true)
+                        }
+
+                    }
+                };
+            </script>
+
+            <script>
+                function saveChanges(key) {
+                    var tutorID = {{ tutorid|tojson }};
+                    var value = document.getElementById("p-".concat(key)).value;
+
+
+                    $.ajax({
+                        type: 'POST',
+                        url:  '/updateTutors',
+                        contentType: 'application/json',
+                        data: JSON.stringify({"id" : tutorID, "key" : key, "value" : value}),
+                        cache: false,
+                        processData: false,
+                        success: function success(data) { location.reload(); },
+                        error: function error(error) { alert('The information couldn\'t be updated - Please try again later'); }
+                    });
+                };
+            </script>
+
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        
+                        <div class="row" id="row-firstName">
+                            <div class="col-sm-3">
+                                <p class="mb-0">First Name</p>
+                            </div>
+                            <div class="col-sm-6" id="div-firstName">
+                                <p class="text-muted mb-0" id="p-firstName">{{ tutorInfo.firstName }}</p>
+                            </div>
+                            <div class="col-sm-3">
+                                {% if edit_tutor_information %} <button onclick="editInfo('firstName', '{{ tutorInfo.firstName }}')" id="btn-firstName" class="btn editBtn"> 
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                                        <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                                    </svg>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <hr>
+
+                        <div class="row" id="row-secondName">
+                            <div class="col-sm-3">
+                                <p class="mb-0">Second Name</p>
+                            </div>
+                            <div class="col-sm-6" id="div-secondName">
+                                <p class="text-muted mb-0" id="p-secondName">{{ tutorInfo.secondName }}</p>
+                            </div>
+                            <div class="col-sm-3">
+                                {% if edit_tutor_information %} <button onclick="editInfo('secondName', '{{ tutorInfo.secondName }}')" id="btn-secondName" class="btn editBtn"> 
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                                        <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                                    </svg>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <hr>
+
+                        <div class="row" id="row-role">
+                            <div class="col-sm-3">
+                                <p class="mb-0"> role </p>
+                            </div>
+                            <div class="col-sm-6" id="div-role">
+                                <p class="text-muted mb-0" id="p-role">{{ tutorInfo.role }}</p>
+                            </div>
+                            <div class="col-sm-3">
+                                {% if edit_tutor_information %} 
+                                <button onclick="editInfo('role', '{{ tutorInfo.role }}')" id="btn-role" class="btn editBtn"> 
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                                        <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                                    </svg>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <hr>
+
+
+                        <div class="row" id="row-email">
+                            <div class="col-sm-3">
+                                <p class="mb-0">Email</p>
+                            </div>
+                            <div class="col-sm-6" id="div-email">
+                                <p class="text-muted mb-0" id="p-email"> {{ tutorInfo.email }}</p>
+                            </div>
+                            <div class="col-sm-3">
+                                {% if edit_tutor_information %} <button onclick="editInfo('email', '{{ tutorInfo.email }}')" id="btn-email" class="btn editBtn">                                     
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                                    <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                                </svg>   
+                                </button>                       
+                                {% endif %}
+                            </div>
+                        </div>
+                        <hr>
+
+                        <div class="row" id="row-phone">
+                            <div class="col-sm-3">
+                                <p class="mb-0">Mobile Number </p>
+                            </div>
+                            <div class="col-sm-6" id="div-phone">
+                                <p class="text-muted mb-0" id="p-phone"> {{ tutorInfo.phone }}</p>
+                            </div>
+                            <div class="col-sm-3">
+                                {% if edit_tutor_information %} <button onclick="editInfo('phone', '{{ tutorInfo.phone }}')" id="btn-phone" class="btn editBtn"> 
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                                        <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                                    </svg>
+                                    </button>
+                                {% endif %}
+                                </div>
+                            </div>
+                        <hr>
+                        
+                        <div class="row">
+                        <div class="col-sm-3">
+                            <p class="mb-0">Address</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="text-muted mb-0">{{ tutorInfo.address }}</p>
+                        </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-4 mb-md-0">
+                            <div class="card-body">
+                                <p class="mb-4"> Lessons </p>
+
+                                {% for lesson in lessons %}
+                                    <p class="mb-1" style="font-size: .80rem;">{{ lesson.subject }} - {{ lesson.day }} @ {{ lesson.start }} </p>
+                                    <details> 
+                                        <summary> {{ lesson.size }} students </summary>
+
+                                        {% for student in students[lesson.numberInList] %}
+                                            <p class="mb-1" style="font-size: .80rem;"> &nbsp &nbsp {{ student }} </p>
+                                        {% endfor %} 
+                                    </details>
+                                    <hr>
+
+                                {% endfor %}
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card mb-4 mb-md-0">
+                            <div class="card-body">
+                                <p class="mb-4"> Issues / To do </p>
+
+                                {% for lessonInfo in lessonsInfo %}
+                                <div id="{{ lessonInfo.id }}{{ lessonInfo.weekno }}">
+                                    <p class="mb-1" style="font-size: .80rem;">{{ lessonInfo.subject }} - week {{ lessonInfo.weekno }} - {{ lessonInfo.day }} @ {{ lessonInfo.start }} </p>
+                                    <details> 
+                                        <summary> Missing Steps </summary>
+                                            <p class="mb-1" {% if lessonInfo.register %} style="font-size: .80rem; color:green" {% else %} style="font-size: .80rem; color:red" {% endif %} > &nbsp &nbsp register </p>
+                                            <p class="mb-1" {% if lessonInfo.homework %} style="font-size: .80rem; color:green;" {% else %} style="font-size: .80rem; color:red;" {% endif %} > &nbsp &nbsp homework set </p>
+                                            <p class="mb-1" {% if lessonInfo.description %} style="font-size: .80rem; color:green;" {% else %} style="font-size: .80rem; color:red;" {% endif %} > &nbsp &nbsp description  </p>
+
+                                            {% if session[role] == "admin" %} <a> <button onclick="removeDiv({{ lessonInfo.id }}, {{ lessonInfo.weekno }})" class="btn btn-danger"> Dismiss </button> </a> {% endif %}
+                                    </details>
+                                    <hr>
+                                </div>
+                                {% endfor %}
+
+                                {% if session['role'] == "admin" %}
+                                <script> 
+                                    function removeDiv(id, weekno) {
+                                        $.ajax({
+                                            url: "/dismissLesson",
+                                            type: "POST",
+                                            contentType: 'application/json',
+                                            data: JSON.stringify({"id" : id, "weekno" : weekno}),
+                                            success: function() {
+                                                console.log(id);
+                                                console.log(weekno)
+                                                console.log("lesson dismissed"); 
+                                                document.getElementById(id.toString().concat(weekno.toString())).style.display="none";
+                                                },
+                                            error: 
+                                                function(error) { console.log("error"); }
+                                          });
+                                    };
+
+                                </script>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    function openUploadModal(tutorId) {
+        document.getElementById('tutor_id').value = tutorId;
+        $('#uploadModal').modal('show');
+    }
+    
+    function submitUpload() {
+        document.getElementById('uploadForm').submit();
+    }
+</script>
+
+{% endblock %}

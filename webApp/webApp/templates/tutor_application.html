@@ -1,0 +1,47 @@
+<form id="applyTutorForm" enctype="multipart/form-data">
+    <input type="text" name="name" placeholder="Full Name" required>
+    <input type="email" name="email" placeholder="example@gmail.com" required>
+
+    <input type="date" name="date_of_birth" required>
+    <textarea name="subjects" placeholder="Subjects you can teach" required></textarea>
+
+    <label for="cv">Upload CV</label>
+    <input type="file" name="cv" required>
+
+    <label for="dbs">Proof of DBS</label>
+    <input type="file" name="dbs" required>
+
+    <label for="cover_letter">Cover Letter</label>
+    <input type="file" name="cover_letter" required>
+
+    <button type="submit">Apply</button>
+</form>
+
+
+
+<script>
+    $(document).ready(function() {
+        $('#applyTutorForm').on('submit', function(e) {
+            e.preventDefault();
+    
+            var formData = new FormData(this);
+    
+            $.ajax({
+                url: '/apply_tutor',
+                type: 'POST',
+                data: formData,
+                contentType: false,  // Don't set content-type header
+                processData: false,  // Prevent jQuery from processing the data
+                success: function(response) {
+                    alert('Application submitted successfully!');
+                    // Handle success logic, such as redirecting or showing confirmation
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                    alert('An error occurred while submitting the form. Please try again.');
+                }
+            });
+        });
+    });
+    
+</script>

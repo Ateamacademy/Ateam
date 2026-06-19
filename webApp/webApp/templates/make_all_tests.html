@@ -1,0 +1,84 @@
+<head>
+    <title> Grades </title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.1/min/dropzone.min.js">
+    </script>    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.1/min/dropzone.min.css">      
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="static\css\Classroom_View.css" />
+</head>
+ 
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+<script>
+    function createTest() {
+
+        date = document.getElementById("testDate").value;
+        total = document.getElementById("testTotal").value;
+        name = document.getElementById("testName").value;
+        subjectID = document.getElementById("subject").value;
+        scope = document.getElementById("scope").value; 
+        weekNo = document.getElementById("weekNo").value;
+
+        $.ajax({
+            url: '/makeAllTests',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({"subjectID" : subjectID, "scope": scope, "date" : date, "total": total, "name" : name, "weekNo" : weekNo}),
+            success: function(response) {
+                setTimeout(function() {alert("the test has been created"); location.reload();}, 1000);
+            },
+            error: function(error) {
+                console.log(error);
+            }
+        })
+    }
+
+</script>
+
+<div class="col-lg">    
+    <div class="card">
+        <div class="card-body">
+            <div class = "row"> 
+                <div class="col"> 
+                    <select id = "subject">
+                    {% for subject in subjects %}
+                        <option value = "{{ subject.id }}"> {{ subject.name }} </option>            
+                    {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-1"> 
+                    <select id = "scope">
+                    {% for scope in scopes  %}
+                        <option value = "{{ scope }}"> {{ scope }} </option>            
+                    {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-1"> 
+                    <select id = "weekNo">
+                    {% for i in range(52)  %}
+                        <option value = "{{ i }}"> {{ i }} </option>            
+                    {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-3"> <input id="testName" placeholder = " Test Name" style = "width: 100%;"> </div>
+                <div class="col"> <input id="testDate" type = "date"> </div>
+                <div class="col"> <input id="testTotal" placeholder = " Total"> </div>
+                <div class="col"> <button onclick ="createTest()" class="btn btn-success mb-3"> + Create a new Test </button> </div>
+            </div>
+        </div>
+    </div>
+  
+</div>
+
+
+{% endblock %}

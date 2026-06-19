@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+
+<head>
+
+    <title>Alert Status</title>
+
+
+</head>
+
+{% extends 'base_page.html' %}
+
+{% block middleContent %}
+
+    <script>
+        $( document ).ready(function() {
+            document.getElementById("alert-link").classList.add("active");
+        });
+    </script>
+
+
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 mt-4">
+        <h1 class="h3 mb-0 text-gray-800"> Alert Status </h1>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        
+        {% for alert in alerts %}
+        <!-- Earnings (Monthly) Card alertple -->
+        <div class="col-6 mb-4" id="col-{{ alert.id }}">
+
+            <div class="card shadow h-100 py-2 mb-4 border-left-primary">
+                <!-- Card Header - Accordion -->
+                <a href="#card-{{ alert.id }}" class="d-block card-header py-3" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseCardalertple">
+                    {% if alert.notViewed|length > 0 %} <h6 class="m-0 font-weight-bold text-primary"> {{ alert.title }} - {{ alert.role }}'s <p class = "text-success"> (active) </p> </h6>
+                    {% else %} <h6 class="m-0 font-weight-bold text-primary"> {{ alert.title }} - {{ alert.role }}'s <p class = "text-danger"> (inactive) </p> </h6>
+                    {% endif %}
+                </a>
+                <!-- Card Content - Collapse -->
+                <div class="collapse" id="card-{{ alert.id }}">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                            {% for user in alert.viewed %}
+                                <div class="row"> <p class="text-success"> {{ user }} </p> </div>
+                            {% endfor %}
+                            </div>
+
+                            <div class="col-6">
+                            {% for user in alert.notViewed %}
+                                <div class="row"> <p class="text-danger"> {{ user }} </p> </div>
+                            {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if dismiss_alerts %} <button class="btn btn-danger" onclick="dismissAlert({{alert.id}})"> Dismiss Alert </button> {% endif %}
+                </div>
+            </div>            
+        </div>
+        {% endfor %}
+
+    </div>
+
+  
+
+
+    <script>
+        function dismissAlert(id) {
+            $.ajax({
+                url:  '/dismissAlert',
+                type: 'POST',
+                contentType : "application/json",
+                data: JSON.stringify({"id" : id}),
+                success: function(response) { 
+                    document.getElementById("col-" + id).style.display = "none";  
+                } ,
+                error: function(error) { alert("Sorry the Alert could not be Dismissed - please try again later") }
+            });
+        }
+    </script>
+
+
+
+
+{% endblock %}

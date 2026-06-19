@@ -1,0 +1,29 @@
+{% extends 'base_page.html' %}
+<head> <title> Exam Room </title> </head>
+
+
+{% block middleContent %}
+<h1 class="my-4">Edit Exam Room - {{ room.name }}</h1>
+
+<div class="card">
+    <div class="card-header">Update Room Details</div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="form-group">
+                <label for="name">Room Name:</label>
+                <input type="text" id="name" name="name" class="form-control" value="{{ room.name }}" required>
+            </div>
+            <div class="form-group">
+                <label for="max_rows">Rows:</label>
+                <input type="number" id="max_rows" name="max_rows" class="form-control" value="{{ room.max_rows }}" required min="1">
+            </div>
+            <div class="form-group">
+                <label for="max_columns">Columns:</label>
+                <input type="number" id="max_columns" name="max_columns" class="form-control" value="{{ room.max_columns }}" required min="1">
+            </div>
+            <button type="submit" class="btn btn-primary">Update Room</button>
+            <a href="/exam_rooms" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

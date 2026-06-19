@@ -1,0 +1,95 @@
+<head> 
+    <title> One Time View </title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+<div class="card" style="width: 100%;">
+    <div class="card-body">
+        <div style="width: 50%;">
+            <!-- Create a canvas element to render the pie chart -->
+            <canvas id="myPieChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Get the canvas element
+    var ctx = document.getElementById('myPieChart').getContext('2d');
+
+    // Extract labels and data from the Flask data
+    var data = {
+        labels: [
+            {% for entry in data %}
+            '{{ entry.name }}',
+            {% endfor %}
+        ],
+        datasets: [{
+            data: [
+                {% for entry in data %}
+                {{ entry.amount }},
+                {% endfor %}
+            ],
+            backgroundColor: [
+            'rgba(255, 99, 132, 0.5)',
+            'rgba(54, 162, 235, 0.5)',
+            'rgba(255, 206, 86, 0.5)',
+            'rgba(75, 192, 192, 0.5)',
+            'rgba(153, 102, 255, 0.5)',
+            'rgba(255, 159, 64, 0.5)',
+            'rgba(255, 0, 0, 0.5)',
+            'rgba(0, 255, 0, 0.5)',
+            'rgba(0, 0, 255, 0.5)',
+            'rgba(128, 128, 0, 0.5)',
+            'rgba(128, 0, 128, 0.5)',
+            'rgba(0, 128, 128, 0.5)',
+            'rgba(255, 140, 0, 0.5)',
+            'rgba(0, 255, 255, 0.5)',
+            'rgba(255, 69, 0, 0.5)',
+            'rgba(128, 0, 0, 0.5)',
+            'rgba(0, 128, 0, 0.5)',
+            'rgba(255, 255, 0, 0.5)',
+            'rgba(165, 42, 42, 0.5)',
+            'rgba(0, 0, 128, 0.5)'
+                // Add more colors as needed
+            ],
+            borderColor: [
+            'rgba(255, 99, 132, 1)',
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(75, 192, 192, 1)',
+            'rgba(153, 102, 255, 1)',
+            'rgba(255, 159, 64, 1)',
+            'rgba(255, 0, 0, 1)',
+            'rgba(0, 255, 0, 1)',
+            'rgba(0, 0, 255, 1)',
+            'rgba(128, 128, 0, 1)',
+            'rgba(128, 0, 128, 1)',
+            'rgba(0, 128, 128, 1)',
+            'rgba(255, 140, 0, 1)',
+            'rgba(0, 255, 255, 1)',
+            'rgba(255, 69, 0, 1)',
+            'rgba(128, 0, 0, 1)',
+            'rgba(0, 128, 0, 1)',
+            'rgba(255, 255, 0, 1)',
+            'rgba(165, 42, 42, 1)',
+            'rgba(0, 0, 128,15)'
+                // Add more colors as needed
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    // Create a pie chart
+    var myPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: data
+    });
+</script>
+</div>
+
+
+{% endblock %}

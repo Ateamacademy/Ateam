@@ -1,0 +1,39 @@
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+<div class="container mt-5">
+    <h2 class="text-center">Event Registrations</h2>
+
+    <h4>Total Bookings:</h4>
+    <ul>
+        {% for event, count in event_counts.items() %}
+            <li><strong>{{ event }}</strong>: {{ count }} attendees</li>
+        {% endfor %}
+    </ul>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Dietary Reqs</th>
+                <th>Events</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reg in registrations %}
+                <tr>
+                    <td>{{ reg.name }}</td>
+                    <td>{{ reg.email }}</td>
+                    <td>{{ reg.phone }}</td>
+                    <td>{{ reg.dietary_reqs }}</td>
+                    <td>{{ reg.events }}</td>
+                    <td>{{ reg.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

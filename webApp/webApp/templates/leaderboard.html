@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #007BFF;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            position: relative;
+        }
+
+        .floating {
+            position: absolute;
+            font-size: 24px;
+            opacity: 0.7;
+            bottom: -50px;
+            animation: float 10s linear infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh);
+                opacity: 0.7;
+            }
+        }
+
+        #leaderboardContainer {
+            width: 80%;
+            max-width: 1200px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+            position: relative;
+            text-align: center; /* Center leaderboard items */
+            display: none; /* Start hidden */
+        }
+
+        .leaderboardItem {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .leaderboardItem img {
+            width: auto;
+            height: 100px; /* Adjust height as needed */
+            margin-right: 20px;
+            border-radius: 5px;
+            border: 2px solid #007BFF;
+        }
+
+        .leaderboardItem .rank {
+            font-size: 24px;
+            font-weight: bold;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .leaderboardItem .info {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .leaderboardItem .name {
+            font-size: 20px;
+            margin-right: 20px;
+        }
+
+        .leaderboardItem .score {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007BFF;
+        }
+
+        #videoContainer {
+            width: 90%;
+            height: 90%;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #videoContainer video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+    <div id="videoContainer" style = "z-index: 10;">
+        <video id="promoVideo" autoplay>
+            <source src="static/videos/ateam-video.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+    
+    <div id="leaderboardContainer">
+        <h1>Leaderboard</h1>
+        <div id="leaderboardList">
+            <!-- Leaderboard items will be dynamically added here -->
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const symbols = ["+", "-", "×", "÷", "=", "≠", ">", "<", "≤", "≥", "π"];
+            const words = [
+                "Prose", "Grammar", "Syntax", "Narrative", "Metaphor", "Simile",
+                "Organism", "Biology", "Evolution", "Ecology", "Genetics", "Species",
+                "Element", "Compound", "Chemical", "Reaction", "Bond", "Acid", "Base",
+                "Motion", "Gravity", "Velocity", "Acceleration", "Momentum", "Electromagnetism"
+            ];
+            const elements = symbols.concat(words);
+
+            function createFloatingElement(text) {
+                const el = document.createElement("div");
+                el.textContent = text;
+                el.className = "floating";
+                el.style.left = Math.random() * 100 + "vw";
+                el.style.fontSize = (Math.random() * 20 + 20) + "px"; // Random size between 20px and 40px
+                el.style.animationDuration = (Math.random() * 5 + 5) + "s";
+                el.style.animationDelay = Math.random() * 5 + "s";
+
+                document.body.appendChild(el); // Append to body to make it float around
+            }
+
+            function initFloatingElements() {
+                elements.forEach(element => createFloatingElement(element));
+                setInterval(() => {
+                    elements.forEach(element => createFloatingElement(element));
+                }, 50000); // Recreate elements every 10 seconds
+            }
+
+            function removeFloatingElements() {
+                document.querySelectorAll('.floating').forEach(el => el.remove());
+            }
+
+            // Function to fetch leaderboard data and update the DOM
+            function fetchLeaderboard() {
+                $.ajax({
+                    url: '/getLeaderboard',  // Adjust URL based on your Flask route
+                    type: 'GET',
+                    contentType: 'application/json',
+                    success: function(data) {
+                        // Clear existing leaderboard items
+                        $('#leaderboardList').empty();
+
+                        // Iterate through leaderboard data and create HTML elements
+                        data.forEach(function(item, index) {
+                            const leaderboardItem = `
+                                <div class="leaderboardItem">
+                                    <span class="rank">${index + 1}</span>
+                                    <img src="data:image/jpeg;base64,${item.image}" alt="${item.name}">
+                                    <div class="info">
+                                        <span class="name">${item.name}</span>
+                                        <span class="score">Score: ${item.score}</span>
+                                    </div>
+                                </div>`;
+                            $('#leaderboardList').append(leaderboardItem);
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error fetching leaderboard:", error);
+                    }
+                });
+            }
+
+            // Function to toggle between video and leaderboard
+            function toggleDisplay() {
+                $('#videoContainer').toggle();
+                $('#leaderboardContainer').toggle();
+                if ($('#videoContainer').is(':visible')) {
+                    removeFloatingElements();
+                } else {
+                    initFloatingElements();
+                }
+            }
+
+            // Initial fetch and start refreshing leaderboard
+            $(document).ready(function() {
+                fetchLeaderboard();
+                setInterval(fetchLeaderboard, 120000);  // 2 minutes in milliseconds
+
+                // Play video, then show leaderboard
+                $('#promoVideo').on('ended', function() {
+                    toggleDisplay();
+                    setTimeout(() => {
+                        toggleDisplay();
+                        this.play();
+                    }, 30000);  // Show leaderboard for 30 seconds
+                });
+
+                // Ensure video starts automatically
+                $('#promoVideo').get(0).play();
+            });
+        });
+    </script>
+</body>
+</html>

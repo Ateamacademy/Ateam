@@ -1,0 +1,533 @@
+<head>
+    <title>Lesson Files</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="static\css\lesson_files.css" />
+
+
+</head>
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+<style>
+    .bg-danger {
+        background-color: red;
+    }
+    .drop-zone {
+        border: 2px dashed #ccc;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        margin-bottom: 10px;
+    }
+    .drop-zone.dragover {
+        border-color: #000;
+    }
+</style>
+
+
+{% if uploadFiles %}
+<script>
+    function allowDrop(ev) {
+      ev.preventDefault();
+    }
+    
+    function drag(ev) {
+      ev.dataTransfer.setData("text", ev.target.id);
+    }
+    
+    function drop(ev, id) {
+      ev.preventDefault();
+      var data = ev.dataTransfer.getData("text");
+      ev.target.appendChild(document.getElementById(data));
+
+
+      //const table = document.querySelector('table');
+      //const rows = document.querySelectorAll('tr');
+      //const rowsArray = Array.from(rows);
+
+      //const rowIndex = ev.target.parentNode.setting 
+      //const columns = Array.from(rowsArray[rowIndex].querySelectorAll('td'));
+      //const columnIndex = columns.findIndex(column => column == event.target);
+      //console.log(rowIndex, columnIndex)
+
+      var numberPattern = /\d+/g;
+      var matches = id.match(numberPattern);
+      var weekNo = matches[0];
+      var subjectID = matches[1];
+
+      var newFolderPath = ev.target.getAttribute('name');
+      var movedButton = document.getElementById(data);
+      var filename = movedButton.getAttribute('name');
+      movedButton.onclick = function() {
+          openInNewTab('/files/' + newFolderPath + '/' + filename);
+      };
+
+      console.log(data)
+      console.log(subjectID)
+      console.log(weekNo)
+
+
+      $.ajax({
+        url:  '/moveFiles',
+        type: 'POST',
+        contentType : "application/json",
+        data: JSON.stringify({"fileID" : data, "newSubjectID" : subjectID, "newWeekNo" : weekNo}),
+        success: function(response) {} ,
+        error: function(error) { alert("Sorry the file could not be moved right now - please try again later") }
+    });
+
+    }
+</script>
+
+<script>
+    function handleDragOver(event) {
+        event.preventDefault();
+        event.currentTarget.classList.add('dragover');
+    }
+    
+    function handleDrop(event, week, subjectID) {
+        event.preventDefault();
+        event.currentTarget.classList.remove('dragover');
+        const files = event.dataTransfer.files;
+        if (files.length > 0) {
+            const fileInput = document.getElementById('fileInput-' + week + '-' + subjectID);
+            fileInput.files = files;
+            handleFileSelect({ target: fileInput }, fileInput);
+            //updateCellColors(); // Re-check colors after files are dropped
+
+        }
+    }
+    
+    function handleFileSelect(event, inputElement) {
+        const files = inputElement.files;
+        if (files.length > 0) {
+            const cell = inputElement.closest('td');
+            const subjectID = cell.getAttribute('data-subject-id');
+            const weekNo = cell.getAttribute('data-week-no');
+            const subjectName = cell.getAttribute('name');
+    
+            uploadFiles(files, subjectID, weekNo, cell, subjectName);
+            //updateCellColors(); // Re-check colors after files are dropped
+
+        }
+    }
+    
+    function uploadFiles(files, subjectID, weekNo, cell, subjectName) {
+        const progressContainer = cell.querySelector(`#progressContainer-${weekNo}-${subjectID}`);
+        const progressBar = cell.querySelector(`#progressBar-${weekNo}-${subjectID}`);
+        progressContainer.style.display = 'block';
+    
+        let totalSize = 0;
+        let loadedSize = 0;
+    
+        Array.from(files).forEach(file => {
+            totalSize += file.size;
+    
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('subjectID', subjectID);
+            formData.append('weekNo', weekNo);
+            formData.append('days', 'all');
+            formData.append('studentView', 'true');
+    
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/uploadForAll?subjectID=' + subjectID + '&weekNo=' + weekNo, true);
+    
+            xhr.upload.onprogress = function(event) {
+                if (event.lengthComputable) {
+                    const percentComplete = (loadedSize + event.loaded) / totalSize * 100;
+                    progressBar.style.width = percentComplete + '%';
+                }
+            };
+    
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    const fileID = response.fileID;
+                    const filename = response.filename;
+                    const newButton = document.createElement('button');
+                    newButton.id = fileID;
+                    newButton.className = "btn btn-link filename mb-2";
+                    newButton.style.whiteSpace = "normal";
+                    newButton.style.wordWrap = "break-word";
+                    newButton.oncontextmenu = function(event) { customContext(event, fileID); };
+                    newButton.onclick = function() { openInNewTab('/files/' + encodeURIComponent(subjectName) + '/' + filename); };
+                    newButton.draggable = true;
+                    newButton.ondragstart = function(event) { drag(event); };
+                    newButton.name = filename;
+                    newButton.textContent = filename + " - all";
+                    progressBar.style.display = "none";
+                    cell.appendChild(newButton);
+    
+                    console.log('File successfully uploaded');
+                } else {
+                    console.error('File upload failed');
+                }
+                if (loadedSize === totalSize) {
+                    progressContainer.style.display = 'none';
+                }
+            };
+    
+            xhr.send(formData);
+            //updateCellColors(); // Re-check colors after files are dropped
+
+        });
+    }
+    </script>
+{% endif %}
+
+{% if lessonPlanAllowed %}
+<script>
+    function changeToInput(id) {
+        value = document.getElementById(id).innerHTML;
+        div = document.createElement("div"); div.classList.add("row");
+        col1 = document.createElement("div"); col1.classList.add("col-10");
+        col2 = document.createElement("div"); col2.classList.add("col-2");
+        
+        input = document.createElement("input");
+        input.setAttribute("id", id);
+        input.value = value; 
+        input.setAttribute("style", "width: 100%");
+
+        col1.append(input);
+
+        button = document.createElement("button"); button.classList.add("btn", "btn-success");
+        button.setAttribute("onclick", "updateTopic('" + id + "')");
+        button.setAttribute("id", id + "button");
+        button.innerHTML = "Save";
+
+        col2.append(button);
+
+        div.append(col1)
+        div.append(col2)
+
+
+        document.getElementById(id).replaceWith(div)
+        input.focus()
+    }
+
+
+    function updateTopic(id) {
+        newTopic = document.getElementById(id).value;
+
+        var numberPattern = /\d+/g;
+        var matches = id.match(numberPattern);
+        var weekNo = matches[0];
+        var subjectID = matches[1];
+
+        $.ajax({
+            url:  '/updateLessonPlan/' + subjectID,
+            type: 'POST',
+            contentType : "application/json",
+            data: JSON.stringify([[weekNo, newTopic]]),
+            success: function(response) {
+                input = document.getElementById(id);
+                p = document.createElement("p");
+                p.innerHTML = input.value;
+                p.setAttribute("id", id);
+                p.classList.add("font-weight-bold");
+                p.setAttribute("ondblclick", "changeToInput(this.id)");
+
+                input.replaceWith(p);
+
+                button = document.getElementById(id + "button");
+                button.remove();
+            } ,
+            error: function(error) { alert("Sorry the lesson plan could not be updated right now") }
+        });
+    }
+</script>
+
+<script>
+
+    document.onclick = hideMenu;
+
+    function hideMenu() { 
+        document.getElementById("contextMenu") 
+                .style.display = "none" 
+    } 
+
+    function customContext(e, id) {
+        e.preventDefault(); 
+
+        if (document.getElementById("contextMenu") .style.display == "block"){ 
+            hideMenu(); 
+        }else{ 
+            var menu = document.getElementById("contextMenu")      
+            menu.style.display = 'block'; 
+            menu.style.left = e.pageX + "px"; 
+            menu.style.top = e.pageY + "px"; 
+
+            button = document.getElementById(id);
+
+            if(button.classList.contains("btn-outline-danger")) {
+                document.getElementById("hideFromAllButton").setAttribute("onclick", "editFile(".concat(id).concat(", 'hide_from_all', false)"));
+                document.getElementById("hideFromAllButton").innerHTML = '<i class="fa fa-share" aria-hidden="true"></i> Unhide from All';
+            }
+            else {
+                document.getElementById("hideFromAllButton").setAttribute("onclick", "editFile(".concat(id).concat(", 'hide_from_all', true)"));
+                document.getElementById("hideFromAllButton").innerHTML = '<i class="fa fa-share" aria-hidden="true"></i> Hide from All';
+            }
+
+            if(button.classList.contains("btn-outline-secondary")) {
+                document.getElementById("hideFromStudentsButton").setAttribute("onclick", "editFile(".concat(id).concat(", 'studentview', true)"));
+                document.getElementById("hideFromStudentsButton").innerHTML = '<i class="fa fa-share" aria-hidden="true"></i> Unhide from Students';
+            }
+            else {
+                document.getElementById("hideFromStudentsButton").setAttribute("onclick", "editFile(".concat(id).concat(", 'studentview', false)"));
+                document.getElementById("hideFromStudentsButton").innerHTML = '<i class="fa fa-share" aria-hidden="true"></i> Hide from Students';
+            }
+
+            if(button.classList.contains("auto_print")) {
+                document.getElementById("printButton").setAttribute("onclick", "editFile(".concat(id).concat(", 'auto_print', false)"));
+                document.getElementById("printButton").innerHTML = '<i class="fa fa-share" aria-hidden="true"></i> Remove Auto print';
+            }
+            else {
+                document.getElementById("printButton").setAttribute("onclick", "editFile(".concat(id).concat(", 'auto_print', true)"));
+                document.getElementById("printButton").innerHTML = '<i class="fa fa-share" aria-hidden="true"></i> Auto Print';
+            }
+
+            document.getElementById("deleteButton").setAttribute("onclick", "editFile(".concat(id).concat(", 'delete', true)"));
+            document.getElementById("notesButton").setAttribute("onclick", "editFile(".concat(id).concat(", 'type', 'notes')"));
+            document.getElementById("mainButton").setAttribute("onclick", "editFile(".concat(id).concat(", 'type', 'main')"));
+            document.getElementById("starterButton").setAttribute("onclick", "editFile(".concat(id).concat(", 'type', 'starter')"));
+            document.getElementById("homeworkButton").setAttribute("onclick", "editFile(".concat(id).concat(", 'type', 'homework')"));
+            document.getElementById("weekButton").setAttribute("onclick", "editFile(".concat(id).concat(", 'classtype', 'week')"));
+            document.getElementById("weekendButton").setAttribute("onclick", "editFile(".concat(id).concat(", 'classtype', 'weekend')"));
+            document.getElementById("allButton").setAttribute("onclick", "editFile(".concat(id).concat(", 'classtype', 'all')"));
+
+
+        } 
+    }
+
+
+    function editFile(id, key, value) {
+        $.ajax({
+            url:  '/editFiles',
+            type: 'POST',
+            contentType : "application/json",
+            data: JSON.stringify({"fileID" : id, "key" : key, "value" : value}),
+            success: function(response) {
+                if(key == "hide_from_all" && value == true) {
+                    button = document.getElementById(id);
+                    button.classList = "";
+                    button.classList.add("btn", "btn-outline-danger", "filename");
+                }
+                if(key == "hide_from_all" && value == false) {
+                    button = document.getElementById(id);
+                    button.classList = "";
+                    button.classList.add("btn", "btn-link", "filename");
+                }
+                
+                if(key == "studentview" && value == false) {
+                    button = document.getElementById(id);
+                    button.classList = "";
+                    button.classList.add("btn", "btn-outline-secondary", "filename");
+                    button.style.border = "none";
+                }
+
+                if(key == "auto_print" && value == true) {
+                    button = document.getElementById(id);
+                    button.classList = "";
+                    button.classList.add("btn", "btn-link", "filename", "auto_print");
+                    
+                    const printIcon = document.createElement("i");
+                    printIcon.className = "fa fa-print text-success mr-2"; // Icon styling
+                    printIcon.setAttribute("aria-hidden", "true");
+                    printIcon.id = `print-icon-${id}`;
+                
+                    // Prepend the icon to the button content
+                    button.prepend(printIcon);
+                }
+                if(key == "auto_print" && value == false) {
+                    button = document.getElementById(id);
+                    button.classList = "";
+                    button.classList.add("btn", "btn-outline-secondary", "filename");
+                    button.classList.remove("auto_print");
+                    button.style.border = "none";
+                    const printIcon = document.getElementById(`print-icon-${id}`);
+                    if (printIcon) {
+                        printIcon.remove();
+                    }
+                }
+                if(key == "studentview" && value == true) {
+                    button = document.getElementById(id);
+                    button.classList = "";
+                    button.classList.add("btn", "btn-link", "filename");
+                }
+        
+                if(key == "delete") {
+                    button = document.getElementById(id);
+                    button.style.display="none";
+                }
+
+                if(key == "classtype") {
+                    button = document.getElementById(id);
+                    name = button.innerHTML;
+                    let lastIndex = name.lastIndexOf('-');
+
+                    if (lastIndex !== -1) {
+                        let newSubstring = value;
+                        button.innerHTML = name.substring(0, lastIndex + 1) + " " + newSubstring;
+                    }
+                    
+                }
+            } ,
+            error: function(error) { alert("Sorry the file could not be updated right now - please try again later. If the issue persists contact Safwaan") }
+        });
+    }
+
+    
+
+</script>
+{% endif %}
+
+<div class="card" style = "max-height: 90vh;">
+    <div class="card-body" style = "overflow-x: auto; overflow-y: scroll">
+        <div id = "table">     
+            <table>
+                <tr>
+                    <td class="sticky-col">Week No</td>
+                    {% for subjectID, data in files.items() %}
+                    <th>{{ subjectID }} - {{ subjectNames[subjectID|int] }}</th>
+                    {% endfor %}
+                </tr>
+                {% for week in range(1, 53) %}
+                <tr>
+                    <td class="sticky-col"><strong> Week {{ week }}: </strong>{{ dates[week] }} </td>
+            
+                    {% for subjectID, data in files.items() %}
+                    <td id="week{{ week }}-subjectID{{ subjectID }}" 
+                        ondrop="drop(event, this.id)" 
+                        ondragover="allowDrop(event)" 
+                        name="{{ data[0] if data is not none else '' }}" 
+                        data-subject-id="{{ subjectID }}" 
+                        data-week-no="{{ week }}" 
+                        data-has-files="{% if data is not none and data[2:]|selectattr('weekNo', 'equalto', week)|list|length > 0 %}true{% else %}false{% endif %}"
+                        data-lesson-exists="{{ subjectID in lessons_by_subject and (week in lessons_by_subject[subjectID] or -1 in lessons_by_subject[subjectID]) }}">
+                          
+                        {% if data is not none %}
+                            <!-- Display topics -->
+                            {% for topic in data[1] %}
+                                {% if topic.weekNo == week %}
+                                    {% if topic.topic != "-" %}
+                                    <p id="week{{ week }}-subjectID{{ subjectID }}-topic" ondblclick="changeToInput(this.id)" class="font-weight-bold"> {{ topic.topic }} </p>
+                                    {% else %}
+                                    <p id="week{{ week }}-subjectID{{ subjectID }}-topic" ondblclick="changeToInput(this.id)" class="font-weight-bold"> ~ NO SET TOPIC ~ </p>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+            
+                            <!-- Display files if they exist -->
+                            {% for file_data in data[2:] %}
+                                {% if file_data.weekNo == week %}
+                                <button id="{{ file_data.id }}" class="btn {% if file_data.hide_from_all %}btn-outline-danger{% elif file_data.studentView %}btn-link{% else %}btn-outline-secondary{% endif %} {% if file_data.auto_print %} auto_print {% endif %} filename mb-2" style="white-space: normal; word-wrap: break-word;" oncontextmenu="customContext(event, this.id)" onclick="openInNewTab('/files/{{ data[0] + '/' + file_data.filename }}')" draggable="true" ondragstart="drag(event)" name="{{ file_data.filename }}">
+                                    {% if file_data.auto_print %}
+                                        <i id ='print-icon-{{file_data.id}}' class="fa fa-print text-success"></i>
+                                    {% endif %}
+                                    {{ file_data.filename }} - {{ file_data.classtype }}
+                                </button><br>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+            
+                        {% if uploadFiles %}
+                        <div class="drop-zone" ondrop="handleDrop(event, {{ week }}, {{ subjectID }})" ondragover="handleDragOver(event)" onclick="document.getElementById('fileInput-{{ week }}-{{ subjectID }}').click()">
+                            Drag and drop files here or click to upload
+                        </div>
+                        {% endif %}
+                        <input type="file" id="fileInput-{{ week }}-{{ subjectID }}" multiple style="display: none;" onchange="handleFileSelect(event, this)" />
+                        <div id="progressContainer-{{ week }}-{{ subjectID }}" style="display: none; margin-top: 10px;">
+                            <div id="progressBar-{{ week }}-{{ subjectID }}" style="width: 0%; height: 20px; background: #4caf50;"></div>
+                        </div>
+            
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openInNewTab(url) {
+        window.open(url, '_blank');
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Get all the table cells
+        const tableCells = document.querySelectorAll('td[data-has-files][data-lesson-exists]');
+    
+        function updateCellColors() {
+            tableCells.forEach(function(cell) {
+                const hasFiles = cell.getAttribute('data-has-files') === "true"; // Check if files exist
+                const lessonExists = cell.getAttribute('data-lesson-exists') === "True"; // Check if lesson exists
+    
+                // Apply smooth transition
+                cell.style.transition = "background-color 0.5s ease";
+    
+                // If lesson exists but no files are available, color the cell red
+                if (lessonExists && !hasFiles) {
+                    cell.style.backgroundColor = '#e8b4b0';
+                } else {
+                    cell.style.backgroundColor = ''; // Reset if condition doesn't match
+                }
+            });
+        }
+    
+        // Run the color update function on initial load
+        updateCellColors();
+    
+        // Set up an observer to monitor changes to `data-has-files` or `data-lesson-exists`
+        const observer = new MutationObserver(updateCellColors);
+    
+        // Define observer options to watch for attribute changes
+        const observerConfig = { attributes: true, attributeFilter: ['data-has-files', 'data-lesson-exists'] };
+    
+        // Observe each cell
+        tableCells.forEach(function(cell) {
+            observer.observe(cell, observerConfig);
+        });
+    });
+</script>
+
+
+<div id="contextMenu" class="context-menu" style="display: none"> 
+    <ul class="menu"> 
+        <li class="share"><a><i class="fa fa-share danger" aria-hidden="true"></i> Change classtype to: </a></li>
+        <li class="share"><a id="weekButton" href='javascript:;'><i class="fa fa-share danger" aria-hidden="true"></i> Week </a></li>
+        <li class="share"><a id="weekendButton" href='javascript:;'><i class="fa fa-share danger" aria-hidden="true"></i> Weekend </a></li>
+        <li class="share"><a id="allButton" href='javascript:;'><i class="fa fa-share danger" aria-hidden="true"></i> All </a></li>
+        <hr>
+        <li class="share"><a id="hideFromStudentsButton" href='javascript:;'><i class="fa fa-share" aria-hidden="true"></i> Hide From Students </a></li> 
+        <li class="share"><a id="hideFromAllButton" href='javascript:;'><i class="fa fa-share" aria-hidden="true"></i> Hide From All </a></li>
+        <li class="share"><a id="printButton" href='javascript:;'><i class="fa fa-share danger" aria-hidden="true"></i> Auto Print </a></li>
+        <li class="share"><a id="deleteButton" href='javascript:;'><i class="fa fa-share danger" aria-hidden="true"></i> Delete </a></li>
+
+        <hr>
+        <li class="share"><a><i class="fa fa-share danger" aria-hidden="true"></i> Convert to: </a></li>
+        <li class="share"><a id="notesButton" href='javascript:;'><i class="fa fa-share danger" aria-hidden="true"></i> Notes </a></li>
+        <li class="share"><a id="mainButton" href='javascript:;'><i class="fa fa-share danger" aria-hidden="true"></i> Main </a></li>
+        <li class="share"><a id="starterButton" href='javascript:;'><i class="fa fa-share danger" aria-hidden="true"></i> Starter </a></li>
+        <li class="share"><a id="homeworkButton" href='javascript:;'><i class="fa fa-share danger" aria-hidden="true"></i> Homework </a></li>
+        <hr>
+
+
+
+
+
+        <!-- <li class="rename"><a href="#"><i class="fa fa-pencil" aria-hidden="true"></i> Rename</a></li> 
+        <li class="link"><a href="#"><i class="fa fa-link" aria-hidden="true"></i> Copy Link Address</a></li> 
+        <li class="copy"><a href="#"><i class="fa fa-copy" aria-hidden="true"></i> Copy to</a></li> 
+        <li class="paste"><a href="#"><i class="fa fa-paste" aria-hidden="true"></i> Move to</a></li> 
+        <li class="download"><a href="#"><i class="fa fa-download" aria-hidden="true"></i> Download</a></li> 
+        <li class="trash"><a href="#"><i class="fa fa-trash" aria-hidden="true"></i> Delete</a></li>  -->
+    </ul> 
+</div> 
+
+
+{% endblock %}

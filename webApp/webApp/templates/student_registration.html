@@ -1,0 +1,1388 @@
+<html lang="en">
+    <head>
+    <title>New Student Registration</title>
+    <meta charset="utf-8">
+
+    
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    
+    </head>
+
+    <style>
+      body {
+        background: linear-gradient(-45deg, #00f7ff, #0091ff, #6a00ff, #ff00ea);
+        background-size: 300% 300%;
+        animation: gradient 15s ease infinite;
+      }
+      
+      @keyframes gradient {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+    .card { 
+      background: none;
+      border: none;
+      padding: 10%;
+      padding-top: 5%;
+      height: 90%;
+      margin-left: 10%;
+      margin-right: 10%;
+      overflow-y: auto; /* Enable vertical scrolling */
+      max-height: calc(100vh - 20%); /* Adjust max-height to fit within viewport */
+  }
+
+
+    .underline-input {
+        border: none;
+        border-bottom: 2px solid white; /* Underline */
+        background: none;
+        outline: none; /* Remove default outline */
+        padding: 5px 0; /* Space for underline visibility */
+        transition: border-bottom-color 0.3s ease; /* Smooth transition */
+        color:white;
+        font-size: 24px; /* Larger font size */
+        width: 100%; /* Full width input */
+    }
+    
+      .underline-input:focus {
+        border-bottom: 2px solid blue; /* Change underline color on focus */
+        outline: none; /* Remove default outline */
+      }
+
+        /* Specific styling for the select dropdown */
+    .underline-select {
+        border: none;
+        border-bottom: 2px solid white;
+        background: none;
+        outline: none;
+        padding: 10px 0;
+        transition: border-bottom-color 0.3s ease;
+        color: white;
+        font-size: 18px;
+        width: 100%;
+        -webkit-appearance: none; /* Remove default arrow in webkit browsers */
+        -moz-appearance: none; /* Remove default arrow in firefox */
+        appearance: none; /* Remove default arrow in all browsers */
+    }
+
+    .underline-select:focus {
+        border-bottom: 2px solid blue;
+        outline: none;
+    }
+
+    .transparent-button {
+      background: none;
+      border: 2px solid white; /* White outline */
+      color: white;
+      padding: 15px 30px; /* Large button size */
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Smooth transitions */
+    }
+    
+    .transparent-button:hover {
+      background-color: white;
+      color: #333; /* Dark background color on hover */
+      border-color: white;
+    }
+    
+    .transparent-button.selected {
+      background-color: white;
+      color: #333; /* Dark text color when selected */
+      border-color: white;
+    }
+
+
+    .underline-select option {
+        background: #333; /* Same background as body for options */
+        color: white;
+    }
+
+    h1, h2, h3, h4, p, label {
+        color: white;
+    }
+    
+    .delete-icon {
+      cursor: pointer;
+      color: red;
+      font-size: 20px;
+      margin-left: 10px;
+    }
+
+    .form-check-input {
+      width: 24px;
+      height: 24px;
+    }
+    
+    .form-check-label {
+      font-size: 1.25rem; /* Increase font size */
+      padding-left: 10px; /* Space between checkbox and label */
+    }
+    
+    .underline-input {
+      font-size: 1.25rem; /* Increase font size */
+      padding: 10px; /* Increase padding */
+      width: 100%;
+    }
+    
+    .form-row {
+      margin-bottom: 15px; /* Space between rows */
+    }
+    
+    #allergyInfoDiv, #extra_info_div {
+      margin-top: 10px;
+    }
+    
+    @media (min-width: 768px) {
+      .form-check-input {
+        width: 28px;
+        height: 28px;
+      }
+    
+      .form-check-label {
+        font-size: 1.5rem; /* Further increase font size for larger screens */
+      }
+    
+      .underline-input {
+        font-size: 1.5rem; /* Further increase font size for larger screens */
+        padding: 12px; /* Increase padding */
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .card { 
+          padding: 5%;
+          margin-left: 5%;
+          margin-right: 5%;
+      }
+  
+      .underline-input {
+          font-size: 20px; /* Slightly smaller font size */
+      }
+      
+      .underline-select {
+          font-size: 16px; /* Slightly smaller font size */
+      }
+  
+      .transparent-button {
+          padding: 10px 20px; /* Smaller button size */
+          font-size: 16px;
+      }
+  
+      .form-check-input {
+          width: 20px;
+          height: 20px;
+      }
+  
+      .form-check-label {
+          font-size: 1rem; /* Adjust font size */
+      }
+    }
+    
+    @media (max-width: 768px) {
+        .card { 
+            padding: 5%;
+            margin-left: 2.5%;
+            margin-right: 2.5%;
+        }
+    
+        .underline-input {
+            font-size: 18px; /* Smaller font size */
+        }
+        
+        .underline-select {
+            font-size: 14px; /* Smaller font size */
+        }
+    
+        .transparent-button {
+            padding: 8px 16px; /* Smaller button size */
+            font-size: 14px;
+        }
+    
+        .form-check-input {
+            width: 18px;
+            height: 18px;
+        }
+    
+        .form-check-label {
+            font-size: 0.875rem; /* Adjust font size */
+        }
+    }
+    
+    .filters {
+      margin-bottom: 20px;
+    }
+    
+    .filters select {
+      margin-right: 10px;
+    }
+    
+    .lessons-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    
+    .lesson-button {
+      background-color: #f8f9fa;
+      border: 1px solid #ced4da;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+    }
+    
+    .lesson-button:hover {
+      background-color: #e2e6ea;
+    }
+
+    ::placeholder {
+      color: white ;
+      opacity: 1; /* Firefox */
+    }
+
+    </style>
+  
+    <script>
+      function validateForm(event) {
+        var currentSlide = document.querySelector('.carousel-item.active');
+        var inputs = currentSlide.querySelectorAll('input[required], select[required]');
+        var isValid = true;
+  
+        inputs.forEach(function (input) {
+          if (!input.value) {
+            input.style.borderColor = "red";
+            isValid = false;
+          } else {
+            input.style.borderColor = "";
+          }
+        });
+  
+        var emailsDifferent = student.value !== parent.value;
+  
+        if (!isValid) {
+          alert("Please fill out all required fields.");
+          event.preventDefault();
+        } else if (!emailsDifferent) {
+          alert("Student email and Parent email must be different.");
+          event.preventDefault();
+        } else {
+          document.getElementById("nextButton").setAttribute("data-slide", "next");
+          //$('#carouselExampleIndicators').carousel('next');
+        }
+      }
+  
+
+
+    </script>
+
+    <body>
+        <div id="bg" style = "z-index: -1;">
+          <canvas></canvas>
+          <canvas></canvas>
+          <canvas></canvas>
+        </div>
+        <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel" data-interval=false>
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <div class="card">
+                            <div class="row mb-4"> 
+                              <div class="col"> <input id="student_firstname" placeholder="First name... *" class="underline-input" required> </div>
+                              <div class="col"> <input id="student_middlename" placeholder="Middle name..." class="underline-input"> </div>
+                              <div class="col"> <input id="student_lastname" placeholder="Last name... *" class="underline-input" required>  </div>
+                            </div>
+
+                            <div class="row mb-4"> 
+                              
+                              <div class="col"> 
+                                <p>  </p>
+                                <input id="student_known_as" placeholder="Known as..." class="underline-input">  
+                              </div>
+
+                              <div class="col-sm">
+                                <p> Gender: *</p>
+                                  <select id="student_gender" class="underline-select " data-default="choose an option" required>
+                                    <option value = "" selected> Choose an option </option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                  </select>
+                              </div>
+
+                              <div class="col-sm">
+                                <p> Ethnic Origin *</p>
+                                  <select id="student_ethnic_origin" class="underline-select " name="ethnic_origin" required>
+                                    <option value = "" selected> Choose an option </option>
+                                    <option value="English / Welsh / Scottish / Northern Irish / British">English / Welsh / Scottish / Northern Irish / British</option>
+                                    <option value="Irish">Irish</option>
+                                    <option value="Gypsy or Irish Traveller">Gypsy or Irish Traveller</option>
+                                    <option value="Any other White background">Any other White background</option>
+                                    <option value="White and Black Caribbean">White and Black Caribbean</option>
+                                    <option value="White and Black African">White and Black African</option>
+                                    <option value="White and Asian">White and Asian</option>
+                                    <option value="Any other Mixed / Multiple ethnic background">Any other Mixed / Multiple ethnic background</option>
+                                    <option value="Indian">Indian</option>
+                                    <option value="Pakistani">Pakistani</option>
+                                    <option value="Bangladeshi">Bangladeshi</option>
+                                    <option value="Chinese">Chinese</option>
+                                    <option value="Any other Asian background">Any other Asian background</option>
+                                    <option value="African">African</option>
+                                    <option value="Caribbean">Caribbean</option>
+                                    <option value="Any other Black / African / Caribbean background">Any other Black / African / Caribbean background</option>
+                                    <option value="Arab">Arab</option>
+                                    <option value="Any other ethnic group">Any other ethnic group</option>
+                                  </select>
+                              </div>
+                            </div>
+                        
+                            <div class="row even-distribute">
+                            <div class="col-sm">  <p><input id="student_email" placeholder="Student Email... *"  type="email" onchange="oneEmail()" class="underline-input" required></p> </div>
+                            <div class="col-sm">  <p><input id="parent_email" placeholder="Parent Email... *"  type="email" onchange="oneEmail()"  class="underline-input" required></p> </div>
+                          </div>
+                          <div class="row" id = "differentEmails" style="display:none;"> <p style="color:red;"> The students email and the parents email should be different! </p> </div>
+              
+                          <script>
+                            var email = false;
+                            student = document.getElementById('student_email');
+                            parent = document.getElementById('parent_email');
+                            differentEmails = document.getElementById('differentEmails');
+              
+                            function oneEmail() {
+                              //if(student.value != "") {
+                              //  parent.required = false;
+                              //  student.required = true;
+                              // }
+                              //else if(parent.value != "") {
+                              //  parent.required = true;
+                              //  student.required = false;
+                              // }
+              
+                              if(student.value == parent.value) {
+                                differentEmails.style.display = "block"; 
+                              }
+                              else {
+                                differentEmails.style.display = "none"; 
+                              }
+                            }
+              
+                          </script>
+              
+                          <div class="row ">
+                            <div class="col-sm"> 
+                              <p> What Year group is your child in? *</p>
+                              <select aria-placeholder="Year Group" class="underline-select" id="student_year_group" required>
+                                {% for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] %} 
+                                  <option value="{{i}}"> {{ i }} </option>
+                                {% endfor %}
+                                  <option value="Group Not Known"> N/A </option>
+                              </select>
+                            </div>
+
+                            <div class="col-sm "> 
+                              <p> Date of Birth: *</p>
+                              <p> </p>
+                              <p><input id = "student_dob" placeholder="dd" type="date" class="underline-input" required></p> 
+                            </div>
+                          </div>
+                    </div>
+                </div>
+    
+                <div class="carousel-item">
+                    <div class = "card">
+                        <div class="row-sm mb-4"> <input id="student_house_no" placeholder="House Number...*"  class="underline-input" required> </div>
+                        <div class="row-sm mb-4"> <input id="student_street" placeholder="Street Name...*"  class="underline-input" required> </div>
+                        <div class="row-sm mb-4"> <input id="student_postcode" placeholder="Postcode...*"  class="underline-input" required> </div>
+                        <div class="row-sm mb-4"> <input id="student_city" placeholder="City / County...*"  class="underline-input" required> </div>
+                         <p> Mode of Transport <i class="bi bi-chevron-down"></i></p>
+                         <select id="student_transport" class="underline-select" placeholder="Method of transport..."  > 
+                          <option value = "" selected> Choose an option </option>
+                          <option value="Car"> Car </option>
+                          <option value="Bus"> Bus </option> 
+                          <option value="Train">Train </option> 
+                          <option value="Walking">Walking </option> 
+                          <option value="Other"> Other </option> 
+                        </select>
+                    </div>
+                </div>
+
+                <div class="carousel-item">
+                  <div class="card">
+                    <script>
+                      function selectButton4(button) {
+                        // Get all buttons with the class 'multiple-children'
+                        var buttons = document.querySelectorAll('.multiple-children');
+                        
+                        // Remove the 'selected' class from all buttons
+                        buttons.forEach(function(btn) {
+                          btn.classList.remove('selected');
+                        });
+                        
+                        // Add the 'selected' class to the clicked button
+                        button.classList.add('selected');
+                
+                        // Show or hide the siblings table and add sibling button based on the selection
+                        if (button.innerText === "Yes") {
+                          document.getElementById('siblings-table').style.display = 'table';
+                          document.getElementById('add-sibling-btn').style.display = 'inline-block';
+                          if (document.getElementById('siblings-table-body').rows.length === 0) {
+                            addSibling(); // Add the first sibling row if it doesn't exist
+                          }
+                        } else {
+                          document.getElementById('siblings-table').style.display = 'none';
+                          document.getElementById('add-sibling-btn').style.display = 'none';
+                          clearSiblings(); // Clear all sibling rows
+                        }
+                      }
+                
+                      function addSibling() {
+                        var table = document.getElementById('siblings-table-body');
+                        var rowCount = table.rows.length;
+                        
+                        if (rowCount < 4) {
+                          var row = table.insertRow(rowCount);
+                          row.innerHTML = `
+                            <td scope="row"><p>Sibling ${rowCount + 1}</p></td>
+                            <td><div class="col-sm"><p><input id="sibling_${rowCount + 1}_first_name" placeholder="First Name..." class="underline-input"></p></div></td>
+                            <td><div class="col-sm"><p><input id="sibling_${rowCount + 1}_second_name" placeholder="Second Name..." class="underline-input"></p></div></td>
+                            <td><p><input id="sibling_${rowCount + 1}_dob" placeholder="dd" type="date" class="underline-input"></p></td>
+                            <td><div class="col-sm"><p><input id="sibling_${rowCount + 1}_year" placeholder="Year Group..." class="underline-input"></p></div></td>
+                            <td>
+                              <select id="sibling_${rowCount + 1}_gender" placeholder="Gender..." class="underline-select">
+                                <option value="" selected>Choose an option</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                              </select>
+                            </td>
+                            <td><div class="col-sm"><p><input id="sibling_${rowCount + 1}_email" placeholder="Email..." class="underline-input"></p></div></td>
+                            <td><span class="delete-icon" onclick="deleteSibling(this)">&#10006;</span></td>
+                          `;
+                        }
+                      }
+                
+                      function deleteSibling(element) {
+                        var row = element.parentNode.parentNode;
+                        row.parentNode.removeChild(row);
+                        
+                        // Update sibling numbers
+                        var table = document.getElementById('siblings-table-body');
+                        for (var i = 0; i < table.rows.length; i++) {
+                          table.rows[i].cells[0].innerText = `Sibling ${i + 1}`;
+                        }
+                      }
+                
+                      function clearSiblings() {
+                        var table = document.getElementById('siblings-table-body');
+                        table.innerHTML = '';
+                      }
+                    </script>
+                
+                    <p>Where does the student currently go to School</p>
+                    <div class="row-sm mb-4">
+                      <p><input id="school_1_name" placeholder="School Name..." class="underline-input"></p>
+                    </div>
+                
+                    <p>Do you wish to register multiple children in one go?</p>
+                    <div class="row mb-3">
+                      <button id = "auto_register" class="transparent-button multiple-children mr-3" onclick="selectButton4(this)">Yes</button>
+                      <button class="transparent-button multiple-children" onclick="selectButton4(this)">No</button>
+                    </div>
+                
+                    <table class="table" id="siblings-table" style="display:none;">
+                      <thead>
+                        <th scope="col-sm"></th>
+                        <th scope="col-sm"><p>First Name</p></th>
+                        <th scope="col-sm"><p>Second Name</p></th>
+                        <th scope="col-sm"><p>Birthday</p></th>
+                        <th scope="col-sm"><p>Year Group</p></th>
+                        <th scope="col-sm"><p>Gender</p></th>
+                        <th scope="col-sm"><p>Email Address</p></th>
+                        <th scope="col-sm"></th>
+                      </thead>
+                      <tbody id="siblings-table-body">
+                        <!-- Rows will be added here dynamically -->
+                      </tbody>
+                    </table>
+                    <button id="add-sibling-btn" class="transparent-button" style="display:none;" onclick="addSibling()">+ Add Sibling</button>
+                  </div>
+                </div>
+                
+                <div class="carousel-item">
+                    <div class = "card">
+                      <div class="card-content">
+                        <script>
+                            function toggleAllergies() {
+                              if(document.getElementById('allergies').checked == true) {
+                                document.getElementById('allergyInfoDiv').style.display="Inline"
+                              }
+                              else {
+                                document.getElementById("allergyInfoDiv").style.display="None"
+                              }
+                            };
+                    
+                            function toggleExtraInfo() {
+                              if(document.getElementById('speech_or_hearing_difficulties').checked == false && document.getElementById('mobility_difficulties').checked == false && document.getElementById('other_difficulties').checked == false) {
+                                document.getElementById('extra_info_div').style.display="None"
+                              }
+                              else {
+                                document.getElementById("extra_info_div").style.display="Inline"
+                              }
+                            }
+
+                            function toggleBehaviour() {
+                              if(document.getElementById('behaviour_difficulties').checked == true) {
+                                document.getElementById('behaviourInfo_div').style.display="Inline"
+                              }
+                              else {
+                                document.getElementById("behaviourInfo_div").style.display="None"
+                              }
+                            };
+              
+                            function toggleSEN() {
+                              if(document.getElementById('SEN').checked == true) {
+                                document.getElementById('SEN_extra_info_div').style.display="Inline"
+                              }
+                              else {
+                                document.getElementById("SEN_extra_info_div").style.display="None"
+                              }
+                            };
+
+                            function selectButton(button) {
+                              // Get all buttons with the class 'transparent-button'
+                              var buttons = document.querySelectorAll('.normally-healthy');
+                              
+                              // Remove the 'selected' class from all buttons
+                              buttons.forEach(function(btn) {
+                                btn.classList.remove('selected');
+                              });
+                              
+                              // Add the 'selected' class to the clicked button
+                              button.classList.add('selected');
+                            }
+
+                            
+                          </script>
+
+                          <div class="row">
+                              <p> Is your child normally healthy? </p>
+                              <!-- <input id="normally_healthy" class="form-check-input checkbox" type="checkbox" value="" id="" class="underline-input"> -->
+                          </div>
+                          <div class="row mb-3">
+                            <button id = "normally_healthy" class="transparent-button normally-healthy mr-3" onclick="selectButton(this)">Yes</button>
+                            <button class="transparent-button normally-healthy" onclick="selectButton(this)">No</button>
+                          </div>
+            
+                          <p> Has your child had any of the following? </p>
+                          
+                          <div class="row">
+                            <div class="col">
+                              <div class="form-row">  
+                                <input id="asthma" class="form-check-input checkbox" type="checkbox">
+                                <label class="form-check-label" for="asthma"> Asthma </label>
+                              </div>
+                              <div class="form-row">  
+                                <input id="epilepsy" class="form-check-input checkbox" type="checkbox">
+                                <label class="form-check-label" for="epilepsy"> Epilepsy / Fits </label>
+                              </div>
+                              <div class="form-row">  
+                                <input id="heart_problems" class="form-check-input checkbox" type="checkbox">
+                                <label class="form-check-label" for="heart_problems"> Heart Problems </label>
+                              </div>
+                              <div class="form-row">  
+                                <input id="allergies" class="form-check-input checkbox" type="checkbox" onclick='toggleAllergies()'>
+                                <label class="form-check-label" for="allergies"> Allergies </label>
+                              </div>
+                              <div id="allergyInfoDiv" style="display:none;"> 
+                                <p><input id="allergyInfo" placeholder="Please provide more information on the allergies..." class="underline-input"></p> 
+                              </div>
+                              <div class="form-row">
+                                <input id="SEN" class="form-check-input checkbox" type="checkbox" value="" id="" onclick="toggleSEN()">
+                                <label class="form-check-label" for="flexCheckChecked"> Special Educational Needs </label>
+                              </div>
+                              <div id="SEN_extra_info_div" style = "display: none;"> <p><input id="SEN_extra_info" class="underline-input" placeholder="SEN Extra Info..." ></p></div>
+                            </div>
+                          
+                            <div class="col">  
+                              <div class="form-row">  
+                                <input id="nose_bleeds" class="form-check-input checkbox" type="checkbox">
+                                <label class="form-check-label" for="nose_bleeds"> Nose Bleeds </label>   
+                              </div>
+                              <div class="form-row">  
+                                <input id="speech_or_hearing_difficulties" class="form-check-input checkbox" type="checkbox" onclick="toggleExtraInfo()">
+                                <label class="form-check-label" for="speech_or_hearing_difficulties"> Speech / Hearing difficulties </label>   
+                              </div> 
+
+                              <div class="form-row">  
+                                <input id="mobility_difficulties" class="form-check-input checkbox" type="checkbox" onclick="toggleExtraInfo()">
+                                <label class="form-check-label" for="mobility_difficulties"> Mobility Difficulties </label>   
+                              </div>
+                                              
+                              <div class="form-row">
+                                <input id="behaviour_difficulties" class="form-check-input checkbox" type="checkbox" value="" id="behaviour_support" onclick="toggleBehaviour()">
+                                <label class="form-check-label" for="flexCheckChecked"> Behaviour difficulties? </label>
+                              </div>
+                              <div id="behaviourInfo_div" style="display:none;"> <input id="behaviourInfo" class="underline-input" placeholder="Behavioural Support Info..." ></div>
+                              <div class="form-row">  
+                                <input id="other_difficulties" class="form-check-input checkbox" type="checkbox" onclick="toggleExtraInfo()">
+                                <label class="form-check-label" for="other_difficulties"> Other </label>   
+                              </div>
+                              <div id="extra_info_div" style="display:none;"> 
+                                <input id="extra_info" placeholder="Extra Info..." class="underline-input">
+                              </div>
+                            </div>
+                          </div>
+                          
+
+                            <div class="row"> 
+                              <div class="col"> <p><input id="serious_illness_or_accidents" placeholder="Serious Ilnesses or Accidents..." class="underline-input"></p></div>
+                              <div class="col"> <p><input id="condition_affective_school_life" placeholder="Conditions Affecting School Life..." class="underline-input"></p></div> 
+                          </div>
+                
+
+                      </div>      
+                    </div>
+                </div>
+
+                <div class="carousel-item">
+                    <div class = "card">
+                                
+                      <h2> Priority Contact 1... </h2>                      
+                      <div class="row"> 
+                        <div class="col-sm" > <input id = "contact_1_firstname" placeholder="First Name...*"  class="underline-input" required > </div>
+                        <div class="col-sm" > <input id = "contact_1_secondname" placeholder="Second Name...*"  class="underline-input" required > </div>
+                        <div class="col-sm"> <input id = "contact_1_relationship" placeholder="Relationship to child...*"  class="underline-input" required > </div> 
+                      </div>
+                      <div class="row">
+                        <div class="col-sm"> <input id="contact_1_mob_tel" placeholder="Mobile Telephone...*"  class="underline-input" required > </div>
+                        <div class="col-sm"> <input id="contact_1_email" placeholder="Email..."  class="underline-input" > </div>
+                      </div>
+
+                      <input id="contact_1_extra_info" placeholder="Extra Info..." class="underline-input">
+
+                      <div class="row mt-3">
+                        <div class="col ml-4">
+                          <input id = "contact_1_parental_responsibility" class="form-check-input checkbox" type="checkbox" value="" >
+                          <label class="form-check-label" for="flexCheckChecked"> Parental Responsibility? </label>
+                        </div>
+                      </div>
+                      
+                      <hr>
+
+                      <h2> Priority Contact 2 </h2>
+                  
+                      <div class="row"> 
+                        <div class="col-sm" > <input id = "contact_2_firstname" placeholder="First Name...*"  class="underline-input" required > </div>
+                        <div class="col-sm" > <input id = "contact_2_secondname" placeholder="Second Name...*"  class="underline-input" required > </div>
+                        <div class="col-sm"> <input id = "contact_2_relationship" placeholder="Relationship to child...*"  class="underline-input" required > </div> 
+                      </div>
+                      <div class="row">
+                        <div class="col-sm"> <input id="contact_2_mob_tel" placeholder="Mobile Telephone...*"  class="underline-input" required > </div>
+                        <div class="col-sm"> <input id="contact_2_email" placeholder="Email..."  class="underline-input" > </div>
+                      </div>
+
+                      <input id="contact_2_extra_info" placeholder="Extra Info..." class="underline-input">
+
+                      <div class="row mt-3">
+                        <div class="col ml-4">
+                          <input id = "contact_2_parental_responsibility" class="form-check-input checkbox" type="checkbox" value="" >
+                          <label class="form-check-label" for="flexCheckChecked"> Parental Responsibility? </label>
+                        </div>
+                      </div>
+                      
+                    </div>
+                </div>
+
+                <div class="carousel-item">
+                  <div class = "card">
+                    <script>
+                      
+                      function selectButton2(button) {
+                        // Get all buttons with the class 'transparent-button'
+                        var buttons = document.querySelectorAll('.local_visit');
+                        
+                        // Remove the 'selected' class from all buttons
+                        buttons.forEach(function(btn) {
+                          btn.classList.remove('selected');
+                        });
+                        
+                        // Add the 'selected' class to the clicked button
+                        button.classList.add('selected');
+                      }
+
+                      function selectButton3(button) {
+                        // Get all buttons with the class 'transparent-button'
+                        var buttons = document.querySelectorAll('.media');
+                        
+                        // Remove the 'selected' class from all buttons
+                        buttons.forEach(function(btn) {
+                          btn.classList.remove('selected');
+                        });
+                        
+                        // Add the 'selected' class to the clicked button
+                        button.classList.add('selected');
+                      }
+                    </script>
+
+                    <p> Do you give permission for your child to take part in local vists such as those to local parks / museums </p>
+                    <!-- <div class="form-row">
+                      <input id="local_visits_permission" class="form-check-input checkbox" type="checkbox" value="" >
+                      <label class="form-check-label" for="flexCheckChecked"> I give permission </label>
+                    </div> -->
+                    <div class="row">
+                      <div class="col"> <button id = "local_visits_permission" class="transparent-button mr-3 local_visit" onclick="selectButton2(this)">I give Permission</button> </div>
+                      <div class="col"> <button class="transparent-button local_visit" onclick="selectButton2(this)">I Do Not Give Permision</button> </div>
+                    </div>
+        
+                    <p> - </p> 
+        
+                    <p> We may use digital media including photography and video. We have a 100% safe use of images and
+                      digital media policy and follow national guidelines. Such media may be used in newsletters, on the
+                      website or local authority. Please see Section 5 of our Safeguarding Policy for further information. Having read the above do you give consent for digital media to be used by the Academy? </p>
+                    <!-- <div class="form-row">
+                      <input id="digital_media_permission" class="form-check-input checkbox" type="checkbox" value="">
+                      <label class="form-check-label" for="flexCheckChecked"> I give permission </label>
+                    </div> -->
+                    <div class="row">
+                      <div class="col"> <button id = 'digital_media_permission' class="transparent-button mr-3 media" onclick="selectButton3(this)">I give Permission</button> </div>
+                      <div class="col"> <button class="transparent-button media" onclick="selectButton3(this)">I Do Not Give Permision</button> </div>
+                    </div>
+        
+                    <hr>
+
+                    <div class="row mb-2">
+                      <div class="col text-center">
+                        <button class="btn btn-primary" onclick="viewTermsAndConditions()">View Terms and Conditions</button>
+                      </div>
+                    </div>
+                  
+
+                    <script>
+                      function viewTermsAndConditions() {
+                        // Fetch the terms and conditions document (document ID 29)
+                        fetch(`/load_document/29`)
+                          .then(response => response.json())
+                          .then(data => {
+                            const documentData = data;
+                            let html = `<h2 style="color:black;">${documentData.title}</h2>`;
+                            documentData.sections.forEach((section, sectionIndex) => {
+                              const sectionNumber = sectionIndex + 1;
+                              html += `<h3 style="color:black;">${sectionNumber}. ${section.title}</h3>`;
+                              html += `<p style="color:black;">${section.content.replace(/\n/g, '<br>')}</p>`;
+                              section.subsections.forEach((subsection, subsectionIndex) => {
+                                const subsectionNumber = `${sectionNumber}.${subsectionIndex + 1}`;
+                                html += `<h4 style="color:black;">${subsectionNumber} ${subsection.title}</h4>`;
+                                html += `<p style="color:black;">${subsection.content.replace(/\n/g, '<br>')}</p>`;
+                              });
+                            });
+                            document.getElementById('terms-content').innerHTML = html;
+                            $('#termsModal').modal('show'); // Show the modal
+                          })
+                          .catch(error => {
+                            document.getElementById('terms-content').innerHTML = 'Failed to load terms and conditions.';
+                            console.error('Error loading document:', error);
+                          });
+                      }
+                    </script>
+        
+                    <!-- <h2> Declaration </h2> -->
+                    <!-- https://codepen.io/yguo/pen/OyYGxQ -->
+                    
+                    <!-- <p class="text-danger"> Please ensure that you only press the submit button once to avoid multiple registrations! </p> -->
+                    
+                    <div class = "row mb-2"> 
+                      <div class = "col"> <p> By signing your name you hereby confirm that the information contained in this registration
+                        form is true to the best of your knowledge and belief and you agree to our terms and conditions. </p> </div>
+                      <div class = "col"> <input id="declaration_name" placeholder="Name..." class="underline-input" required>  </div>
+                      </div>
+                    
+                      
+                      <div class="row"> 
+                        <div class="col"> <p> How did you hear About Us? *</p> </div>
+                        
+                        <div class="col"> <select id="additional_info" placeholder="source..." class="underline-select" required>
+                          <option value="Google / Online Search"> Google / Online Search</option>
+                          <option value="Leaflet Through the Door"> Leaflet Through the Door</option>
+                          <option value="Open / Career Event"> Open / Career Event</option>
+                          <option value="Word of Mouth / Friends and Family"> Word of Mouth / Friends and Family</option>
+                          <option value="Other"> Other</option>
+                        </select> </div>
+                      </div>
+                      
+                      <script>
+                        function register() {
+                          var declarationName = document.getElementById('declaration_name').value;
+                          var additionalInfo = document.getElementById('additional_info').value;
+                  
+                          // Check if all required fields are filled out
+                          var isValid = declarationName && additionalInfo;
+                  
+                          // Enable or disable the submit button based on validation result
+                          var submitBtn = document.getElementById('submitBtn');
+                          submitBtn.disabled = !isValid;
+                        }
+                      </script>
+                  </div>
+                </div>
+
+                <div class="carousel-item">
+                  <div class = "card">
+                    
+                    <p> Do you wish to book a free trial session now? </p>
+
+                    <div class="row mb-3">
+                      <div class="col"> <button class="transparent-button mr-3 local_visit" onclick="show_lessons()"> Yes </button> </div>
+                      <div class="col"> <button class="transparent-button local_visit" onclick="activateButton()"> No </button> </div>
+                    </div>
+                    
+                    <div id="lessonsContainer" style="display:none;">
+                      <hr>
+                      <div class="filters row">
+                        <div class="col"> <p> Tier </p> <select id="filterTier" class = "underline-select" onchange="filterLessons()"></select> </div>
+                        <div class="col"> <p> Subject </p> <select id="filterTitle" class = "underline-select" onchange="filterLessons()"></select> </div>
+                        <div class="col"> <p> Centre </p> <select id="filterCentre" class = "underline-select" onchange="filterLessons()"></select> </div>
+                        <div class="col"> <p> Day </p> <select id="filterDay" class = "underline-select" onchange="filterLessons()"></select> </div>
+                      </div>
+                      <div class="lessons-grid" id="lessonsGrid">
+                        <!-- Lessons buttons will be inserted here -->
+                      </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-success mt-4" id="submitBtn" onclick="register_student_with_delay()" disabled>Register</button>
+                    
+                    <div class="alert alert-success" id="statusmessagediv" style="display:None; ">
+                      <strong id="statusmessage">Success!</strong> {{ message }}
+                    </div>
+                  </div>
+                </div>
+            </div>
+
+            <ol class="carousel-indicators">
+              <li id = "firstIndicator" data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+              <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+              <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+              <li data-target="#carouselExampleIndicators" data-slide-to="3"></li>
+              <li data-target="#carouselExampleIndicators" data-slide-to="4"></li>
+              <li data-target="#carouselExampleIndicators" data-slide-to="5"></li>
+              <li id = "lastIndicator" data-target="#carouselExampleIndicators" data-slide-to="6"></li>
+          </ol>
+          <a id="prevButton" class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+          </a>
+          <a id="nextButton" class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+          </a>         
+            
+        </div>
+    </body>
+
+    <script>
+      let lessons = {{ lessons | tojson }};
+      var selectedLessonID = -1;
+
+      function activateButton() {
+        document.getElementById('submitBtn').disabled = false;
+
+        document.getElementById('lessonsContainer').style.display = 'none';
+      }
+      
+      function show_lessons() {
+        var lessonsContainer = document.getElementById('lessonsContainer');
+        lessonsContainer.style.display = 'block';
+        populateFilters();
+        displayLessons(lessons);
+      }
+      
+      function populateFilters() {
+        var tiers = new Set();
+        var titles = new Set();
+        var centres = new Set();
+        var days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+      
+        lessons.forEach(function(lesson) {
+          tiers.add(lesson.tier);
+          titles.add(lesson.title);
+          centres.add(lesson.centre);
+          //days.add(lesson.day);
+        });
+      
+        populateFilterOptions('filterTier', tiers);
+        populateFilterOptions('filterTitle', titles);
+        populateFilterOptions('filterCentre', centres);
+        populateFilterOptions('filterDay', days);
+      }
+      
+      function populateFilterOptions(filterId, options) {
+        var filter = document.getElementById(filterId);
+        filter.innerHTML = '<option value="">All</option>'; // Default option
+        options.forEach(function(option) {
+          var opt = document.createElement('option');
+          opt.value = option;
+          opt.innerHTML = option;
+          filter.appendChild(opt);
+        });
+      }
+      
+      function filterLessons() {
+        var tier = document.getElementById('filterTier').value;
+        var title = document.getElementById('filterTitle').value;
+        var centre = document.getElementById('filterCentre').value;
+        var day = document.getElementById('filterDay').value;
+      
+        var filteredLessons = lessons.filter(function(lesson) {
+          return (!tier || lesson.tier === tier) &&
+                 (!title || lesson.title === title) &&
+                 (!centre || lesson.centre === centre) &&
+                 (!day || lesson.day === day);
+        });
+      
+        displayLessons(filteredLessons);
+      }
+      
+      function displayLessons(lessons) {
+        var lessonsGrid = document.getElementById('lessonsGrid');
+        lessonsGrid.innerHTML = '';
+      
+        lessons.forEach(function(lesson) {
+          var lessonButton = document.createElement('button');
+          lessonButton.className = 'transparent-button';
+          lessonButton.classList.add("lesson-btn")
+          lessonButton.innerHTML = `${lesson.title} (${lesson.tier})<br>${lesson.day}, ${lesson.time}<br>${lesson.centre}`;
+          lessonButton.onclick = function() {
+            selectLesson(lesson.id, lessonButton);
+          };
+          lessonsGrid.appendChild(lessonButton);
+        });
+      }
+
+      function selectLesson(lessonID, button) {
+        selectedLessonID = lessonID; // Update the global variable
+        console.log(selectedLessonID)
+        document.getElementById('submitBtn').disabled = false;
+        // Highlight the selected button
+        document.querySelectorAll('.lesson-btn').forEach(function(btn) {
+          btn.classList.remove('selected');
+          btn.style.display = "none"
+        });
+        button.classList.add('selected');
+        button.style.display = "block";
+      }
+
+      function register_student() {
+        var firstName = document.getElementById('student_firstname').value;
+        var middleName = document.getElementById('student_middlename').value;
+        var secondName = document.getElementById('student_lastname').value;
+        var known_as = document.getElementById('student_known_as').value;
+        var email = document.getElementById('student_email').value;
+        var parent_email = document.getElementById('parent_email').value;
+        var student_year_group = document.getElementById('student_year_group').value;
+        var date_of_birth = document.getElementById('student_dob').value;
+        var gender = document.getElementById('student_gender').value;
+        //var country_of_birth = document.getElementById('student_country_of_birth').value;
+        var country_of_birth = null;
+        //var nationality = document.getElementById('student_nationality').value;
+        var nationality = null;
+        var ethnic_origin = document.getElementById('student_ethnic_origin').value;
+        //var mother_tongue = document.getElementById('student_mother_tongue').value;
+        var mother_tongue = null;
+
+        /*if(document.getElementById("sinceBirth").checked == true) {
+          var date_of_entry_uk = date_of_birth
+        }
+        else {
+          if(document.getElementById('student_date_of_entry').value == "") { date_of_entry_uk = null }
+          else{
+            var date_of_entry_uk = document.getElementById('student_date_of_entry').value;
+          }
+        } */
+
+        var date_of_entry_uk = null;
+
+        var house_number = document.getElementById('student_house_no').value;
+        var street_name = document.getElementById('student_street').value;
+        var post_code = document.getElementById('student_postcode').value;
+        var city_or_county = document.getElementById('student_city').value;
+        var borough_of_residence = ""
+        var mode_of_travelling = document.getElementById('student_transport').value;
+        var current_school_1 = document.getElementById('school_1_name').value;
+        // var current_school_1_date_from = document.getElementById('school_1_start_date').value;
+        // if(current_school_1_date_from == "") { current_school_1_date_from = null }; 
+        var current_school_1_date_from = null;
+
+        
+        var school_2 = "";
+        var school_2_date_from = null;
+        var school_2_date_until = null;
+
+        var school_3 = "";
+        var school_3_date_from = null;
+        var school_3_date_until = null;
+
+        var school_4 = "";
+        var school_4_date_from = null;
+        var school_4_date_until = null;
+
+        var sibling_1_forename = document.getElementById('sibling_1_first_name') ? document.getElementById('sibling_1_first_name').value : null;
+        var sibling_1_surname = document.getElementById('sibling_1_second_name') ? document.getElementById('sibling_1_second_name').value : null;
+        var sibling_1_date_of_birth = document.getElementById('sibling_1_dob') ? document.getElementById('sibling_1_dob').value : null;
+        var sibling_1_gender = document.getElementById('sibling_1_gender') ? document.getElementById('sibling_1_gender').value : null;
+        var sibling_1_year_group = document.getElementById('sibling_1_year') ? document.getElementById('sibling_1_year').value : null;
+        var sibling_1_email = document.getElementById('sibling_1_email') ? document.getElementById('sibling_1_email').value : null;
+        
+        var sibling_2_forename = document.getElementById('sibling_2_first_name') ? document.getElementById('sibling_2_first_name').value : null;
+        var sibling_2_surname = document.getElementById('sibling_2_second_name') ? document.getElementById('sibling_2_second_name').value : null;
+        var sibling_2_date_of_birth = document.getElementById('sibling_2_dob') ? document.getElementById('sibling_2_dob').value : null;
+        var sibling_2_gender = document.getElementById('sibling_2_gender') ? document.getElementById('sibling_2_gender').value : null;
+        var sibling_2_year_group = document.getElementById('sibling_2_year') ? document.getElementById('sibling_2_year').value : null;
+        var sibling_2_email = document.getElementById('sibling_2_email') ? document.getElementById('sibling_2_email').value : null;
+        
+        var sibling_3_forename = document.getElementById('sibling_3_first_name') ? document.getElementById('sibling_3_first_name').value : null;
+        var sibling_3_surname = document.getElementById('sibling_3_second_name') ? document.getElementById('sibling_3_second_name').value : null;
+        var sibling_3_date_of_birth = document.getElementById('sibling_3_dob') ? document.getElementById('sibling_3_dob').value : null;
+        var sibling_3_gender = document.getElementById('sibling_3_gender') ? document.getElementById('sibling_3_gender').value : null;
+        var sibling_3_year_group = document.getElementById('sibling_3_year') ? document.getElementById('sibling_3_year').value : null;
+        var sibling_3_email = document.getElementById('sibling_3_email') ? document.getElementById('sibling_3_email').value : null;
+        
+        var sibling_4_forename = document.getElementById('sibling_4_first_name') ? document.getElementById('sibling_4_first_name').value : null;
+        var sibling_4_surname = document.getElementById('sibling_4_second_name') ? document.getElementById('sibling_4_second_name').value : null;
+        var sibling_4_date_of_birth = document.getElementById('sibling_4_dob') ? document.getElementById('sibling_4_dob').value : null;
+        var sibling_4_gender = document.getElementById('sibling_4_gender') ? document.getElementById('sibling_4_gender').value : null;
+        var sibling_4_year_group = document.getElementById('sibling_4_year') ? document.getElementById('sibling_4_year').value : null;
+        var sibling_4_email = document.getElementById('sibling_4_email') ? document.getElementById('sibling_4_email').value : null;
+
+        var previous_name = "";
+        var legal_name = "";
+        var home_local_authority = "";
+        var carer_name = "";
+        var look_after_child_contact_info = "";
+        var child_protection_register = false;
+        var look_after_child_register = false;
+        var personal_education_plan = false;
+        var pep_contact_number = "";
+        var armed_service_parent_name = "";
+        var armed_service_parent_service = "";
+        var armed_service_parent_rank = "";
+        var armed_service_parent_additional_info = "";
+
+        // var gp_name = document.getElementById('GP_name').value;
+        var gp_name = null ;
+        // var gp_post_code = document.getElementById('GP_postcode').value;
+        var gp_post_code = null ;
+        // var gp_telephone = document.getElementById('GP_tel_num').value;
+        var gp_telephone = null ;
+        // var gp_practice_address = document.getElementById('GP_address').value;
+        var gp_practice_address = null ;
+        var child_normally_healthy = document.getElementById('normally_healthy').classList.contains('selected');
+        var asthma = document.getElementById('asthma').checked;
+        var epilepsy_or_fits = document.getElementById('epilepsy').checked;
+        var heart_problems = document.getElementById('heart_problems').checked;
+        var allergies = document.getElementById('allergies').checked;
+        var allergyInfo = document.getElementById('allergyInfo').value;
+        var nose_bleeds = document.getElementById('nose_bleeds').checked;
+        var speech_or_hearing_difficulties = document.getElementById('speech_or_hearing_difficulties').checked;
+        var mobility_difficulties = document.getElementById('mobility_difficulties').checked;
+        var other_difficulties = document.getElementById('other_difficulties').value;
+        var serious_illness_or_accidents = document.getElementById('serious_illness_or_accidents').value;
+        var condition_affecting_school_life = document.getElementById('condition_affective_school_life').value;
+        var extra_medical_info = document.getElementById('extra_info').value;
+        // var known_medical_conditions = document.getElementById('known_medical_conditions').value;
+        var known_medical_conditions = null;
+        // var medical_treatment_or_medicines = document.getElementById('medicines').value;
+        var medical_treatment_or_medicines = null;
+        //var emergency_information = document.getElementById('emergency_info').value;
+        var emergency_information = null;
+        // var first_aid_permission = document.getElementById('first_aid_permission').checked;
+        var first_aid_permission = null; 
+        // var hospital_referral_permission = document.getElementById('hospital_referral_permission').checked;
+        var hospital_referral_permission = null; 
+        var special_educational_needs = document.getElementById('SEN').checked;
+        var sen_information = document.getElementById('SEN_extra_info').value;
+        var behavior_support_needed = document.getElementById('behaviour_difficulties').checked;
+        var behavior_support_info = document.getElementById('behaviourInfo').value;
+        
+        var priority_contact_1_title = "";
+        var priority_contact_1_relationship = document.getElementById('contact_1_relationship').value;
+        var priority_contact_1_forename = document.getElementById('contact_1_firstname').value;
+        var priority_contact_1_surname = document.getElementById('contact_1_secondname').value;
+        var priority_contact_1_post_code = "";
+        var priority_contact_1_home_telephone = "";
+        var priority_contact_1_mobile_telephone = document.getElementById('contact_1_mob_tel').value;
+        var priority_contact_1_email = document.getElementById('contact_1_email').value;
+        var priority_contact_1_employer = "";
+        var priority_contact_1_work_number = "";
+        var priority_contact_1_other_info_numbers = "";
+        var priority_contact_1_parental_responsibility = document.getElementById('contact_1_parental_responsibility').checked;
+
+        var priority_contact_2_title = "";
+        var priority_contact_2_relationship = document.getElementById('contact_2_relationship').value;
+        var priority_contact_2_forename = document.getElementById('contact_2_firstname').value;
+        var priority_contact_2_surname = document.getElementById('contact_2_secondname').value;
+        var priority_contact_2_post_code = "";
+        var priority_contact_2_home_telephone = "";
+        var priority_contact_2_mobile_telephone = document.getElementById('contact_2_mob_tel').value;
+        var priority_contact_2_email = document.getElementById('contact_2_email').value;
+        var priority_contact_2_employer = "";
+        var priority_contact_2_work_number = "";
+        var priority_contact_2_other_info_numbers = "";
+        var priority_contact_2_parental_responsibility = document.getElementById('contact_2_parental_responsibility').checked;
+
+        //var pupil_first_language = document.getElementById('first_language').value;
+        var pupil_first_language = null;
+        //var pupil_first_language_spoken = document.getElementById('first_language_spoken').checked;
+        var pupil_first_language_spoken = null;
+        //var pupil_first_language_read = document.getElementById('first_language_read').checked;
+        var pupil_first_language_read = null;
+        //var pupil_first_language_written = document.getElementById('first_language_written').checked;
+        var pupil_first_language_written = null;
+
+        var pupil_other_language = "";
+        var pupil_other_language_spoken = false;
+        var pupil_other_language_read = false;
+        var pupil_other_language_written = false;
+
+        // var home_main_language = document.getElementById('main_language').value;
+        var home_main_language = null;
+        // var home_main_language_spoken = document.getElementById('main_language_spoken').checked;
+        var home_main_language_spoken = null;
+        // var home_main_language_read = document.getElementById('main_language_read').checked;
+        var home_main_language_read = null;
+        // var home_main_language_written = document.getElementById('main_language_written').checked;
+        var home_main_language_written = null;
+
+        var home_other_language = "";
+        var home_other_language_spoken = false;
+        var home_other_language_read = false;
+        var home_other_language_written = false;
+
+        var local_visits_permission = document.getElementById('local_visits_permission').classList.contains('selected');
+        var digital_media_consent = document.getElementById('digital_media_permission').classList.contains('selected');
+        var declaration_name = document.getElementById('declaration_name').value;
+        var additional_comment = document.getElementById('additional_info').value;
+
+        var auto_register = document.getElementById("auto_register").classList.contains('selected');
+
+        if(pupil_first_language != "") {
+          var eal = true;
+        }
+        else {
+          var eal = false;
+        }; 
+
+
+        $.ajax({
+          url: '/register_student',
+          type: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({ 
+              'firstName' : firstName,
+              'middleName' : middleName,
+              'secondName' : secondName,
+              'known_as' : known_as,
+              'email' : email,
+              'parent_email' : parent_email,
+              'student_year_group' : student_year_group,
+              'date_of_birth' : date_of_birth,
+              'gender' : gender,
+              'country_of_birth' : country_of_birth,
+              'nationality' : nationality,
+              'ethnic_origin' : ethnic_origin,
+              'mother_tongue' : mother_tongue,
+              'date_of_entry_uk' : date_of_entry_uk,
+              'house_number' : house_number,
+              'street_name' : street_name,
+              'post_code' : post_code,
+              'city_or_county' : city_or_county,
+              'borough_of_residence' : borough_of_residence,
+              'mode_of_travelling' : mode_of_travelling,
+              'current_school_1' : current_school_1,
+              'current_school_1_date_from' : current_school_1_date_from,
+              'school_2' : school_2,
+              'school_2_date_from' : school_2_date_from,
+              'school_2_date_until' : school_2_date_until,
+              'school_3' : school_3,
+              'school_3_date_from' : school_3_date_from,
+              'school_3_date_until' : school_3_date_until,
+              'school_4' : school_4,
+              'school_4_date_from' : school_4_date_from,
+              'school_4_date_until' : school_4_date_until,
+              'sibling_1_forename' : sibling_1_forename,
+              'sibling_1_surname' : sibling_1_surname,
+              'sibling_1_date_of_birth' : sibling_1_date_of_birth,
+              'sibling_1_gender' : sibling_1_gender,
+              'sibling_1_year_group' : sibling_1_year_group,
+              'sibling_1_email' : sibling_1_email,
+              'sibling_2_forename' : sibling_2_forename,
+              'sibling_2_surname' : sibling_2_surname,
+              'sibling_2_date_of_birth' : sibling_2_date_of_birth,
+              'sibling_2_gender' : sibling_2_gender,
+              'sibling_2_year_group' : sibling_2_year_group,
+              'sibling_2_email' : sibling_2_email,
+              'sibling_3_forename' : sibling_3_forename,
+              'sibling_3_surname' : sibling_3_surname,
+              'sibling_3_date_of_birth' : sibling_3_date_of_birth,
+              'sibling_3_gender' : sibling_3_gender,
+              'sibling_3_year_group' : sibling_3_year_group,
+              'sibling_3_email' : sibling_3_email,
+              'sibling_4_forename' : sibling_4_forename,
+              'sibling_4_surname' : sibling_4_surname,
+              'sibling_4_date_of_birth' : sibling_4_date_of_birth,
+              'sibling_4_gender' : sibling_4_gender,
+              'sibling_4_year_group' : sibling_4_year_group,
+              'sibling_4_email' : sibling_4_email,
+              'previous_name' : previous_name,
+              'legal_name' : legal_name,
+              'home_local_authority' : home_local_authority,
+              'carer_name' : carer_name,
+              'look_after_child_contact_info' : look_after_child_contact_info,
+              'child_protection_register' : child_protection_register,
+              'look_after_child_register' : look_after_child_register,
+              'personal_education_plan' : personal_education_plan,
+              'pep_contact_number' : pep_contact_number,
+              'armed_service_parent_name' : armed_service_parent_name,
+              'armed_service_parent_service' : armed_service_parent_service,
+              'armed_service_parent_rank' : armed_service_parent_rank,
+              'armed_service_parent_additional_info' : armed_service_parent_additional_info,
+              'gp_name' : gp_name,
+              'gp_post_code' : gp_post_code,
+              'gp_telephone' : gp_telephone,
+              'gp_practice_address' : gp_practice_address,
+              'child_normally_healthy' : child_normally_healthy,
+              'asthma' : asthma,
+              'epilepsy_or_fits' : epilepsy_or_fits,
+              'heart_problems' : heart_problems,
+              'allergies' : allergies,
+              'allergyInfo' : allergyInfo,
+              'nose_bleeds' : nose_bleeds,
+              'speech_or_hearing_difficulties' : speech_or_hearing_difficulties,
+              'mobility_difficulties' : mobility_difficulties,
+              'other_difficulties' : other_difficulties,
+              'serious_illness_or_accidents' : serious_illness_or_accidents,
+              'condition_affecting_school_life' : condition_affecting_school_life,
+              'extra_medical_info' : extra_medical_info,
+              'known_medical_conditions' : known_medical_conditions,
+              'medical_treatment_or_medicines' : medical_treatment_or_medicines,
+              'emergency_information' : emergency_information,
+              'first_aid_permission' : first_aid_permission,
+              'hospital_referral_permission' : hospital_referral_permission,
+              'special_educational_needs' : special_educational_needs,
+              'sen_information' : sen_information,
+              'behavior_support_needed' : behavior_support_needed,
+              'behavior_support_info' : behavior_support_info,
+              'priority_contact_1_title' : priority_contact_1_title,
+              'priority_contact_1_relationship' : priority_contact_1_relationship,
+              'priority_contact_1_forename' : priority_contact_1_forename,
+              'priority_contact_1_surname' : priority_contact_1_surname,
+              'priority_contact_1_post_code' : priority_contact_1_post_code,
+              'priority_contact_1_home_telephone' : priority_contact_1_home_telephone,
+              'priority_contact_1_mobile_telephone' : priority_contact_1_mobile_telephone,
+              'priority_contact_1_email' : priority_contact_1_email,
+              'priority_contact_1_employer' : priority_contact_1_employer,
+              'priority_contact_1_work_number' : priority_contact_1_work_number,
+              'priority_contact_1_other_info_numbers' : priority_contact_1_other_info_numbers,
+              'priority_contact_1_parental_responsibility' : priority_contact_1_parental_responsibility,
+              'priority_contact_2_title' : priority_contact_2_title,
+              'priority_contact_2_relationship' : priority_contact_2_relationship,
+              'priority_contact_2_forename' : priority_contact_2_forename,
+              'priority_contact_2_surname' : priority_contact_2_surname,
+              'priority_contact_2_post_code' : priority_contact_2_post_code,
+              'priority_contact_2_home_telephone' : priority_contact_2_home_telephone,
+              'priority_contact_2_mobile_telephone' : priority_contact_2_mobile_telephone,
+              'priority_contact_2_email' : priority_contact_2_email,
+              'priority_contact_2_employer' : priority_contact_2_employer,
+              'priority_contact_2_work_number' : priority_contact_2_work_number,
+              'priority_contact_2_other_info_numbers' : priority_contact_2_other_info_numbers,
+              'priority_contact_2_parental_responsibility' : priority_contact_2_parental_responsibility,
+              'pupil_first_language' : pupil_first_language,
+              'pupil_first_language_spoken' : pupil_first_language_spoken,
+              'pupil_first_language_read' : pupil_first_language_read,
+              'pupil_first_language_written' : pupil_first_language_written,
+              'pupil_other_language' : pupil_other_language,
+              'pupil_other_language_spoken' : pupil_other_language_spoken,
+              'pupil_other_language_read' : pupil_other_language_read,
+              'pupil_other_language_written' : pupil_other_language_written,
+              'eal' : eal,
+              'home_main_language' : home_main_language,
+              'home_main_language_spoken' : home_main_language_spoken,
+              'home_main_language_read' : home_main_language_read,
+              'home_main_language_written' : home_main_language_written,
+              'home_other_language' : home_other_language,
+              'home_other_language_spoken' : home_other_language_spoken,
+              'home_other_language_read' : home_other_language_read,
+              'home_other_language_written' : home_other_language_written,
+              'local_visits_permission' : local_visits_permission,
+              'digital_media_consent' : digital_media_consent,
+              'declaration_name' : declaration_name,
+              'additional_comment' : additional_comment,
+              'auto_register' : auto_register, 
+              'lessonID' : selectedLessonID                              
+          }),
+          success: function(response) {
+            document.getElementById('statusmessagediv').style.display="Inline";
+            document.getElementById('statusmessagediv').setAttribute("class", "alert alert-success");
+            document.getElementById('statusmessage').innerHTML = firstName + " was successfully added";
+            alert("The Student was successfully added");
+            location.reload();
+          },
+          error: function(error) {
+            document.getElementById('statusmessagediv').style.display="Inline"  ;
+            document.getElementById('statusmessagediv').setAttribute("class", "alert alert-danger");
+            alert("The Student could not be added");
+            if(firstName = "") {document.getElementById('statusmessage').innerHTML = "The Student could not be added";}
+            else { document.getElementById('statusmessage').innerHTML = firstName + " could not be added";};
+          }
+
+
+      });
+
+    }     
+    
+      function register_student_with_delay() {
+        const button = document.getElementById('submitBtn');
+
+        button.disabled = true;
+
+        register_student();
+
+        setTimeout(() => {
+          button.disabled = false;
+        }, 30000);
+
+      }
+  
+  </script>
+
+    <!-- Modal for viewing Terms and Conditions -->
+    <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body" style="color: black;">
+            <div id="terms-content">Loading...</div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+</html>

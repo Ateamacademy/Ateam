@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+
+<head>
+    <title> Make New Exam Student</title>
+
+</head>
+
+{% extends 'base_page.html' %}
+
+{% block middleContent %}
+
+    <script>
+        $( document ).ready(function() {
+            document.getElementById("exam-link").classList.add("active");
+        });
+    </script>
+
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 mt-4">
+        <h1 class="h3 mb-0 text-gray-800"> Exam Students </h1>
+    </div>
+
+
+    <div class = "row"> 
+        <div class="col-12 mb-4">
+            <div class="card border-bottom-success shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-3"> Make a New Exam Student</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">                         
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> First Name: </div> <div class="col"> <input placeholder = "John" id = "firstName"> </div> </div>
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Second Name: </div> <div class="col"> <input placeholder = "Smith" id = "secondName"> </div> </div>
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Gender </div> <div class="col"> <select id="gender" class="custom-select " data-default="choose an option" required>
+                                                                                                                            <option value = "" selected> Choose an option </option>
+                                                                                                                            <option value="Male">Male</option>
+                                                                                                                            <option value="Female">Female</option>
+                                                                                                                            <option value="Other">Other</option>
+                                                                                                                        </select> </div> </div>
+
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Date of Birth: </div> <div class="col"> <input id = "dob" type="date"> </div> </div>
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> UCI: </div> <div class="col"> <input placeholder = "999990140001X" id = "UCI">  </div> </div>
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> ULN: </div> <div class="col"> <input placeholder = "12345678910" id = "ULN">  </div> </div>
+
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Student Email: </div> <div class="col"> <input placeholder = "johnsmith@gmail.com" id = "studentEmail"> </div> </div>
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Parent Email: </div> <div class="col"> <input placeholder = "MarySmith@gmail.com" id = "parentEmail"> </div> </div>
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Emergency Contact No: </div> <div class="col"> <input placeholder = "07 123 456789" id = "contactNo"> </div> </div>
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Special Access Arrangements: </div> <div class="col"> <input placeholder = "Exam Reader / Extra Time" id = "access_arrangements"> </div> </div>
+
+                                <button class="btn btn-success" onclick = "createStudent()"> Add New Student </button> 
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-pen fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    Convert an Existing Student to an Exam Student
+    <!-- Content Row -->
+    <div class="row">
+
+        
+        {% for student in nonExamStudents %}
+        <div class="col mr-2" >
+            <div class="card mb-4" style = "min-width: 250px; min-height: 300px;">
+                <div class="card-body text-center">
+                    {% if student.gender == 'Male' %} <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp" alt="avatar"  class="rounded-circle img-fluid" style="width: 150px;   border: 2px solid #555;">
+                    {% elif student.gender == 'Female' %} <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava6.webp" alt="avatar"  class="rounded-circle img-fluid" style="width: 150px;   border: 2px solid #555;">
+                    {% else %} <img src="static/images/default-avatar.jpg" alt="avatar"  class="rounded-circle img-fluid" style="width: 150px;">
+                    {% endif %}
+                    <h5 class="my-3"> {{ student.firstName }}  {{ student.secondName }} </h5>
+                    <p class="text-muted mb-1">Year {{ student.year_group }}</p>
+                    <p class="text-muted mb-4 parentEmail" > Parent Email: {{ student.parent_email }}  </p>
+                    <p class="text-muted mb-4 phoneNumber" > Priority 1 Phone: {{ student.priority_contact_1_mobile_telephone }}  </p>
+
+                    <div class="d-flex justify-content-center mb-2 mt-4">
+                        <div class="col"> <button class= "btn btn-success" type="button" data-toggle="modal" data-target="#convertStudent" onclick="setID( '{{ student.id }}' , '{{ student.firstName + ' ' + student.secondName }}' )"> Convert  </button> </div>
+                    </div>
+                </div>
+            </div>
+        </div>            
+        {% endfor %}
+    </div>
+    <script> 
+        function setID(id, name) {
+            document.getElementById("convert").setAttribute('onclick', "convertStudent(" + id + ")" )
+            document.getElementById("lessonToRemove").innerText = name;
+        };
+    </script>
+
+
+    <div class="modal fade" id="convertStudent" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Please enter the UCI</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+    
+            <div class="modal-body">
+                <form>
+                    <div class="col">
+                        <div class="row mb-3"> 
+                            <p class="mb-0" id="lessonToRemove"> </p>
+                        </div>
+                        <div class="row mb-3"> 
+                            <div class = "col-lg-2"> UCI: </div> <div class="col"> <input placeholder = "999990140001X" id = "newUCI">  </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"> Cancel </button>
+                <a id="convert"> <button type="button" class="btn btn-success" onclick = "convertStudent()"> Convert to Exam Student </button> </a>
+            </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        function convertStudent(id) {
+            $.ajax({
+                url: '/updateStudentInfo',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({"key" : 'exam_student', "value" : true, "studentID" : id }),
+                success: function(response) {
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            })
+
+            $.ajax({
+                url: '/updateStudentInfo',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({"key" : 'uci', "value" : document.getElementById('newUCI').value, "studentID" : id }),
+                success: function(response) {
+                    location.reload()
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            })
+        };
+    </script>
+
+    <script>
+        function createStudent() {
+            var firstName = document.getElementById("firstName").value;
+            var secondName = document.getElementById("secondName").value;
+            var gender = document.getElementById("gender").value;
+            var dob = document.getElementById("dob").value;
+            var uci = document.getElementById("UCI").value;
+            var uln = document.getElementById("ULN").value;
+            var studentEmail = document.getElementById("studentEmail").value;
+            var parentEmail = document.getElementById("parentEmail").value;
+            var contactNo = document.getElementById("contactNo").value;
+            var access_arrangements = document.getElementById("access_arrangements").value 
+
+            $.ajax({
+                url: '/register_exam_student',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({"firstName" : firstName, "secondName" : secondName, "gender" : gender, "dob" : dob, "uci" : uci, "uln" : uln, "studentEmail" : studentEmail, "parentEmail" : parentEmail, "contactNo" : contactNo, "access_arrangements" : access_arrangements}),
+                success: function(response) {
+                    alert("The Student was added as an Exam Student");
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            })
+
+        }
+    </script>
+
+
+
+
+{% endblock %}

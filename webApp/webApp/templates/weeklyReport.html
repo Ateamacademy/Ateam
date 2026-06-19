@@ -1,0 +1,62 @@
+<head> 
+    <title> Weekly Report for week {{weekNo}} </title>
+</head>
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+
+<div class="col">
+
+    <div class="card mb-2"> 
+        <div class="card-body text-center">
+            <div class="row">
+                <div class="col"> <a href = "weekly_report?offset={{ request.args['offset']|int - 7 }}"> <button class="btn btn-secondary"> Back a Week </button> </a> </div>
+                <div class="col"> <h2> Week: {{ weekNo }} </h2> </div>
+                <div class="col"> <a href = "weekly_report?offset={{ request.args['offset']|int + 7 }}"> <button class="btn btn-secondary"> Forward a Week </button> </a> </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-2"> 
+        <div class="card-body">
+            <div class="row">
+                <div class="col">
+                <h3> Total Numbers </h3>
+                {% for lesson in lessonNumbers %}
+                    <div class="row">
+                        <div class="col col-sm-3 text-center"> <p> {{ lesson.name }} </p> </div>
+                    <div class="col col-sm-9 text-left" id=""> <p> {{ lesson.number }} </p> </div>
+                </div>
+                {% endfor %}
+                </div>
+                <div class="col">
+                    <h3> Weekend Numbers / Soho / Coventry Road </h3>
+                    {% for lesson in lessonNumbers %}
+                    <div class="row">
+                        <div class="col col-sm-3 text-center"> <p> {{ lesson.name }} </p> </div>
+                        <div class="col col-sm-3 text-left" id=""> <p> {{ lesson.SOHO }} </p> </div>
+                        <div class="col col-sm-3 text-left" id=""> <p> {{ lesson.COV }} </p> </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {% for i in lessons %}
+        <div class="card mb-2">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col col-sm-3 text-center"> <p> {{ i.name }} </p> </div>
+                    <div class="col col-sm-9 text-left"> {% for student in i.attendance %} <p> {{ student }} </p> {% endfor %} </div>
+
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Tutor Hours</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="static/css/sb-admin-2.min.css" rel="stylesheet">
+
+</head>
+
+{% extends 'base_page.html' %}
+
+{% block middleContent %}
+
+<script>
+    $( document ).ready(function() {
+        document.getElementById("tutor-link").classList.add("active");
+    });
+</script>
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 mt-4">
+    <h1 class="h3 mb-0 text-gray-800">Tutor Hours</h1>
+
+</div>
+
+<div class="row">
+
+  <div class="d-sm-flex align-items-center justify-content-between mb-4 mt-4">
+    <h1 class="h3 mb-0 text-gray-800">Tutor Hours</h1>
+    <button class="btn btn-primary" id="download-csv">Download CSV</button>
+</div>
+
+<script>
+  document.getElementById('download-csv').addEventListener('click', function () {
+    window.location.href = "/download_tutor_hours_csv";
+});
+
+</script>
+
+
+  <!-- Area Chart -->
+  <div class="col">
+      <div class="card shadow mb-4">
+          <div
+              class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+              <h6 class="m-0 font-weight-bold text-primary"> Hours for the past 4 months </h6>
+          </div>
+          <div class="card-body">
+              <table class="table table-hover" id = "monthHours">
+                  <thead>
+                    <tr>
+                      <th scope="col" onclick = "sortTable(0, 'monthHours')"> Name <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+                      <th scope="col" onclick = "sortTable(1, 'monthHours')">  {{ months[0] }} <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+                      <th scope="col" onclick = "sortTable(2, 'monthHours')">  {{ months[1] }} <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+                      <th scope="col" onclick = "sortTable(3, 'monthHours')">  {{ months[2] }} <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+
+                    </tr>
+                  </thead>
+                  <tbody>
+
+                  {% for tutor in tutors2 %}
+                    <tr>
+                      <td scope="row"> {{ tutor[0] }} </td>
+                      <td> {{ tutor[1] }} </td>
+                      <td> {{ tutor[2] }} </td>
+                      <td> {{ tutor[3] }} </td>
+                    </tr>
+                  {% endfor %}
+
+                  </tbody>
+              </table>
+          </div>
+      </div>
+  </div>
+  
+</div>
+
+<!-- Content Row -->
+<div class="row">
+
+    <!-- Area Chart -->
+    <div class="col">
+        <div class="card shadow mb-4">
+            <div
+                class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary"> Hours for the past 4 weeks </h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover" id = "hours">
+                    <thead>
+                      <tr>
+                        <th scope="col" onclick = "sortTable(0, 'hours')"> Name <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+                        <th scope="col" onclick = "sortTable(1, 'hours')"> week {{ weeks[0] }} <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+                        <th scope="col" onclick = "sortTable(2, 'hours')"> week {{ weeks[1] }} <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+                        <th scope="col" onclick = "sortTable(3, 'hours')"> week {{ weeks[2] }} <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+                        <th scope="col" onclick = "sortTable(4, 'hours')"> This week <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+
+                      </tr>
+                    </thead>
+                    <tbody>
+
+                    {% for tutor in tutors %}
+                      <tr>
+                        <td scope="row"> {{ tutor[0] }} </td>
+                        <td> {{ tutor[1] }} </td>
+                        <td> {{ tutor[2] }} </td>
+                        <td> {{ tutor[3] }} </td>
+                        <td> {{ tutor[4] }} </td>
+
+                      </tr>
+                    {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+
+    <script>
+        function sortTable(n, id) {
+            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+            table = document.getElementById(id);
+            switching = true;
+            dir = "desc";
+            while (switching) {
+              switching = false;
+              rows = table.rows;
+              for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("TD")[n];
+                y = rows[i + 1].getElementsByTagName("TD")[n];
+                if (dir == "asc") {
+                  if (Number(x.innerHTML.toLowerCase()) > Number(y.innerHTML.toLowerCase())) {
+                    shouldSwitch = true;
+                    break;
+                  }
+                } else if (dir == "desc") {
+                  if (Number(x.innerHTML.toLowerCase()) < Number(y.innerHTML.toLowerCase())) {
+                    shouldSwitch = true;
+                    break;
+                  }
+                }
+              }
+              if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                switchcount ++;
+              } else {
+                if (switchcount == 0 && dir == "asc") {
+                  dir = "desc";
+                  switching = true;
+                }
+              }
+            }
+          };
+    </script>
+    <script>
+        function sortTableByNumber(n) {
+            var table, rows, switching, i, x, y, shouldSwitch;
+            table = document.getElementById("hours");
+            switching = true;
+            while (switching) {
+              switching = false;
+              rows = table.rows;
+              for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("TD")[0];
+                y = rows[i + 1].getElementsByTagName("TD")[0];
+                if (Number(x.innerHTML) > Number(y.innerHTML)) {
+                  shouldSwitch = true;
+                  break;
+                }
+              }
+              if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+              }
+            }
+          }
+
+    </script>
+
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="static/vendor/jquery/jquery.min.js"></script>
+    <script src="static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="static/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="static/javascript/sb-admin-2.min.js"></script>
+
+    <!-- Page level plugins -->
+    <script src="static/vendor/chart.js/Chart.min.js"></script>
+
+    <!-- Page level custom scripts -->
+    <script src="static/javascript/demo/chart-area-demo.js"></script>
+    <script src="static/javascript/demo/chart-pie-demo.js"></script>
+
+
+{% endblock %}

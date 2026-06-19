@@ -1,0 +1,61 @@
+# ============================================================
+#  SECURITY: never commit secrets, PII, or pulled prod data
+# ============================================================
+
+# --- database dumps / SQL snapshots (contain full PII) ---
+*.dump
+*.sql
+ateam_full.dump
+ateam_schema.sql
+
+# --- environment / secret files ---
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+webApp/webApp/crt/
+
+# --- prod file storage pulled locally (PII / large) ---
+webApp/webApp/payslips/
+webApp/webApp/userFiles/
+webApp/webApp/files/
+webApp/webApp/marketPlaceFiles/
+webApp/webApp/contracts/
+webApp/webApp/addresses.txt
+webApp/webApp/CS310/
+webApp/webApp/static/CS310images/
+
+# --- one-off ops / provisioning scripts (may embed creds) ---
+srv_*.sh
+sync_*.sh
+pull_*.sh
+fetch_*.sh
+*dump*.sh
+compare_prod.sh
+wsl_*.sh
+
+# --- logs ---
+*.log
+
+# --- python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+ateam-venv/
+
+# --- node / laravel (webApp2) ---
+node_modules/
+/webApp2/vendor/
+/webApp2/node_modules/
+/webApp2/storage/*.key
+/webApp2/public/storage
+
+# --- editor / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

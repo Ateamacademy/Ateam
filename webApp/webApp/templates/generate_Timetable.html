@@ -1,0 +1,181 @@
+<head>
+    <title> Generate Timetable </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="static/javascript/js/timetable.js-master/dist/styles/timetablejs.css">
+
+    <script src="static/javascript/js/timetable.js-master/dist/scripts/timetable.js"></script>
+</head>
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+
+
+<!-- <div class="row text-left">
+    <div class="col-10"><p class="card-text"> Add Students: </p> </div>
+    <div class="col-2"><button class="btn btn-success" onclick="addStudents()"> Save </button>  </div>
+</div> -->
+
+
+<div class="col">
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-9"> <p> Add Lessons </p> </div>
+                <div class="col-3"> <button class="btn btn-success" onclick="generateTimetable()"> Make Timetable</button> </div>
+            </div>
+            <table class="table"> 
+                <thead>
+                    <th scope = "col"> Name </th> 
+                    <th scope = "col"> </th>
+                </thead>
+
+                <tbody id = "lessonList">
+
+                </tbody>
+            </table>
+
+            <button class="btn btn-primary" id="submit" onclick="addTemp()"> Add Lesson </Button>
+
+
+        </div>
+    </div>
+<script>
+    var count = 0;
+    var lessons = {{ lessons | tojson }};
+    function addTemp() {
+        td1 = document.createElement('td');
+        td1.setAttribute("scope", "row")
+
+        input = document.createElement('select');
+        input.classList.add("lessons");
+
+        for(i in lessons) {
+            option = document.createElement("option");
+            option.setAttribute("value", lessons[i].id)
+            option.innerHTML = lessons[i].string
+            input.append(option);
+        }
+
+        tr = document.createElement("tr");
+        tr.setAttribute("id", "lesson-".concat(count.toString()));
+
+        td1.append(input);
+
+        const button = document.createElement('button');
+        button.classList.add("btn");
+        button.classList.add("btn-danger");
+        button.classList.add("trashcan");
+        button.setAttribute("style", "background-color: white; border-color:white;")
+        button.setAttribute("id", "temp-".concat(count.toString()))
+        button.setAttribute("onclick", "removeTemp('lesson-".concat(count.toString()).concat("')"));
+
+        const iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        const iconPath1 = document.createElementNS('http://www.w3.org/2000/svg','path');
+        const iconPath2 = document.createElementNS('http://www.w3.org/2000/svg','path');
+        
+        iconSvg.setAttribute('fill', 'red');
+        iconSvg.setAttribute('width', '20');
+        iconSvg.setAttribute('height', '20');
+        iconSvg.setAttribute('viewBox', '0 0 16 16');
+        iconSvg.classList.add('bi');
+        iconSvg.classList.add('bi-trash');
+
+        
+        iconPath1.setAttribute('d','M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z' );
+        iconPath2.setAttribute('d', 'M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z' );
+
+        iconSvg.appendChild(iconPath1);
+        iconSvg.appendChild(iconPath2);
+
+        button.append(iconSvg);
+
+        td2 = document.createElement('td');
+        td2.setAttribute("scope", "row")
+        td2.append(button); 
+
+        tr.append(td1);
+        tr.append(td2);
+
+        lessonList = document.getElementById("lessonList");
+        lessonList.append(tr);
+        count = count + 1;
+    }
+
+
+    function removeTemp(id) {
+            var child = document.getElementById(id);
+            document.getElementById('lessonList').removeChild(child);
+    }
+</script>
+
+<script>
+    function removeTemp(id) {
+        var child = document.getElementById(id);
+        document.getElementById('lessonList').removeChild(child);
+}
+</script>
+
+<script> 
+    function getLessonInfo(id) {
+        for(i in lessons) {
+            if(lessons[i].id == id) {
+                return {"day" : lessons[i].day, "start" : lessons[i].start, "end" : lessons[i].end, "subject" : lessons[i].subject, "startMinute" :  lessons[i].startMinute, "startHour" :  lessons[i].startHour, "endMinute": lessons[i].endMinute, "endHour": lessons[i].endHour}
+            }
+
+        }
+
+        return null;
+    }
+    function generateTimetable() {
+        lessonElements = document.getElementsByClassName("lessons");
+        console.log(lessonElements)
+        var lessonList2 = [];
+        var timetableList = []
+
+        for(i in lessonElements) {
+            if(lessonElements[i].value != "undefined") {
+                lessonList2.push(lessonElements[i].value)
+            }
+        }
+
+        for(i in lessonList2) {
+            timetableList.push(getLessonInfo(lessonList2[i]))
+        }
+        console.log(timetableList);
+        
+        var timetable = new Timetable();
+
+        timetable.setScope(7, 22); // optional, only whole hours between 0 and 23
+        timetable.addLocations(['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']);
+
+            for(i in timetableList ) {
+                if(timetableList[i] != null) {
+                    console.log(timetableList[i].day)
+                        timetable.addEvent(timetableList[i].subject, 
+                                            timetableList[i].day, 
+                                            new Date(2015,7,17,parseInt(timetableList[i].startHour),parseInt(timetableList[i].startMinute)), 
+                                            new Date(2015,7,17,parseInt(timetableList[i].endHour), parseInt(timetableList[i].endMinute)), 
+                                            );
+                        //console.log("just added");
+                    //  console.log(lessons[i]);
+                }
+                };
+
+        
+        
+        var renderer = new Timetable.Renderer(timetable);
+        renderer.draw('.timetable'); // any css selector
+    };
+</script>
+
+<hr>
+
+<div class="row"> 
+    <div class="timetable row">
+    </div>
+</div>
+    
+{% endblock %}

@@ -1,0 +1,251 @@
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+<h2>Escalated Enquiries</h2>
+<table class="table table-hover mt-3">
+    <thead>
+        <tr>
+            <th>Caller Name</th>
+            <th>Student Name</th>
+            <th>Year Group</th>
+            <th>Location</th>
+            <th>Parent Email</th>
+            <th>Contact Number</th>
+            <th>Enquiry Info</th>
+            <th>Logged by</th>
+            <th>Date</th>
+            <th>Result</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for enquiry in escalated_enquiries %}
+        <tr>
+            <td class="editable" data-field="callerName" data-id="{{ enquiry.id }}">{{ enquiry.callerName }}</td>
+            <td class="editable" data-field="studentName" data-id="{{ enquiry.id }}">{{ enquiry.studentName }}</td>
+            <td class="editable" data-field="year_group" data-id="{{ enquiry.id }}">{{ enquiry.year_group }}</td>
+            <td>
+                <select class=" custom-select form-select form-select-sm" data-field="location" data-id="{{ enquiry.id }}">
+                    {% for centre in centres %}
+                        <option value="{{ centre.centreID }}" {% if enquiry.location == centre.centreID %}selected{% endif %}>{{ centre.name }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td class="editable" data-field="parent_email" data-id="{{ enquiry.id }}">{{ enquiry.parent_email }}</td>
+            <td class="editable" data-field="contact_number" data-id="{{ enquiry.id }}">{{ enquiry.contact_number }}</td>
+            <td class="editable" data-field="enquiry_info" data-id="{{ enquiry.id }}">{{ enquiry.enquiry_info }}</td>
+            <td class="editable" data-id="{{ enquiry.id }}">{{ enquiry.user_name }}</td>
+            <td class="editable" data-id="{{ enquiry.id }}">{{ enquiry.date }}</td>
+            <td>
+                <select class=" custom-select form-select form-select-sm" data-field="result" data-id="{{ enquiry.id }}">
+                    {% for result in results_list %}
+                        <option value="{{ result }}" {% if enquiry.result == result %}selected{% endif %}>{{ result }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<hr>
+
+<h2>All Enquiries</h2>
+<table class="table table-hover mt-3">
+    <thead>
+        <tr>
+            <th>Caller Name</th>
+            <th>Student Name</th>
+            <th>Year Group</th>
+            <th>Location</th>
+            <th>Parent Email</th>
+            <th>Contact Number</th>
+            <th>Enquiry Info</th>
+            <th>Logged by</th>
+            <th>Date</th>
+            <th>Result</th>
+            <th>Escalate</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for enquiry in enquiries %}
+        <tr>
+            <td class="editable" data-field="callerName" data-id="{{ enquiry.id }}">{{ enquiry.callerName }}</td>
+            <td class="editable" data-field="studentName" data-id="{{ enquiry.id }}">{{ enquiry.studentName }}</td>
+            <td class="editable" data-field="year_group" data-id="{{ enquiry.id }}">{{ enquiry.year_group }}</td>
+            <td>
+                <select class=" custom-select form-select form-select-sm" data-field="location" data-id="{{ enquiry.id }}">
+                    {% for centre in centres %}
+                        <option value="{{ centre.centreID }}" {% if enquiry.location == centre.centreID %}selected{% endif %}>{{ centre.name }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td class="editable" data-field="parent_email" data-id="{{ enquiry.id }}">{{ enquiry.parent_email }}</td>
+            <td class="editable" data-field="contact_number" data-id="{{ enquiry.id }}">{{ enquiry.contact_number }}</td>
+            <td class="editable" data-field="enquiry_info" data-id="{{ enquiry.id }}">{{ enquiry.enquiry_info }}</td>
+            <td class="editable" data-id="{{ enquiry.id }}">{{ enquiry.user_name }}</td>
+            <td class="editable" data-id="{{ enquiry.id }}">{{ enquiry.date }}</td>
+            <td>
+                <select class=" custom-select form-select form-select-sm" data-field="result" data-id="{{ enquiry.id }}">
+                    {% for result in results_list %}
+                        <option value="{{ result }}" {% if enquiry.result == result %}selected{% endif %}>{{ result }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td>
+                {% if not enquiry.escalated %}
+                <form method="POST" action="{{ url_for('enquiries') }}">
+                    <input type="hidden" name="enquiry_id" value="{{ enquiry.id }}">
+                    <select name="escalated_user_id" class=" custom-select form-select form-select-sm">
+                        {% for staff in staff %}
+                            <option value="{{ staff.id }}">{{ staff.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-warning btn-sm mt-2">Escalate</button>
+                </form>
+                {% else %}
+                <span>Escalated to {{ enquiry.escalated_user_name }}</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<hr>
+
+<h2>Completed Enquiries</h2>
+<table class="table table-hover mt-3">
+    <thead>
+        <tr>
+            <th>Caller Name</th>
+            <th>Student Name</th>
+            <th>Year Group</th>
+            <th>Location</th>
+            <th>Parent Email</th>
+            <th>Contact Number</th>
+            <th>Enquiry Info</th>
+            <th>Logged by</th>
+            <th>Date</th>
+            <th>Result</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for enquiry in completed_enquiries %}
+        <tr>
+            <td>{{ enquiry.callerName }}</td>
+            <td>{{ enquiry.studentName }}</td>
+            <td>{{ enquiry.year_group }}</td>
+            <td>
+                {% for centre in centres %}
+                    {% if enquiry.location == centre.centreID %}
+                        {{ centre.name }}
+                    {% endif %}
+                {% endfor %}
+            </td>
+            <td>{{ enquiry.parent_email }}</td>
+            <td>{{ enquiry.contact_number }}</td>
+            <td>{{ enquiry.enquiry_info }}</td>
+            <td class="editable" data-id="{{ enquiry.id }}">{{ enquiry.user_name }}</td>
+            <td class="editable" data-id="{{ enquiry.id }}">{{ enquiry.date }}</td>
+            <td>Completed!</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Include the confetti library -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.editable').forEach(cell => {
+            cell.addEventListener('dblclick', function() {
+                const field = this.dataset.field;
+                const value = this.textContent.trim();
+                const id = this.dataset.id;
+
+                // Create input element
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = value;
+                input.className = 'form-control form-control-sm'; // Improved Bootstrap styling
+
+                // Create save button
+                const saveButton = document.createElement('button');
+                saveButton.textContent = 'Save';
+                saveButton.className = 'btn btn-success btn-sm mt-2';
+
+                // Clear cell content and append input and button
+                this.textContent = '';
+                this.appendChild(input);
+                this.appendChild(saveButton);
+
+                // Focus the input field
+                input.focus();
+
+                // Handle save button click
+                saveButton.addEventListener('click', () => {
+                    const newValue = input.value.trim();
+
+                    // Send the updated value to the server
+                    fetch(`/update_enquiry/${id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ field: field, value: newValue })
+                    }).then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Update cell with new value
+                            cell.textContent = newValue;
+
+                            // Check if the field updated was 'result' and if it's completed
+                            if (field === 'result' && newValue.toLowerCase() === 'completed') {
+                                triggerConfetti();
+                            }
+                        } else {
+                            alert('Failed to update field.');
+                        }
+                    });
+                });
+            });
+        });
+
+        // Handle select elements
+        document.querySelectorAll('select.form-select').forEach(select => {
+            select.addEventListener('change', function() {
+                const field = this.dataset.field;
+                const value = this.value;
+                const id = this.dataset.id;
+
+                fetch(`/update_enquiry/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ field: field, value: value })
+                }).then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Check if the field updated was 'result' and if it's completed
+                        if (field === 'result' && value.toLowerCase() === 'complete') {
+                            triggerConfetti();
+                        }
+                    } else {
+                        alert('Failed to update field.');
+                    }
+                });
+            });
+        });
+
+        function triggerConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+    });
+</script>
+{% endblock %}

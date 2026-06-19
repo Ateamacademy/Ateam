@@ -1,0 +1,76 @@
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Enquiry Form</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="caller_name" class="form-label">Caller Name:</label>
+                            <input type="text" class="form-control" id="caller_name" name="caller_name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="student_name" class="form-label">Student Name:</label>
+                            <input type="text" class="form-control" id="student_name" name="student_name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="year_group" class="form-label">Year Group:</label>
+                            <input type="text" class="form-control" id="year_group" name="year_group" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location:</label>
+                            <select class="form-select" id="location" name="location" required>
+                                <option value=""> Please choose an option </option>
+                                {% for centre in centres %}
+                                    <option value="{{ centre.centreID }}">{{ centre.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="parent_email" class="form-label">Parent Email:</label>
+                            <input  class="form-control" id="parent_email" name="parent_email" >
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="contact_number" class="form-label">Contact Number:</label>
+                            <input type="text" class="form-control" id="contact_number" name="contact_number" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="enquiry_info" class="form-label">Enquiry Information:</label>
+                            <textarea class="form-control" id="enquiry_info" name="enquiry_info" rows="4" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="result" class="form-label">Result:</label>
+                            <select class="form-select" id="result" name="result" required>
+                                <option value="Complete">Complete</option>
+                                <option value="Booked trial Lesson">Booked trial Lesson</option>
+                                <option value="Will book a trial lesson">Will book a trial lesson</option>
+                                <option value="unknown">Unknown</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Will Book Exam">Will Book Exam</option>
+                                <option value="Exam Booked">Exam Booked</option>
+
+                            </select>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

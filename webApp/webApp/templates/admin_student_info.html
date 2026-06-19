@@ -1,0 +1,1162 @@
+<head>
+    <title> {{ info.firstName }}'s Info </title>
+    <link rel="stylesheet" href="static\css\admin_student_info.css" />
+</head>
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+<style>
+  .profile-pic-container {
+      position: relative;
+      width: 150px;
+  }
+
+  .profile-pic-container img {
+      width: 100%;
+      border-radius: 50%;
+      border: 2px solid #555;
+      transition: 0.3s;
+  }
+
+  .profile-pic-container:hover img {
+      filter: grayscale(100%);
+  }
+
+  .profile-pic-container .edit-icon {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      border-radius: 50%;
+      padding: 10px;
+      cursor: pointer;
+      display: none;
+  }
+
+  .profile-pic-container:hover .edit-icon {
+      display: block;
+  }
+
+  .modal-body {
+      text-align: center;
+  }
+</style>
+
+<script>
+  function uploadProfilePicture() {
+      var form = $('#uploadForm')[0];
+      var formData = new FormData(form);
+      var userID = 'userID'; // Replace with the actual user ID
+
+      $.ajax({
+          url: '/upload_profile_picture/' + userID,
+          type: 'POST',
+          data: formData,
+          contentType: false,
+          processData: false,
+          success: function (response) {
+              alert(response.message);
+              // Optionally update the profile picture on the page
+              $('#uploadModal').modal('hide');
+          },
+          error: function (error) {
+              console.log(error);
+          }
+      });
+  }
+</script>
+
+<body>
+    {% if edit_student_information %}
+    <script>
+      function editInfo(key) {
+        value = document.getElementById(key + "-entry").value;
+        $.ajax({
+          url: '/edit_student_info',
+          type: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({"key" : key, "value" : value, "studentID" : '{{ studentid }}' }),
+          success: function(response) {
+             p = document.createElement("p");
+             p.classList.add("text-muted", "mb-0");
+             p.setAttribute("id", "key".concat("-entry"));
+             p.innerHTML = value;
+            
+             button = document.createElement("button");
+             button.setAttribute("onclick", "editButton(".concat(key).concat(", 'text')"));
+             button.classList.add("btn", "editBtn"); 
+             button.setAttribute("id", key + "-btn");
+             button.innerHTML = ` <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                  <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+              </svg>`
+            button.setAttribute("id", key.concat("-btn"));
+
+            document.getElementById(key + "-btn").replaceWith(button);
+            document.getElementById(key + "-entry").replaceWith(p);
+          },
+          error: function(error) {
+              alert(error);
+          }
+      })
+      }
+
+      function editButton(key, type) {
+        if(type == "text") {
+          entry = document.getElementById(key + "-entry");
+          button = document.getElementById(key + "-btn");
+          newEntry = document.createElement("input");
+          newEntry.id = entry.id;
+          newEntry.value = entry.innerHTML;
+
+          newButton = document.createElement("button");
+          newButton.classList.add("btn", "btn-success");
+          newButton.innerHTML = "Save";
+          newButton.id = key + "-btn";
+          newButton.setAttribute("onclick", "editInfo('" + key + "')");
+
+          entry.replaceWith(newEntry);
+          button.replaceWith(newButton);
+        }
+        else if(type == "check") {
+          entry = document.getElementById(key + "-entry");
+          button = document.getElementById(key + "-btn");
+          newEntry = document.createElement("select");
+          newEntry.id = entry.id;
+
+          True = document.createElement("option");
+          True.value = "True";
+          True.innerHTML = "True";
+          if(entry.innerHTML == "True"){
+            True.selected = true;
+          }
+
+          False = document.createElement("option");
+          False.value = "False";
+          False.innerHTML = "False";
+          if(entry.innerHTML == "False"){
+            False.selected = true;
+          }
+
+          newEntry.append(True);
+          newEntry.append(False);
+
+          newButton = document.createElement("button");
+          newButton.classList.add("btn", "btn-success");
+          newButton.innerHTML = "Save";
+          newButton.id = key + "-btn";
+          newButton.setAttribute("onclick", "editInfo('" + key + "')");
+
+          entry.replaceWith(newEntry);
+          button.replaceWith(newButton);
+        }
+        else {}
+      }
+    </script>
+    {% endif %}
+    
+    <div class = "col container py-4" style = "max-width: 1590px;">
+      <div class="row">
+        <div class="col-xl-4">
+          <div class="card mb-4">
+            <div class="card-body text-center">
+                <div class="profile-pic-container text-center">
+                  {% if info.gender == 'Male' %} <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp" alt="avatar"  class="rounded-circle img-fluid" style="width: 150px;   border: 2px solid #555;">
+                  {% elif info.gender == 'Female' %} <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava6.webp" alt="avatar"  class="rounded-circle img-fluid" style="width: 150px;   border: 2px solid #555;">
+                  {% else %} <img src="static/images/default-avatar.jpg" alt="avatar"  class="rounded-circle img-fluid" style="width: 150px;">
+                  {% endif %} 
+                </div>
+              <h5 class="my-3">{{ info.firstName }} {{ info.secondName }} </h5>
+              <p class="text-muted mb-1">Student</p>
+              <p class="text-muted mb-4">Year {{ info.year_group }}</p>
+              <div class="d-flex justify-content-center mb-2">
+                {% if session['role'] == "admin" or session['role'] == "receptionist" %} 
+                  <div class="row mb-2"> 
+                    <div class = "col"> <a href = "student_overview?studentid={{ request.args['studentid'] }}"> <button type="button" class="btn btn-primary"> View Attendance </button> </a> </div>
+                    <div class = "col"> <a href = "studentGrades?studentID={{ request.args['studentid'] }}"> <button type="button" class="btn btn-primary"> View Grades </button> </a> </div> 
+                  </div>
+                  <div class="row mb-2">
+                     <div class = "col"> <button class= "btn btn-danger" type="button" data-toggle="modal" data-target="#removeModalCenter" onclick="setID( '{{ info.id }}' , '{{ info.firstName + ' ' + info.secondName }}' )"> Remove </button> </div> 
+                     <div class = "col"> <a href = "resetPassword?id={{userID}}"> <button class= "btn btn-danger" type="button"> Reset Password </button> </a> </div> 
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          
+          <div class="card mb-4 mb-lg-0">  <!-- Other Medical Info -->
+            <div class="card-body p-0">       
+              <div class="card-body"> 
+                <div class="card-heading"><p class="mb-4"> Other Medical Info</p> </div>
+                <hr>
+                
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <p class="mb-0">Child Normally Healthy:</p>
+                  </div>
+                  <div class="col-4">
+                    <p class="text-muted mb-0" id="child_normally_healthy-entry">{{ info.child_normally_healthy }}</p>
+                  </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('child_normally_healthy', 'check')" id="child_normally_healthy-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <p class="mb-0">Serious Illnesses or Accidents:</p>
+                  </div>
+                  <div class="col-4">
+                    <p class="text-muted mb-0" id="serious_illness_or_accidents-entry">{{ info.serious_illness_or_accidents }}</p>
+                  </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('serious_illness_or_accidents', 'check')" id="serious_illness_or_accidents-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <p class="mb-0">Condition Affecting School Life:</p>
+                  </div>
+                  <div class="col-4">
+                    <p class="text-muted mb-0" id="condition_affecting_school_life-entry">{{ info.condition_affecting_school_life }}</p>
+                  </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('condition_affecting_school_life', 'check')" id="condition_affecting_school_life-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <p class="mb-0">Allergies:</p>
+                  </div>
+                  <div class="col-4">
+                    {% if info.allergies == True %}
+                      <details> 
+                        <summary> {{ info.allergies }}  </summary>
+                        <p class='mb-1'> {{ info.allergyInfo }}</p>
+                      </details>
+                    {% else %}
+                      <p class="text-muted mb-0" id="allergies-entry"> {{ info.allergies }} </p>
+                    {% endif %}
+                  </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('allergies', 'check')" id="allergies-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <p class="mb-0">Asthma:</p>
+                  </div>
+                  <div class="col-4">
+                    <p class="text-muted mb-0" id="asthma-entry">{{ info.asthma }}</p>
+                  </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('asthma', 'check')" id="asthma-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <p class="mb-0">Epilespy or Fits:</p>
+                  </div>
+                  <div class="col-4">
+                    <p class="text-muted mb-0" id="epilepsy_or_fits-entry">{{ info.epilepsy_or_fits }}</p>
+                  </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('epilepsy_or_fits', 'check')" id="epilepsy_or_fits-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <p class="mb-0">Heart Problems:</p>
+                  </div>
+                  <div class="col-4">
+                    <p class="text-muted mb-0" id="heart_problems-entry">{{ info.heart_problems }}</p>
+                  </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('heart_problems', 'check')" id="heart_problems-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <p class="mb-0">Nose Bleeds:</p>
+                  </div>
+                  <div class="col-4">
+                    <p class="text-muted mb-0" id="nose_bleeds-entry">{{ info.nose_bleeds }}</p>
+                  </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('nose_bleeds', 'check')" id="nose_bleeds-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <p class="mb-0">Speech or Hearing Difficulties:</p>
+                  </div>
+                  <div class="col-4">
+                    <p class="text-muted mb-0" id="speech_or_hearing_difficulties-entry">{{ info.speech_or_hearing_difficulties }}</p>
+                  </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('speech_or_hearing_difficulties', 'check')" id="speech_or_hearing_difficulties-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <p class="mb-0">Mobility Difficulties:</p>
+                  </div>
+                  <div class="col-4">
+                    <p class="text-muted mb-0" id="mobility_difficulties-entry">{{ info.mobility_difficulties }}</p>
+                  </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('mobility_difficulties', 'check')" id="mobility_difficulties-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <p class="mb-0">Other Difficulties:</p>
+                  </div>
+                  <div class="col-4">
+                    <p class="text-muted mb-0" id="other_difficulties-entry">{{ info.other_difficulties }}</p>
+                  </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('other_difficulties', 'check')" id="other_difficulties-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <p class="mb-0">Known Medical Conditions:</p>
+                  </div>
+                  <div class="col-4">
+                    <p class="text-muted mb-0" id="known_medical_conditions-entry">{{ info.known_medical_conditions }}</p>
+                  </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('known_medical_conditions', 'check')" id="known_medical_conditions-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <p class="mb-0">Medical Treatments / Medicines:</p>
+                  </div>
+                  <div class="col-4">
+                    <p class="text-muted mb-0" id="medical_treatment_or_medicines-entry">{{ info.medical_treatment_or_medicines }}</p>
+                  </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('medical_treatment_or_medicines', 'check')" id="medical_treatment_or_medicines-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <p class="mb-0">Extra Medical Info:</p>
+                  </div>
+                  <div class="col-4">
+                    <p class="text-muted mb-0" id="extra_medical_info-entry">{{ info.extra_medical_info }}</p>
+                  </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('extra_medical_info', 'check')" id="extra_medical_info-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <p class="mb-0">Emergency Information:</p>
+                  </div>
+                  <div class="col-4">
+                    <p class="text-muted mb-0" id="emergency_information-entry">{{ info.emergency_information }}</p>
+                  </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('emergency_information', 'check')" id="emergency_information-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                    </div>
+                </div>
+              </div>  
+            </div>
+          </div> 
+          
+
+          <div class="card mt-4 mb-4 mb-lg-0">      <!-- English as an Additional Language -->
+            <div class="card-body p-0">         
+              <div class="card-body">
+
+                <div class="card-heading"><p class="mb-4"> English as Additional Language</p> </div>
+                <hr>
+                
+
+                <div class='row mb-2'>
+                  <div class='col-6'>
+                    <p class='mb-0'> EAL</p>
+                  </div>
+                  <div class='col-4'>
+                    <p class='text-muted mb-0' id="eal-entry"> {{ info.eal }}</p>
+                  </div>
+
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('eal', 'check')" id="eal-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                    </div>
+                </div>
+
+                <div class='row mb-2'>
+                  <div class='col-6'>
+                    <p class='mb-0'> First Language</p>
+                  </div>
+                  <div class='col-4'>
+                    <p class='text-muted mb-0' id="pupil_first_language-entry"> {{ info.pupil_first_language }}</p>
+                  </div>
+
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('pupil_first_language', 'text')" id="pupil_first_language-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class='row mb-2'>
+                  <div class='col-6'>
+                    <p class='mb-0'> Other Language</p>
+                  </div>
+                  <div class='col-4'>
+                    <p class='text-muted mb-0' id="pupil_other_language-entry"> {{ info.pupil_other_language }}</p>
+                  </div>
+                  
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('pupil_other_language', 'text')" id="pupil_other_language-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class='row mb-2'>
+                  <div class='col-6'>
+                    <p class='mb-0'> Home Main Language</p>
+                  </div>
+                  <div class='col-4'>
+                    <p class='text-muted mb-0' id="home_main_language-entry"> {{ info.home_main_language }}</p>
+                  </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('home_main_language', 'text')" id="home_main_language-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class='row mb-2'>
+                  <div class='col-6'>
+                    <p class='mb-0'> Home Other Language</p>
+                  </div>
+                  <div class='col-4'>
+                    <p class='text-muted mb-0' id="home_other_language-entry"> {{ info.home_other_language }}</p>
+                  </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('home_other_language', 'text')" id="home_other_language-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                  </div>
+                  
+                </div>
+
+
+              </div>
+            </div>
+          </div>
+
+          <div class="card mt-4 mb-4 mb-lg-0">        <!-- First Aid Permission -->
+            <div class="card-body p-0">
+              <div class="card-body">
+
+                <div class='row mb-2'>
+                  <div class='col-8'>
+                    <p class='mb-0'> First Aid Permission</p>
+                  </div>
+                  <div class='col-4'>
+                    <p class='text-muted mb-0'> {{ info.first_aid_permission }}</p>
+                  </div>
+                </div>
+
+                <div class='row mb-2'>
+                  <div class='col-8'>
+                    <p class='mb-0'> Hospital Referral </p>
+                  </div>
+                  <div class='col-4'>
+                    <p class='text-muted mb-0'> {{ info.hospital_referral_permission }}</p>
+                  </div>
+                </div>
+
+                <div class='row mb-2'>
+                  <div class='col-8'>
+                    <p class='mb-0'> SEN</p>
+                  </div>
+                  <div class='col-4'>
+                    <p class='text-muted mb-0'> {{ info.special_educational_needs }}</p>
+                  </div>
+                </div>
+
+                <div class='row mb-2'>
+                  <div class='col-8'>
+                    <p class='mb-0'> SEN info:</p>
+                  </div>
+                  <div class='col-4'>
+                    <p class='text-muted mb-0'> {{ info.sen_information }}</p>
+                  </div>
+                </div>
+
+                <div class='row mb-2'>
+                  <div class='col-8'>
+                    <p class='mb-0'> Behaviour Support needed?</p>
+                  </div>
+                  <div class='col-4'>
+                    <p class='text-muted mb-0'> {{ info.behavior_support_needed }}</p>
+                  </div>
+                </div>
+
+                <div class='row mb-2'>
+                  <div class='col-8'>
+                    <p class='mb-0'> Behaviour support info</p>
+                  </div>
+                  <div class='col-4'>
+                    <p class='text-muted mb-0'> {{ info.behavior_support_info }}</p>
+                  </div>
+                </div>
+
+              </div>
+            </div> 
+          </div> 
+
+
+        </div>
+
+        <div class="col-xl-8">
+          <div class="card mb-4">           <!-- Personal Information -->
+            <div class="card-body">
+              
+              <div class="card-heading"> <p class="mb-4"> Personal Information</p> </div>
+              <hr>
+
+              <div class="row">
+                <div class="col-5">
+                  <p class="mb-0">Full Name</p>
+                </div>
+                <div class="col-7">
+                  <p class="text-muted mb-0">{{ info.firstName }} {{ info.middleName }} {{ info.secondName }}</p>
+                </div>
+              </div>
+              <hr>
+
+              <div class="row">
+                <div class="col-5">
+                  <p class="mb-0">Known as</p>
+                </div>
+                <div class="col-7">
+                  <p class="text-muted mb-0"> {{ info.known_as }}</p>
+                </div>
+              </div>
+              <hr>
+              
+              <div class="row">
+                <div class="col-5">
+                  <p class="mb-0">Student Email</p>
+                </div>
+                <div class="col-5">
+                  <p class="text-muted mb-0" id="email-entry">{{ info.email }}</p>
+                </div>
+                <div class="col-2">
+                {% if edit_student_information %} <button onclick="editButton('email', 'text')" id="email-btn" class="btn editBtn"> 
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                      <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                  </svg>
+                </button>
+                {% endif %}
+                </div>
+              </div>
+              <hr>
+
+              <div class="row">
+                <div class="col-5">
+                  <p class="mb-0">Parent Email</p>
+                </div>
+                <div class="col-5">
+                  <p class="text-muted mb-0" id="parent_email-entry">{{ info.parent_email }}</p>
+                </div>
+                <div class="col-2">
+                  {% if edit_student_information %} <button onclick="editButton('parent_email', 'text')" id="parent_email-btn" class="btn editBtn"> 
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                        <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                    </svg>
+                  </button>
+                  {% endif %}
+                  </div>
+              </div>
+              <hr>
+
+
+              <div class='row'>
+                <div class='col-5'>
+                  <p class='mb-0'> Year Group</p>
+                </div>
+                <div class='col-7'>
+                  <p class='text-muted mb-0'> {{ info.year_group }}</p>
+                </div>
+              </div>
+              <hr>
+
+              <div class='row'>
+                <div class='col-5'>
+                  <p class='mb-0'> Date Of Birth:</p>
+                </div>
+                <div class='col-7'>
+                  <p class='text-muted mb-0'> {{ info.dob }}</p>
+                </div>
+              </div>
+              <hr>
+              
+              <div class='row'>
+                <div class='col-5'>
+                  <p class='mb-0'> Address</p>
+                </div>
+                <div class='col-7'>
+                  <p class='text-muted mb-0'> {{ info.house_number }} {{ info.street_name }}  {{ info.city_or_county }} {{ info.post_code }}</p>
+                </div>
+              </div>
+              <hr>
+
+              <div class='row'>
+                <div class='col-5'>
+                  <p class='mb-0'> Current School Name</p>
+                </div>
+                <div class='col-7'>
+                  <p class='text-muted mb-0'> {{ info.current_school_1 }}</p>
+                </div>
+              </div>
+              <hr>
+
+              <div class='row'>
+                <div class='col-5'>
+                  <p class='mb-0'> Child Protection Register</p>
+                </div>
+                <div class='col-7'>
+                  <p class='text-muted mb-0'> {{ info.child_protection_register }}</p>
+                </div>
+              </div>
+              <hr>
+
+              {% if info.look_after_child_register == True %}
+                <details>
+                  <summary> 
+                    <div class='row'>
+                      <div class='col-5'>
+                        <p class='mb-0'> LAC Register</p>
+                      </div>
+                      <div class='col-7'>
+                            <p class='text-muted mb-0'> {{ info.look_after_child_register }}</p> 
+                      </div>
+                    </div>
+                  </summary>
+
+                  <div class='row'>
+                    <div class='col-5'>
+                      <p class='mb-0'> LAC Contact Info</p>
+                    </div>
+                    <div class='col-7'>
+                          <p class='text-muted mb-0'> {{ info.look_after_child_contact_info }}
+                         </p> 
+                    </div>
+                  </div>
+
+                </details>
+                <hr>
+                {% else %}
+                <div class='row'>
+                  <div class='col-5'>
+                    <p class='mb-0'> LAC Register</p>
+                  </div>
+                  <div class='col-7'>
+                    <p class='text-muted mb-0'> {{ info.look_after_child_register }}</p>
+                  </div>
+                </div>
+                <hr>
+              {% endif %}
+
+              <div class='row'>
+                <div class='col-5'>
+                  <p class='mb-0'> Personal Education Plan</p>
+                </div>
+                <div class='col-7'>
+                  <p class='text-muted mb-0'> {{ info.personal_education_plan }}</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="card mb-4">            <!-- GP INFORMATION -->
+            <div class="card-body">
+              <div class="card-heading"><p class="mb-4"> GP Info</p> </div>
+              <hr>
+
+              <div class='row'>
+                <div class='col-3'>
+                  <p class='mb-0'> GP Name</p>
+                </div>
+                <div class='col-7'>
+                  <p class='text-muted mb-0' id="gp_name-entry"> {{ info.gp_name }}</p>
+                </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('gp_name', 'text')" id="gp_name-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                  </div>
+              </div>
+
+              <div class='row'>
+                <div class='col-3'>
+                  <p class='mb-0'> GP Address</p>
+                </div>
+                <div class='col-7'>
+                  <p class='text-muted mb-0' id="gp_practice_address-entry"> {{ info.gp_practice_address }}</p>
+                </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('gp_practice_address', 'text')" id="gp_practice_address-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                  </div>
+              </div>
+
+              <div class='row'>
+                <div class='col-3'>
+                  <p class='mb-0'> GP Post Code</p>
+                </div>
+                <div class='col-7'>
+                  <p class='text-muted mb-0' id="gp_post_code-entry"> {{ info.gp_post_code }}</p>
+                </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('gp_post_code', 'text')" id="gp_post_code-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                  </div>
+              </div>
+
+              <div class='row'>
+                <div class='col-3'>
+                  <p class='mb-0'> GP Telephone</p>
+                </div>
+                <div class='col-7'>
+                  <p class='text-muted mb-0' id="gp_telephone-entry"> {{ info.gp_telephone }}</p>
+                </div>
+                  <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('gp_telephone', 'text')" id="gp_telephone-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                  </div>
+              </div>
+            </div>
+          </div> 
+
+          <div class="row mb-4">
+            <div class="col-md-6">        
+              <div class="card mb-4 mb-md-0">         <!-- Priority Contact 1  -->
+                <div class="card-body">
+
+                  <div class="card-heading"><p class="mb-4"> Priority Contact 1</p> </div>
+                  <hr>
+
+                  <div class="row mb-2">
+                    <div class="col-4">
+                      <p class="mb-0"> Name:</p>
+                    </div>
+                    <div class="col-6">
+                      <p class="text-muted mb-0" id="priority_contact_1_surname-entry">{{ info.priority_contact_1_title }} {{ info.priority_contact_1_forename }} {{ info.priority_contact_1_surname }}</p>
+                    </div>
+
+                  </div>
+
+                  <div class="row mb-2">
+                    <div class="col-4">
+                      <p class="mb-0">Relationship</p>
+                    </div>
+                    <div class="col-6">
+                      <p class="text-muted mb-0" id="priority_contact_1_relationship-entry">{{ info.priority_contact_1_relationship }}</p>
+                    </div>
+                    <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('priority_contact_1_relationship', 'text')" id="priority_contact_1_relationship-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                  </div>
+                  </div>
+                  
+                  <div class="row mb-2">
+                    <div class="col-4">
+                      <p class="mb-0">Email</p>
+                    </div>
+                    <div class="col-6">
+                      <p class="text-muted mb-0" id="priority_contact_1_email-entry">{{ info.priority_contact_1_email }}</p>
+                    </div>
+                    <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('priority_contact_1_email', 'text')" id="priority_contact_1_email-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                  </div>
+                  </div>
+
+                  <div class="row mb-2">
+                    <div class="col-4">
+                      <p class="mb-0">Home Phone</p>
+                    </div>
+                    <div class="col-6">
+                      <p class="text-muted mb-0" id="priority_contact_1_home_telephone-entry">{{ info.priority_contact_1_home_telephone }}</p>
+                    </div>
+                    <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('priority_contact_1_home_telephone', 'text')" id="priority_contact_1_home_telephone-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                  </div>
+                  </div>
+
+                  <div class="row mb-2">
+                    <div class="col-4">
+                      <p class="mb-0">Mobile Phone</p>
+                    </div>
+                    <div class="col-6">
+                      <p class="text-muted mb-0" id="priority_contact_1_mobile_telephone-entry">{{ info.priority_contact_1_mobile_telephone }}</p>
+                    </div>
+                    <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('priority_contact_1_mobile_telephone', 'text')" id="priority_contact_1_mobile_telephone-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                  </div>
+                  </div>
+
+                  <div class="row mb-2">
+                    <div class="col-4">
+                      <p class="mb-0">Work Phone</p>
+                    </div>
+                    <div class="col-6">
+                      <p class="text-muted mb-0" id="priority_contact_1_work_number-entry">{{ info.priority_contact_1_work_number }}</p>
+                    </div>
+                    <div class="col-2">
+                    {% if edit_student_information %} <button onclick="editButton('priority_contact_1_work_number', 'text')" id="priority_contact_1_work_number-btn" class="btn editBtn"> 
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                          <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+                    </div>
+                  </div>
+                
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card mb-4 mb-md-0">         <!-- Priority Contact 2  -->
+                  <div class="card-body">
+
+                    <div class="card-heading"><p class="mb-4"> Priority Contact 2</p> </div>
+                    <hr>
+
+                    <div class="row mb-2">
+                      <div class="col-5">
+                        <p class="mb-0"> Name:</p>
+                      </div>
+                      <div class="col-7">
+                        <p class="text-muted mb-0">{{ info.priority_contact_2_title }} {{ info.priority_contact_2_forename }} {{ info.priority_contact_2_surname }}</p>
+                      </div>
+                    </div>
+
+                    <div class="row mb-2">
+                      <div class="col-4">
+                        <p class="mb-0">Relationship</p>
+                      </div>
+                      <div class="col-6">
+                        <p class="text-muted mb-0" id="priority_contact_2_relationship-entry">{{ info.priority_contact_2_relationship }}</p>
+                      </div>
+                      <div class="col-2">
+                        {% if edit_student_information %} <button onclick="editButton('priority_contact_2_relationship', 'text')" id="priority_contact_2_relationship-btn" class="btn editBtn"> 
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                            <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                          </svg>
+                        </button>
+                        {% endif %}
+                      </div>
+                    </div>
+                    
+                    <div class="row mb-2">
+                      <div class="col-4">
+                        <p class="mb-0">Email</p>
+                      </div>
+                      <div class="col-6">
+                        <p class="text-muted mb-0" id="priority_contact_2_email-entry">{{ info.priority_contact_2_email }}</p>
+                      </div>
+                      <div class="col-2">
+                        {% if edit_student_information %} <button onclick="editButton('priority_contact_2_email', 'text')" id="priority_contact_2_email-btn" class="btn editBtn"> 
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                            <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                          </svg>
+                        </button>
+                        {% endif %}
+                      </div>
+                    </div>
+
+                    <div class="row mb-2">
+                      <div class="col-4">
+                        <p class="mb-0">Home Phone</p>
+                      </div>
+                      <div class="col-6">
+                        <p class="text-muted mb-0" id="priority_contact_2_home_telephone-entry">{{ info.priority_contact_2_home_telephone }}</p>
+                      </div>
+                      <div class="col-2">
+                        {% if edit_student_information %} <button onclick="editButton('priority_contact_2_home_telephone', 'text')" id="priority_contact_2_home_telephone-btn" class="btn editBtn"> 
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                            <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                          </svg>
+                        </button>
+                        {% endif %}
+                      </div>
+                    </div>
+
+                    <div class="row mb-2">
+                      <div class="col-4">
+                        <p class="mb-0">Mobile Phone</p>
+                      </div>
+                      <div class="col-6">
+                        <p class="text-muted mb-0" id="priority_contact_2_mobile_telephone-entry">{{ info.priority_contact_2_mobile_telephone }}</p>
+                      </div>
+                      <div class="col-2">
+                        {% if edit_student_information %} <button onclick="editButton('priority_contact_2_mobile_telephone', 'text')" id="priority_contact_2_mobile_telephone-btn" class="btn editBtn"> 
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                            <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                          </svg>
+                        </button>
+                        {% endif %}
+                      </div>
+                    </div>
+
+                    <div class="row mb-2">
+                      <div class="col-4">
+                        <p class="mb-0">Work Phone</p>
+                      </div>
+                      <div class="col-6">
+                        <p class="text-muted mb-0" id="priority_contact_2_work_number-entry">{{ info.priority_contact_2_work_number }}</p>
+                      </div>
+                      <div class="col-2">
+                        {% if edit_student_information %} <button onclick="editButton('priority_contact_2_work_number', 'text')" id="priority_contact_2_work_number-btn" class="btn editBtn"> 
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                            <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                          </svg>
+                        </button>
+                        {% endif %}
+                      </div>
+                    </div>
+                      
+
+                  </div>
+                </div>
+            </div>
+
+          </div>
+
+          <div class = "card mb-4">               <!-- Lessons -->
+            <div class="card-body"> 
+
+              <div class="card-heading"><p class="mb-4"> Lessons</p> </div>
+              <hr>
+              
+              {% for lesson in lessons %}
+              <div class='row'>
+                <div class='col-12'>
+                  <p class='mb-0'> {{ lesson }}</p>
+                </div>
+              </div>
+              {% endfor %}
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+       
+  
+  <script> 
+    function setID(id, lesson) {
+        document.getElementById("deleteConfirm").setAttribute('href', '/deleteStudent/'.concat(id))
+        document.getElementById("lessonToRemove").innerText = lesson;
+    };
+</script>
+
+<div class="modal fade" id="removeModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Are You sure?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+          <form>
+              <div class="col">
+                  <div class="row mb-3"> 
+                      <p class="mb-0" id="lessonToRemove"></p>
+                  </div>
+              </div>
+          </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal"> Cancel </button>
+        <a id="deleteConfirm"> <button type="button" class="btn btn-danger" >Yes I'm sure I want to delete </button> </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadModalLabel">Upload Profile Picture</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <input type="file" class="form-control-file" id="profilePicture" name="profilePicture" accept=".jpg">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="uploadProfilePicture()">Upload</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+{% endblock %}

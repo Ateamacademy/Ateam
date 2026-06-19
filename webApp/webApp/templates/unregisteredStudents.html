@@ -1,0 +1,55 @@
+<head> 
+    <title> Unregistered Students </title>
+
+</head>
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+<div class="col-12"> 
+    {% for i in unregisteredStudents %}
+    <div class="row-12" id="div-{{ i.student }}{{ i.lessonID }}"> 
+        <div class="card mr-4 mb-4"> 
+            <div class="card-body">  
+                <div class="row">
+                    <div class = "col-lg-2"> <p class="card-text"> {{ i.student }} </p> </div>
+                    <div class = "col-lg-5"> <p class="card-text"> {{ i.lesson }} </p> </div>
+                    <div class = "col-lg-3"> 
+                        <select id = "{{ i.student }}{{ i.lessonID }}" class="form-select">
+                            <option selected> Select an Option... </option> 
+                        {% for student in registered %}
+                            <option value = "{{ student.id }}"> {{ student.name }} </option> 
+                        {% endfor %}
+                        </select>
+                    </div>
+                    <a href = "/changeUnregToPerm?oldName=&studentID=&lessonID="></a>
+                    <div class = "col-lg-2"> <button onClick="makePerm('{{ i.student }}','{{ i.lessonID }}')" class="btn btn-primary"> Make Perm </button> </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <script> 
+        function makePerm(name, lessonID) {
+            newID = document.getElementById(name.concat(lessonID)).value;
+            
+            $.ajax({
+                url: '/makePerm',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({"name" : name, "lessonID" : lessonID, "newID" : newID}),
+                success: function(response) { alert(name.concat(" has been made permanent"));
+                    document.getElementById("div-".concat(name.concat(lessonID))).style.display = "None";
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            })
+        }
+
+    </script>
+</div>
+
+
+{% endblock %}

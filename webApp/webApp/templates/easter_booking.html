@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Easter Revision Course Registration</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background: url('https://ateamacademy.co.uk/wp-content/uploads/2024/09/03.-Visian-Gradient-01-1.jpg') no-repeat center center fixed;
+            background-size: 2600px auto;
+            height: 100vh;
+            position: relative;
+        }
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 150%;
+            height: 150%;
+            background: url('https://ateamacademy.co.uk/wp-content/uploads/2024/09/Hand-Drawn-Abstract-Wallpaper-1-1.png') repeat;
+            background-size: 2600px auto;
+            opacity: 0.1;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+        .event-card {
+            background: rgba(255, 255, 255, 0.25);
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+            padding: 15px;
+        }
+        .event-card:hover {
+            transform: scale(1.05);
+        }
+        .selected {
+            border: 3px solid #fff;
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center text-white">Event Registration</h2>
+        <form method="POST" action="{{ url_for('register_event') }}" class="mt-4">
+            <div class="form-group mb-3">
+                <label class="text-white">Full Name *</label>
+                <input type="text" name="name" class="form-control" required>
+            </div>
+            <div class="form-group mb-3">
+                <label class="text-white">Email *</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+            <div class="form-group mb-3">
+                <label class="text-white">Phone Number *</label>
+                <input type="text" name="phone" class="form-control" required>
+            </div>
+            <div class="form-group mb-3">
+                <label class="text-white">Dietary Requirements *</label>
+                <textarea name="dietary_reqs" class="form-control" required></textarea>
+            </div>
+            <h4 class="text-white mt-4">Select Events</h4>
+            <div class="row">
+                {% for event in [
+                    {"title": "A-Level Maths", "desc": "Advanced Mathematics topics."},
+                    {"title": "A-Level Biology", "desc": "Explore biological sciences."},
+                    {"title": "A-Level Chemistry", "desc": "Understand chemical principles."},
+                    {"title": "A-Level Physics", "desc": "Dive into physics concepts."},
+                    {"title": "GCSE Maths", "desc": "Foundation & higher level maths."},
+                    {"title": "GCSE Biology", "desc": "Learn key biology topics."},
+                    {"title": "GCSE Chemistry", "desc": "Introduction to chemistry."},
+                    {"title": "GCSE Physics", "desc": "Physics concepts for GCSE."},
+                    {"title": "GCSE English", "desc": "Develop English language skills."}
+                ] %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card event-card text-white" onclick="toggleSelection(this)">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ event.title }}</h5>
+                                <p class="card-text">{{ event.desc }}</p>
+                                <input type="checkbox" name="events" value="{{ event.title }}" hidden>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <p style = "color:white"> Please note that there will be a charge applied for no-shows </p>
+            <button type="submit" class="btn btn-light btn-block mt-4 w-100">Submit</button>
+        </form>
+    </div>
+    <script>
+        function toggleSelection(card) {
+            let checkbox = card.querySelector("input[type='checkbox']");
+            checkbox.checked = !checkbox.checked;
+            card.classList.toggle("selected", checkbox.checked);
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

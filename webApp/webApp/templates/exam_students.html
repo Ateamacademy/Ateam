@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+
+<head>
+    <title> View Exam Students </title>
+
+</head>
+
+{% extends 'base_page.html' %}
+
+{% block middleContent %}
+
+<style>
+    .unpaid-highlight {
+        background-color: rgb(255, 255, 134) !important;
+    }
+</style>
+
+
+<script>
+    $( document ).ready(function() {
+        document.getElementById("exam-link").classList.add("active");
+    });
+</script>
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 mt-4">
+    <h1 class="h3 mb-0 text-gray-800">Exam Students</h1>
+
+    <button class="btn btn-primary" onclick="downloadCSV()">Download CSV</button>
+    
+</div>
+
+<!-- Content Row -->
+<div class="row">
+    <div class="col-lg-12">
+    <button class="btn btn-link text-primary" data-toggle="collapse" data-target="#pastExamsSection">
+        Show/Hide hidden students
+    </button>
+        <div class="table-responsive">
+            <!-- Collapsible Section for Students with Only Past Exams -->
+            <div id="pastExamsSection" class="collapse">
+                <div class="table-responsive mt-3">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Candidate Number</th>
+                                <th>Student Name</th>
+                                <th>Files</th>
+                                <th>Paid</th>
+                                <th>Paid Amount</th>
+                                <th>UCAS Reference</th>
+                                <th>Current Exams</th>
+                                <th>Add Exams</th>
+                                <th>Delete Student</th>
+                                <th>Send Timetable</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in collapsed_students %}
+                            <tr>
+                                <tr class="{% if not student[1].paid %}unpaid-highlight{% endif %}">
+                                    <td>         
+                                        <input type="text" id="candidateNumber-{{ student[0].id }}" value="{{ student[1].candidate_number }}">
+                                        <button onclick="updateCandidateNumber({{ student[0].id }})" class="btn btn-primary">Update</button>  
+                                    </td>
+                                    <td>
+                                        <a href="javascript:void(0)" onclick="showUCASReferenceDetails({{ student[0].id }})">
+                                            {{ student[0].firstName }} {{student[0].secondName }}  
+                                        </a>
+                                    </td>
+                            
+                                    <!-- Files Column -->
+                                    <td>
+                                        {% set user_files = user_files_map[user_id_map[student[0].id]] if user_id_map[student[0].id] in user_files_map else [] %}
+                                        {% if user_files %}
+                                            {% for file in user_files %}
+                                                <a href="/userFiles/{{ user_id_map[student[0].id] }}/{{ file }}" target="_blank">{{ file }}</a><br>
+                                            {% endfor %}
+                                        {% else %}
+                                            No files available
+                                        {% endif %}
+                                        <button class="btn btn-success" onclick="openUploadModal({{ student[0].id }})">Upload Files</button>
+                                    </td>
+                            
+                                    <!-- Paid Checkbox -->
+                                    <td>
+                                        <input type="checkbox" id="paid_{{ student[0].id }}" {% if student[1].paid %}checked{% endif %} 
+                                               onchange="updateStudentPaid({{ student[0].id }})">
+                                    </td>
+                            
+                                    <!-- Paid Amount -->
+                                    <td>
+                                        <input type="number" id="paidAmount_{{ student[0].id }}" value="{{ student[1].paid_amount }}"
+                                               {% if not student[1].paid %} disabled {% endif %}
+                                               onchange="updatePaidAmount({{ student[0].id }})">
+                                    </td>
+                            
+                                    <!-- UCAS Reference Checkbox and Modal Trigger -->
+                                    <td>
+                                        <input type="checkbox" id="ucas_{{ student[0].id }}" 
+                                            {% if student[1].reference_required %}checked{% endif %}
+                                            onchange="updateUCASReference({{ student[0].id }})">
+                                                                    
+                                        {% if student[1].reference_id %}
+                                            <span>{{ student[0].firstName }} {{student[0].secondName }} </span>
+                                        {% else %}
+                                            <button class="btn btn-info" id="ucasBtn_{{ student[0].id }}" 
+                                                    {% if not student[1].reference_required %}disabled{% endif %}
+                                                    onclick="showUCASModal({{ student[0].id }})">
+                                                Select UCAS Reference
+                                            </button>
+                                        {% endif %}
+                                    </td>
+            
+                                    <!-- Exams Column -->
+                                    <td>
+                                        {% set student_exams = student_exam_map[student[0].id] if student[0].id in student_exam_map else [] %}
+                                        
+                                        {% set exam_details = {} %}
+                                        {% for exam in exams %}
+                                            {% set _ = exam_details.update({exam.examID: exam}) %}
+                                        {% endfor %}
+            
+                                        {% if student_exams %}
+                                            {% for exam_id in student_exams %}
+                                                {% if exam_id in exam_details %}
+                                                    <div>{{ exam_details[exam_id].examBoard }} {{ exam_details[exam_id].tier }} {{ exam_details[exam_id].title }} {{ exam_details[exam_id].Option }} ({{ exam_details[exam_id].examSeries }}) - {{ exam_details[exam_id].code }}</div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% else %}
+                                            <div>No exams assigned</div>
+                                        {% endif %}
+                                    </td>
+            
+                                    <!-- Add Exams Button -->
+                                    <td>
+                                        <button class="btn btn-primary" onclick="showExamModal({{ student[0].id }})">
+                                            Add Exams
+                                        </button>
+                                    </td>
+            
+                                    <td>
+                                        <button class="btn btn-danger" onclick="deleteExamStudent({{ student[0].id }})"> Delete </button>
+                                    </td>
+            
+                                    <!-- Convert to Regular Button -->
+                                    <!-- <td>
+                                        <button class="btn btn-success" onclick="convertExamStudent({{ student[0].id }})">
+                                            Convert to Regular Student
+                                        </button>
+                                    </td> -->
+            
+                                    <!-- Send Timetable Button -->
+                                    <td>
+                                        <button class="btn btn-primary" onclick="showTimetablePreview({{ student[0].id }})">
+                                            Send Timetable
+                                        </button>
+                                    </td>
+            
+                                    <!-- Modal -->
+
+                              </tr>                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-responsive mt-3">
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th> Candidate Number </th>
+                        <th>Student Name</th>
+                        <th> Files </th>
+
+                        <th>
+                            <a href="javascript:void(0)" onclick="sortTableBy('paid')">Paid</a>
+                        </th>                        
+                        <th>Paid Amount</th>
+                        <th>UCAS Reference</th>
+                        <th> Current Exams</th>
+
+                        <th>Add Exams</th>
+                        <th>Delete Student</th>
+                        <th>
+                            <a href="javascript:void(0)" onclick="sortTableBy('declaration_date')">Registration Date</a>
+                        </th>
+                        <th> Send Timetable </th>
+
+                    </tr>
+                </thead>
+                <tbody id="studentTableBody">
+                    {% for student in exam_students %}
+                    <tr class="{% if not student[1].paid %}unpaid-highlight{% endif %}" data-paid="{{ student[1].paid }}" data-declaration="{{ student[0].declaration_date }}" data-name="{{ student[0].firstName }} {{ student[0].secondName }}">
+                        <td>         
+                            <input type="text" id="candidateNumber-{{ student[0].id }}" value="{{ student[1].candidate_number }}">
+                            <button onclick="updateCandidateNumber({{ student[0].id }})" class="btn btn-primary">Update</button>  
+                        </td>
+                        <td>
+                            <a href="javascript:void(0)" onclick="showUCASReferenceDetails({{ student[0].id }})">
+                                {{ student[0].firstName }} {{student[0].secondName }}  
+                            </a>
+                        </td>
+                
+                        <!-- Files Column -->
+                        <td>
+                            {% set user_files = user_files_map[user_id_map[student[0].id]] if user_id_map[student[0].id] in user_files_map else [] %}
+                            {% if user_files %}
+                                {% for file in user_files %}
+                                    <a href="/userFiles/{{ user_id_map[student[0].id] }}/{{ file }}" target="_blank">{{ file }}</a><br>
+                                {% endfor %}
+                            {% else %}
+                                No files available
+                            {% endif %}
+                            <button class="btn btn-success" onclick="openUploadModal({{ student[0].id }})">Upload Files</button>
+                        </td>
+                
+                        <!-- Paid Checkbox -->
+                        <td>
+                            <input type="checkbox" id="paid_{{ student[0].id }}" {% if student[1].paid %}checked{% endif %} 
+                                   onchange="updateStudentPaid({{ student[0].id }})">
+                        </td>
+                
+                        <!-- Paid Amount -->
+                        <td>
+                            <input type="number" id="paidAmount_{{ student[0].id }}" value="{{ student[1].paid_amount }}"
+                                   {% if not student[1].paid %} disabled {% endif %}
+                                   onchange="updatePaidAmount({{ student[0].id }})">
+                        </td>
+                
+                        <!-- UCAS Reference Checkbox and Modal Trigger -->
+                        <td>
+                            <input type="checkbox" id="ucas_{{ student[0].id }}" 
+                                {% if student[1].reference_required %}checked{% endif %}
+                                onchange="updateUCASReference({{ student[0].id }})">
+                                                        
+                            {% if student[1].reference_id %}
+                                <span>{{ student[0].firstName }} {{student[0].secondName }} </span>
+                            {% else %}
+                                <button class="btn btn-info" id="ucasBtn_{{ student[0].id }}" 
+                                        {% if not student[1].reference_required %}disabled{% endif %}
+                                        onclick="showUCASModal({{ student[0].id }})">
+                                    Select UCAS Reference
+                                </button>
+                            {% endif %}
+                        </td>
+
+                        <!-- Exams Column -->
+                        <td>
+                            {% set student_exams = student_exam_map[student[0].id] if student[0].id in student_exam_map else [] %}
+                            
+                            {% set exam_details = {} %}
+                            {% for exam in exams %}
+                                {% set _ = exam_details.update({exam.examID: exam}) %}
+                            {% endfor %}
+
+                            {% if student_exams %}
+                                {% for exam_id in student_exams %}
+                                    {% if exam_id in exam_details %}
+                                        <div>{{ exam_details[exam_id].examBoard }} {{ exam_details[exam_id].tier }} {{ exam_details[exam_id].title }} {{ exam_details[exam_id].Option }} ({{ exam_details[exam_id].examSeries }}) - {{ exam_details[exam_id].code }}</div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <div>No exams assigned</div>
+                            {% endif %}
+                        </td>
+
+                        <!-- Add Exams Button -->
+                        <td>
+                            <button class="btn btn-primary" onclick="showExamModal({{ student[0].id }})">
+                                Add Exams
+                            </button>
+                        </td>
+
+                        <td>
+                            <button class="btn btn-danger" onclick="deleteExamStudent({{ student[0].id }})"> Delete </button>
+                        </td>
+
+                        <!-- Convert to Regular Button -->
+                        <td>
+                            <p> {{ student[0].declaration_date }} </p>
+                        </td>
+
+
+
+                        <!-- Send Timetable Button -->
+                        <td>
+                            <button class="btn btn-primary" onclick="showTimetablePreview({{ student[0].id }})">
+                                Send Timetable
+                            </button>
+                        </td>
+
+                        <!-- Modal -->
+                        <div class="modal fade" id="timetableModal" tabindex="-1" role="dialog" aria-labelledby="timetableModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="timetableModalLabel">Exam Timetable Preview</h5>
+                                <input type="date" id="startDate"> 
+                                <input type="date" id="endDate">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div id="studentIdDiv" data-id=""></div>
+                                <!-- Timetable will be loaded here -->
+                                <div id="timetablePreview">
+                                Loading timetable...
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <input type="checkbox" id="opt_out" name="opt_out"> <label for="opt_out"> Opt out of Cc </label>
+                                <button type="button" class="btn btn-primary" id = "sendTimetableEmailButton" onclick="sendTimetableEmail({{ student[0].id }})">Send Timetable</button>
+                            </div>
+                            </div>
+                        </div>
+                        </div>
+                  </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<script> 
+    let sortDirections = {}; // To keep track of sorting direction for each column
+
+    function sortTable(colIndex, type) {
+        const table = document.getElementById("exam-student-table");
+        const rows = Array.from(table.rows).slice(1); // Exclude header row
+        const icon = document.getElementById(`icon-${colIndex}`);
+        let isAscending = !sortDirections[colIndex]; // Default to ascending if not sorted yet
+    
+        // Reset all icons
+        document.querySelectorAll('.sort-icon').forEach(icon => {
+            icon.innerHTML = '◇'; // Reset to default
+        });
+    
+        // Set the current icon
+        icon.innerHTML = isAscending ? '▲' : '▼';
+    
+        // Sort rows based on the specified column and type
+        rows.sort((a, b) => {
+            let aValue, bValue;
+    
+            if (colIndex === 0 && type === 'int') {
+                // Extract the candidate number from the input field
+                aValue = parseInt(a.querySelector('input').value.trim()) || 0;
+                bValue = parseInt(b.querySelector('input').value.trim()) || 0;
+            } else {
+                aValue = a.cells[colIndex].textContent.trim();
+                bValue = b.cells[colIndex].textContent.trim();
+    
+                if (type === 'int') {
+                    aValue = parseInt(aValue) || 0;
+                    bValue = parseInt(bValue) || 0;
+                } else if (type === 'str') {
+                    aValue = aValue.toLowerCase();
+                    bValue = bValue.toLowerCase();
+                } else if (type === 'paid') {
+                    aValue = a.querySelector(`input[type="checkbox"]`).checked ? 1 : 0;
+                    bValue = b.querySelector(`input[type="checkbox"]`).checked ? 1 : 0;
+                }
+            }
+    
+            if (isAscending) {
+                return aValue > bValue ? 1 : -1;
+            } else {
+                return aValue < bValue ? 1 : -1;
+            }
+        });
+    
+        // Append sorted rows to the table
+        rows.forEach(row => table.querySelector("tbody").appendChild(row));
+    
+        // Toggle sort direction
+        sortDirections[colIndex] = isAscending ? 'asc' : 'desc';
+    }
+    
+
+</script>
+
+<!-- File Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload Files for User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/uploadUserFiles" class="dropzone" id="dropzoneForm">
+                    <div class="dz-message">Drag and drop files here or click to upload</div>
+                    <input type="hidden" id="uploadUserID" name="" value="">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="submitFiles()">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- UCAS Reference Modal -->
+<div class="modal fade" id="ucasModal" tabindex="-1" role="dialog" aria-labelledby="ucasModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ucasModalLabel">Select UCAS Reference</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <select id="ucasReferenceSelect" class="form-control">
+                    {% for reference in ucasReferences %}
+                    <option value="{{ reference.id }}">{{ reference.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="linkUCASReference()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Exams Modal -->
+<div class="modal fade" id="examModal" tabindex="-1" role="dialog" aria-labelledby="examModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="examModalLabel">Select Exams</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <input type="text" id="filterInput" class="form-control mb-3" placeholder="Type to filter exams..." onkeyup="filterExams()">
+                </div>
+                <div id="examCheckboxContainer">
+                    <!-- Checkboxes will be dynamically added here -->
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="linkExams()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Student Information Modal -->
+<div class="modal fade" id="ucasReferenceModal" tabindex="-1" role="dialog" aria-labelledby="ucasReferenceModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ucasReferenceModalLabel">Student Information</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p><strong>First Name:</strong> <input type="text" id="firstNameInput" class="form-control"></p>
+                <p><strong>Last Name:</strong> <input type="text" id="lastNameInput" class="form-control"></p>
+                <p><strong>Email:</strong> <input type="text" id="emailInput" class="form-control"></p>
+                <p><strong>Parent Email:</strong> <input type="text" id="parent_emailInput" class="form-control"></p>
+                <p><strong>Contact Number</strong> <input type="text" id="contact_number" class="form-control"></p>
+
+                <p><strong>UCI:</strong> <input type="text" id="uciInput" class="form-control"></p>
+                <p><strong>ULN:</strong> <input type="text" id="ulnInput" class="form-control"></p>
+                <p><strong>Access Arrangements:</strong> <input type="text" id="accessArrangementsInput" class="form-control"></p>
+                <p><strong>Message:</strong> <textarea id="messageInput" class="form-control"></textarea></p>
+                <p><strong>Candidate Number:</strong> <input type="text" id="candidateNumberInput" class="form-control"></p>
+                <p><strong>Date of Birth:</strong> <input type="text" id="dobInput" class="form-control" placeholder="DD/MM/YYYY"></p>
+                <p><strong>Gender:</strong> <input type="text" id="genderInput" class="form-control"></p>
+                <p><strong>Notes:</strong> <textarea id="notesInput" class="form-control"></textarea></p>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveStudentAndUCASInfo()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+    function updateStudentPaid(studentID) {
+        const isChecked = document.getElementById('paid_' + studentID).checked;
+        document.getElementById('paidAmount_' + studentID).disabled = !isChecked;
+
+        $.ajax({
+            url: '/update_student_paid_status',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ "studentID": studentID, "paid": isChecked }),
+            success: function(response) {
+                console.log("Paid status updated for student " + studentID);
+            },
+            error: function(error) {
+                alert("Error updating paid status.");
+            }
+        });
+    }
+
+    function updatePaidAmount(studentID) {
+        const amount = document.getElementById('paidAmount_' + studentID).value;
+
+        $.ajax({
+            url: '/update_student_paid_amount',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ "studentID": studentID, "paidAmount": amount }),
+            success: function(response) {
+                console.log("Paid amount updated for student " + studentID);
+            },
+            error: function(error) {
+                alert("Error updating paid amount.");
+            }
+        });
+    }
+
+    function updateUCASReference(studentID) {
+        const isChecked = document.getElementById('ucas_' + studentID).checked;
+        document.getElementById('ucasBtn_' + studentID).disabled = !isChecked;
+
+        $.ajax({
+            url: '/update_reference_required_status',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ "studentID": studentID, "referenceRequired": isChecked }),
+            success: function(response) {
+                console.log("UCAS reference status updated for student " + studentID);
+            },
+            error: function(error) {
+                alert("Error updating UCAS reference status.");
+            }
+        });
+    }
+
+    function showUCASModal(studentID) {
+        $('#ucasModal').modal('show');
+        $('#ucasModal').data('student-id', studentID);
+    }
+
+    function linkUCASReference() {
+        const studentID = $('#ucasModal').data('student-id');
+        const referenceID = $('#ucasReferenceSelect').val();
+
+        $.ajax({
+            url: '/assign_ucas_reference',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ "studentID": studentID, "referenceID": referenceID }),
+            success: function(response) {
+                $('#ucasModal').modal('hide');
+                alert("UCAS reference linked successfully.");
+            },
+            error: function(error) {
+                alert("Error linking UCAS reference.");
+            }
+        });
+    }
+
+    function showExamModal(studentID) {
+        window.exams = {{ exams | tojson }};
+        window.student_exam_map = {{ student_exam_map | tojson }};
+        
+        $('#examModal').modal('show');
+        $('#examModal').data('student-id', studentID);
+        
+        // Clear previous checkboxes
+        const examCheckboxContainer = document.getElementById('examCheckboxContainer');
+        examCheckboxContainer.innerHTML = '';  
+        
+        // Retrieve the exams and assigned status from the global object
+        const exams = window.exams || [];  
+        const student_exam_map = window.student_exam_map || {};  
+        
+        // Get the list of examIDs assigned to the specific student
+        const assignedExams = student_exam_map[studentID] || [];
+        
+        exams.forEach(exam => {
+            // Check if the exam is assigned to the student
+            const isChecked = assignedExams.includes(exam.examID) ? 'checked' : '';
+            
+            examCheckboxContainer.innerHTML += `
+                <div class="form-check" id="examDiv-${exam.examID}">
+                    <input class="form-check-input" type="checkbox" value="${exam.examID}" id="exam_${exam.examID}" name="exams" ${isChecked}>
+                    <label class="form-check-label" for="exam_${exam.examID}">
+                        ${exam.examBoard} ${exam.tier} ${exam.title} ${exam.Option} (${exam.examSeries}) - ${exam.code}
+                    </label>
+                </div>
+            `;
+        });
+    }
+
+    function filterExams() {
+        const filterInput = document.getElementById("filterInput").value.trim().toLowerCase();
+        const examDivs = document.querySelectorAll("#examCheckboxContainer .form-check");
+
+        examDivs.forEach(examDiv => {
+            const label = examDiv.querySelector("label").textContent.trim().toLowerCase();
+            if (filterInput === "" || label.includes(filterInput)) {
+                examDiv.style.display = "block"; // Show matching exams
+            } else {
+                examDiv.style.display = "none"; // Hide non-matching exams
+            }
+        });
+    }
+
+    
+    function linkExams() {
+        // Retrieve the selected checkboxes
+        const selectedExams = Array.from(document.querySelectorAll('#examCheckboxContainer input[name="exams"]:checked'))
+                                   .map(checkbox => checkbox.value);
+    
+        // Get the student ID from the modal context
+        const studentID = $('#examModal').data('student-id');
+    
+        // Send the selected exams to the server via Fetch API
+        fetch('/assign_exams', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                studentID: studentID,
+                examIDs: selectedExams
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert('Exams updated successfully!');
+            $('#examModal').modal('hide');
+            // Optionally, reload the page or update the UI
+        })
+        .catch(error => console.error('Error:', error));
+    }
+   
+    function convertExamStudent(studentID) {
+        $.ajax({
+            url: '/convert_exam_student',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ "studentID": studentID }),
+            success: function(response) {
+                alert("The student was converted to a regular student[1].");
+                location.reload();
+            },
+            error: function(error) {
+                alert("Error converting student");
+            }
+        });
+    }
+
+    function deleteExamStudent(studentID) {
+
+        if(confirm("Are you sure you want to delete this student as this action is irreversible and all information will be lost. Please only delete a student in this way if there are duplicates")) {
+        $.ajax({
+            url: '/deleteStudent/' + studentID.toString(),
+            type: 'POST',
+            contentType: 'application/json',
+            data: "",
+            success: function(response) {
+                alert("The student was deleted");
+                location.reload();
+            },
+            error: function(error) {
+                alert("Error converting student");
+            }
+        });
+        }
+    }
+
+    function showUCASReferenceDetails(studentID) {
+        // Assuming 'examStudents' is a global object containing all the student data passed from Flask
+        const examStudents = {{ examStudents | tojson }};
+        const student = examStudents.find(student => student[0].id === studentID);
+        
+        if (student) {
+            const studentDetails = student[0];
+            const ucasDetails = student[1];
+        
+            // Populate modal fields with the student and UCAS data
+            document.getElementById('firstNameInput').value = studentDetails.firstName || '';
+            document.getElementById('lastNameInput').value = studentDetails.secondName || '';
+            document.getElementById('emailInput').value = studentDetails.email || '';
+            document.getElementById('parent_emailInput').value = studentDetails.parent_email || '';
+            document.getElementById('contact_number').value = studentDetails.priority_contact_1_mobile_telephone || '';
+
+            document.getElementById('uciInput').value = ucasDetails.uci || '';
+            document.getElementById('ulnInput').value = ucasDetails.uln || '';
+            document.getElementById('accessArrangementsInput').value = ucasDetails.access_arrangements || '';
+            document.getElementById('messageInput').value = ucasDetails.message || '';
+            document.getElementById('candidateNumberInput').value = ucasDetails.candidate_number || '';  // Added candidate number
+            document.getElementById('dobInput').value = formatDate(studentDetails.date_of_birth) || '';
+            document.getElementById('genderInput').value = studentDetails.gender || '';
+            document.getElementById('notesInput').value = ucasDetails.notes || '';
+
+        
+            // Store the student ID in the modal data attribute for later use
+            $('#ucasReferenceModal').data('student-id', studentID);
+        
+            // Show the modal
+            $('#ucasReferenceModal').modal('show');
+        } else {
+            console.error('Student not found:', studentID);
+        }
+    }
+    
+    function formatDate(dateString) {
+        if (!dateString) return '';
+        const [day, month, year] = dateString.split('/'); // Adjust based on your date format
+        return `${day}/${month}/${year}`;
+    }
+    
+    function saveStudentAndUCASInfo() {
+        const studentID = $('#ucasReferenceModal').data('student-id');
+        dob = document.getElementById('dobInput').value
+        const [day, month, year] = dob.split('/')
+        dob = `${year}-${month}-${day}`
+        
+        // Collect all updated values
+        const updatedInfo = {
+            studentID: studentID,
+            firstName: document.getElementById('firstNameInput').value,
+            lastName: document.getElementById('lastNameInput').value,
+            email: document.getElementById('emailInput').value,
+            parent_email: document.getElementById('parent_emailInput').value,
+            priority_contact_1_mobile_telephone: document.getElementById('contact_number').value,
+
+
+            uci: document.getElementById('uciInput').value,
+            uln: document.getElementById('ulnInput').value,
+            access_arrangements: document.getElementById('accessArrangementsInput').value,
+            message: document.getElementById('messageInput').value,
+            candidate_number: document.getElementById('candidateNumberInput').value,  // Added candidate number
+            date_of_birth: dob,
+            gender: document.getElementById('genderInput').value,
+            notes: document.getElementById('notesInput').value
+
+        };
+    
+        // Send updates to the Flask route
+        fetch('/update_student_and_ucas', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedInfo)
+        })
+        .then(response => response.text())
+        .then(() => {
+            // Optionally, you can add logic to refresh the data or UI
+            $('#ucasReferenceModal').modal('hide');
+        })
+        .catch(error => console.error('Error saving student info:', error));
+    }
+    
+    function updateCandidateNumber(studentID) {
+        var newCandidateNumber = document.getElementById('candidateNumber-' + studentID).value;
+        
+        $.ajax({
+            url: '/updateCandidateNumber/' + studentID.toString(),
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ candidate_number: newCandidateNumber }),
+            success: function(response) {
+                alert("Candidate number updated successfully");
+                location.reload();
+            },
+            error: function(error) {
+                alert("Error updating candidate number");
+            }
+        });
+    }
+
+    function downloadCSV() {
+        window.location.href = "/download_exam_students_csv";
+    }
+
+    function openUploadModal(userID) {
+        document.getElementById('uploadUserID').value = userID;  // Set the hidden userID input in the modal
+        var uploadModal = new bootstrap.Modal(document.getElementById('uploadModal'));
+        uploadModal.show();
+    }
+    
+    function submitFiles() {
+        // Submit the Dropzone form
+        Dropzone.forElement("#dropzoneForm").processQueue();
+    }
+    
+    // Dropzone configuration
+    Dropzone.options.dropzoneForm = {
+        autoProcessQueue: false,  // We'll process manually with the Submit button
+        init: function () {
+            var dropzoneInstance = this;
+    
+            this.on("sending", function (file, xhr, formData) {
+                // Append the user ID to the form data
+                formData.append("otherID", document.getElementById('uploadUserID').value);
+                formData.append("role", "student");
+
+            });
+    
+            this.on("success", function (file, response) {
+                alert('Files uploaded successfully!');
+                dropzoneInstance.removeAllFiles(); // Clear files after successful upload
+            });
+    
+            this.on("error", function (file, errorMessage) {
+                alert("Error uploading file: " + errorMessage);
+            });
+        }
+    };
+    
+    
+</script>
+
+
+<script>
+    function showTimetablePreview(studentID) {
+        // Show the modal
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        if (!startDate || !endDate) {
+            $('#timetableModal').modal('show');
+            
+            // Use AJAX to fetch the timetable HTML and display it in the modal
+            $.ajax({
+                url: '/getTimetablePreview/' + studentID,
+                type: 'GET',
+                success: function(response) {
+                    $('#timetablePreview').html(response);  // Populate the modal body with the timetable
+                },
+                error: function(error) {
+                    $('#timetablePreview').html('<p>Error loading timetable.</p>');
+                }
+            });
+    
+            document.getElementById('sendTimetableEmailButton').setAttribute("onclick", "sendTimetableEmail(" + studentID + ")")
+            document.getElementById('startDate').setAttribute("onchange", "showTimetablePreview(" + studentID + ")")
+            document.getElementById('endDate').setAttribute("onchange", "showTimetablePreview(" + studentID + ")")
+
+        }
+        else {
+            $('#timetableModal').modal('show');
+
+            // Use AJAX to fetch the timetable HTML with date range and display it in the modal
+            $.ajax({
+                url: `/getTimetablePreview/${studentID}?startDate=${startDate}&endDate=${endDate}`,
+                type: 'GET',
+                success: function(response) {
+                    $('#timetablePreview').html(response); // Populate the modal body with the timetable
+                },
+                error: function(error) {
+                    $('#timetablePreview').html('<p>Error loading timetable.</p>');
+                }
+            });
+        
+            document.getElementById('sendTimetableEmailButton').setAttribute(
+                "onclick",
+                `sendTimetableEmailWithDates(${studentID}, '${startDate}', '${endDate}')`
+            );
+            document.getElementById('startDate').setAttribute("onchange", "showTimetablePreview(" + studentID + ")")
+            document.getElementById('endDate').setAttribute("onchange", "showTimetablePreview(" + studentID + ")")
+        }
+
+    }
+
+    function sendTimetableEmail(studentID) {
+        $.ajax({
+            url: '/sendEmailTimetable/' + studentID,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ startDate: null, endDate: null }),
+            success: function(response) {
+                alert("Timetable email sent successfully.");
+                $('#timetableModal').modal('hide');
+            },
+            error: function(xhr) {
+                // Check if a detailed error message is provided in the response
+                let errorMessage = "Error sending email.";
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage += " " + xhr.responseJSON.error;
+                }
+                alert(errorMessage);
+            }
+        });
+    }
+
+    function sendTimetableEmailWithDates(studentID, startDate, endDate) {
+        $.ajax({
+            url: `/sendEmailTimetable/${studentID}`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ startDate: startDate, endDate: endDate}),
+            success: function(response) {
+                alert("Timetable email sent successfully.");
+                $('#timetableModal').modal('hide');
+            },
+            error: function(error) {
+                alert("Error sending email.");
+            }
+        });
+    }
+    
+</script>
+
+
+<script>
+    function sortTableBy(criteria) {
+        const tableBody = document.getElementById('studentTableBody');
+        const rows = Array.from(tableBody.rows);
+    
+        rows.sort((rowA, rowB) => {
+            let valueA, valueB;
+    
+            // Sorting logic based on criteria
+            if (criteria === 'paid') {
+                valueA = rowA.getAttribute('data-paid') === 'True' ? 1 : 0;
+                valueB = rowB.getAttribute('data-paid') === 'True' ? 1 : 0;
+
+                            // Reverse the order: 'false' first
+                if (valueA > valueB) return 1;
+                if (valueA < valueB) return -1;
+
+            } else if (criteria === 'declaration_date') {
+                valueA = new Date(rowA.getAttribute('data-declaration')) || 0;
+                valueB = new Date(rowB.getAttribute('data-declaration')) || 0;
+
+                // Reverse the order: 'false' first
+                if (valueA > valueB) return -1;
+                if (valueA < valueB) return 1;
+            }
+
+
+    
+            // Fallback to name sorting if primary criteria are equal
+            const nameA = rowA.getAttribute('data-name').toLowerCase();
+            const nameB = rowB.getAttribute('data-name').toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+    
+        // Append sorted rows back to the table
+        rows.forEach(row => tableBody.appendChild(row));
+    }
+    </script>
+{% endblock %}

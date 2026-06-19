@@ -1,0 +1,839 @@
+<head>
+    <title> Files </title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>     
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+ 
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4 mt-4">
+    <h1 class="h3 mb-0 text-gray-800"> Class Files (Week {{ request.args['weekNo'] }}) </h1>
+</div>
+<div class="row">
+
+    <div class="col-lg-2">
+        <div class="card">
+            <div class="card-body">
+            <ul class="nav nav-pills nav-flush flex-column mb-auto text-center">    
+                <li>
+                    <a href="Classroom_View_Home?lessonid={{ request.args['lessonid'] }}&year={{ request.args['year'] }}&weekNo={{ request.args['weekNo'] }}" class="nav-link py-3 border-bottom" aria-current="page" title="" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="Files">
+                        <i class="fa-solid fa-house"></i>
+                        Class Home
+                    </a>
+                </li>
+                <li>
+                    <a href="Classroom_View_Files?lessonid={{ request.args['lessonid'] }}&year={{ request.args['year'] }}&weekNo={{ request.args['weekNo'] }}" class="nav-link active py-3 border-bottom" aria-current="page" title="" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="Files">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-folder" viewBox="0 0 16 16" role="img" aria-label="Dashboard">
+                            <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/>
+                        </svg>
+                        View Files
+                    </a>
+                </li>
+                {% if session['role'] == "student" %}
+                <li>
+                    <a href="/studentGrades" class="nav-link py-3 border-bottom" title="" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="Dashboard">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-percent" viewBox="0 0 16 16">
+                            <path d="M13.442 2.558a.625.625 0 0 1 0 .884l-10 10a.625.625 0 1 1-.884-.884l10-10a.625.625 0 0 1 .884 0zM4.5 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm0 1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm7 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm0 1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>
+                        </svg>
+                        Grades
+                    </a>
+                </li>
+                {% else %}
+                <li>
+                    <a href="Classroom_View_Grades?lessonid={{ request.args['lessonid'] }}&year={{ request.args['year'] }}&weekNo={{ request.args['weekNo'] }}" class="nav-link py-3 border-bottom" title="" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="Dashboard">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-percent" viewBox="0 0 16 16">
+                            <path d="M13.442 2.558a.625.625 0 0 1 0 .884l-10 10a.625.625 0 1 1-.884-.884l10-10a.625.625 0 0 1 .884 0zM4.5 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm0 1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm7 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm0 1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>
+                        </svg>
+                        Grades
+                    </a>
+                </li>
+                <li>
+                    <a href="Classroom_View_Register?lessonid={{ request.args['lessonid'] }}&year={{ request.args['year'] }}&weekNo={{ request.args['weekNo'] }}" class="nav-link py-3 border-bottom" title="" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="Dashboard">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-list-check" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3.854 2.146a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 3.293l1.146-1.147a.5.5 0 0 1 .708 0zm0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 7.293l1.146-1.147a.5.5 0 0 1 .708 0zm0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0z"/>
+                        </svg>
+                        Register
+                    </a>
+                </li>
+                {% endif %}
+                <li>
+                    <a href="Classroom_View_Forum?lessonid={{ request.args['lessonid'] }}&year={{ request.args['year'] }}&weekNo={{ request.args['weekNo'] }}" class="nav-link py-3 border-bottom" title="" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="Dashboard">
+                        <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" fill="currentColor" width = "24" height="24" viewBox="0 0 122.88 97.85" style="enable-background:new 0 0 122.88 97.85" xml:space="preserve"><g>
+                            <path d="M45.44,0H15.95c-4.4,0-8.17,1.55-11.3,4.65C1.51,7.75,0,11.52,0,15.95v28c0,4.44,1.55,8.21,4.65,11.3 c3.1,3.1,6.87,4.65,11.3,4.65h13.11c-0.92,3.52-2.04,6.87-3.45,10c-1.37,3.17-3.73,6.2-6.97,9.09c6.23-1.62,11.76-4.05,16.66-7.25 c4.86-3.17,9.09-7.15,12.57-11.83h10.56c4.4,0,8.17-1.58,11.3-4.65c3.13-3.1,4.65-6.87,4.65-11.3v-28c0-4.4-1.55-8.17-4.65-11.3 C66.64,1.51,62.87,0,58.43,0H45.44L45.44,0z M98.04,56.71h-9.34l-1.34,4.16h-8.41l10.04-25.22h9.02l9.99,25.22h-8.63L98.04,56.71 L98.04,56.71z M96.3,51.25l-2.91-9.06l-2.92,9.06H96.3L96.3,51.25z M48.41,37.7c1.09,0.72,1.81,1.18,2.14,1.36 c0.5,0.27,1.18,0.58,2.02,0.94l-2.43,4.65c-1.22-0.56-2.44-1.23-3.64-2c-1.2-0.78-2.04-1.36-2.52-1.74 c-1.94,0.79-4.37,1.19-7.29,1.19c-4.32,0-7.73-1.06-10.22-3.19c-2.95-2.51-4.42-6.05-4.42-10.6c0-4.42,1.29-7.86,3.87-10.31 c2.58-2.45,6.18-3.67,10.81-3.67c4.72,0,8.35,1.19,10.92,3.59c2.57,2.39,3.85,5.82,3.85,10.27C51.5,32.14,50.47,35.31,48.41,37.7 L48.41,37.7z M41.68,33.44c0.7-1.18,1.05-2.95,1.05-5.31c0-2.71-0.54-4.64-1.6-5.8c-1.07-1.16-2.54-1.74-4.42-1.74 c-1.75,0-3.17,0.59-4.25,1.78c-1.09,1.18-1.63,3.03-1.63,5.55c0,2.93,0.53,4.99,1.59,6.17c1.06,1.18,2.52,1.78,4.37,1.78 c0.6,0,1.16-0.06,1.69-0.16c-0.74-0.68-1.9-1.31-3.5-1.91l1.38-2.98c0.78,0.13,1.39,0.3,1.82,0.49c0.44,0.19,1.28,0.71,2.55,1.54 C41.01,33.03,41.33,33.23,41.68,33.44L41.68,33.44z M122.88,32.15v28c0,2.54-0.46,4.93-1.37,7.15c-0.92,2.22-2.25,4.23-4.09,6.02 c-0.77,0.77-1.62,1.48-2.46,2.08c-0.88,0.63-1.8,1.16-2.71,1.62c-0.04,0.04-0.11,0.04-0.14,0.07c-1.2,0.56-2.43,0.95-3.7,1.23 c-1.34,0.28-2.71,0.42-4.12,0.42H90.79c0.18,0.56,0.35,1.13,0.56,1.69c0.53,1.55,1.16,3.1,1.83,4.61v0.04 c0.6,1.41,1.44,2.75,2.47,4.09c1.06,1.37,2.32,2.71,3.84,4.09c1.09,0.95,1.2,2.61,0.21,3.7c-0.67,0.77-1.69,1.06-2.61,0.81 c-3.24-0.85-6.34-1.9-9.23-3.17c-2.89-1.27-5.63-2.75-8.21-4.44c-2.54-1.66-4.93-3.56-7.15-5.63c-1.87-1.76-3.63-3.7-5.28-5.74 h-9.23c-1.73,0-3.42-0.21-5-0.63c-1.58-0.42-3.1-1.09-4.54-1.97c-1.23-0.74-1.62-2.36-0.88-3.59c0.74-1.23,2.36-1.62,3.59-0.88 c0.99,0.6,2.04,1.06,3.2,1.37c1.13,0.32,2.36,0.46,3.63,0.46h10.53c0.81,0,1.58,0.35,2.11,1.06c1.66,2.22,3.49,4.26,5.49,6.13 c1.97,1.87,4.12,3.56,6.44,5.07c2.22,1.44,4.58,2.75,7.08,3.87c-0.49-0.81-0.88-1.62-1.27-2.43c-0.7-1.62-1.37-3.28-1.97-5.04 c-0.56-1.66-1.09-3.38-1.55-5.11c-0.11-0.28-0.14-0.6-0.14-0.92c0-1.44,1.16-2.64,2.64-2.64h16.94c1.06,0,2.04-0.11,2.99-0.32 c0.92-0.21,1.76-0.49,2.57-0.85c0.04-0.04,0.07-0.04,0.11-0.07c0.67-0.32,1.34-0.7,1.94-1.13c0.63-0.46,1.23-0.95,1.8-1.55 c1.3-1.3,2.29-2.75,2.92-4.3c0.63-1.55,0.95-3.28,0.95-5.14v-28c0-1.87-0.32-3.59-0.95-5.14c-0.63-1.55-1.62-2.99-2.92-4.3 c-1.3-1.3-2.75-2.29-4.3-2.92c-1.55-0.63-3.28-0.95-5.14-0.95H86.57c-1.44,0-2.64-1.16-2.64-2.64c0-1.44,1.16-2.64,2.64-2.64h17.72 c2.54,0,4.9,0.46,7.11,1.37c2.22,0.92,4.19,2.25,6.02,4.05c1.8,1.8,3.17,3.8,4.05,6.02c0.92,2.22,1.37,4.58,1.37,7.11H122.88 L122.88,32.15z"/></g>
+                        </svg>
+                        Chat
+                    </a>
+                </li>
+                <li>
+                    <a href="Classroom_View_Subject_Resources?lessonid={{ request.args['lessonid'] }}&year={{ request.args['year'] }}&weekNo={{ request.args['weekNo'] }}" class="nav-link py-3 border-bottom" title="" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="Dashboard">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-book" viewBox="0 0 16 16">
+                            <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/>
+                        </svg>
+                        Subject Resources
+                    </a>
+                </li>
+
+            
+            
+                {% if session['role'] == 'admin' %}
+                <li>
+                    <button onclick="removeLesson({{ request.args['lessonid'] }})" class="btn btn-danger"> Delete </button>
+                </li>
+                {% endif %}
+            </ul>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-lg-10">
+
+        <div class="row ml-1 mr-1">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                <div class="row">
+                    {% if permanent == -1 %}
+                    <div class="col"> <a href = "Classroom_View_Files?lessonid={{ request.args['lessonid'] }}&year={{ request.args['year'] }}&weekNo={{ request.args['weekNo']|int - 1 }}"> <button class="btn btn-secondary" id="lastWeek"> Last Week </button> </a> </div>
+                    {% endif %}
+
+                    <div class="col"> <p class="card-text" style="color:black;"> This Weeks Topic is:  {{ topic }} </p> </div>
+
+                    {% if permanent == -1 %}
+                    <div class="col"> <a href = "Classroom_View_Files?lessonid={{ request.args['lessonid'] }}&year={{ request.args['year'] }}&weekNo={{ request.args['weekNo']|int + 1 }}"> <button class="btn btn-secondary" id="nextWeek"> Next Week </button> </a> </div>
+                    {% endif %}
+
+                </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <script>
+            window.onload = function() { 
+                if(mobile()) {
+                    document.getElementById("nextWeek").innerHTML = ">";
+                    document.getElementById("lastWeek").innerHTML = "<"
+                }  
+            };
+        </script>
+        
+        {% if upload_work_to_lesson %}       
+        <script>
+            function updateURL(value) {
+                form = document.getElementById("uploadForm");
+                newValue = !value;
+                form.setAttribute("action", "/upload?weekNo={{ request.args['weekNo'] }}&lessonID={{ request.args['lessonid'] }}&studentView=".concat(newValue.toString()))
+            }
+        </script>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <h2> Upload Files:  </h2>
+                <form id = "uploadForm" method="POST" action="/upload?weekNo={{ request.args['weekNo'] }}&lessonID={{ request.args['lessonid'] }}&studentView=true" enctype="multipart/form-data">
+                    
+                    <div class="form-group">        
+                        <label for="myFormData">Type</label>        
+                        <select class="custom-select" name="type" id="type" required>
+                            <option value = ""> Please choose a Type </option>
+                            {% for type in ['Notes', 'Starter', 'Main', 'Homework'] %}
+                                <option value="{{ type }}">{{ type }}</option>
+                            {% endfor %}
+                        </select>      
+                    </div> 
+
+                    <!-- <input type = "checkbox" id = "random" onchange=""> -->
+                    
+                    <div class="form-group row">
+                        <div class="col-1"> <input type = "checkbox" id = "hideFromStudents" onchange="updateURL(this.checked)">  </div>
+                        <div class="col-11"> <label for="hideFromStudents">     Hide from Students </label> </div>
+                    </div>
+
+                    
+                    <input type="file" name="file" autocomplete="off" multiple>
+                    <input type="submit" value="Submit">
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <h2> Class Notes:  </h2>
+
+                {% if notesList|length > 0 %}
+                    {% for file in notesList %}
+
+                    {% if file[2] != "unique" %}
+                    <div class="row mb-4">
+                        <div class="col-sm">
+                            <a href="/download/{{ fileFolder + '/' + file[0] }}" >
+                                <button id = "file-download" class="btn btn-success btn-lg mb-4" style="white-space: normal; word-wrap: break-word;"> 
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                                    </svg> Download {{ file[0] }} 
+                                </button> 
+                            </a>
+                        </div>
+
+                        {% if session['role'] != "student" %} 
+                        <div class="col-sm">
+                            <button id = "file-view" class="btn btn-link btn-lg mb-4" style="white-space: normal; word-wrap: break-word;" onclick="openInNewTab('/files/{{ fileFolder + '/' + file[0] }}')"> 
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentcolor" class="bi bi-view" viewBox="0 0 50 50">
+                                    <path d="M 3 4 C 1.355469 4 0 5.355469 0 7 L 0 43.90625 C -0.0625 44.136719 -0.0390625 44.378906 0.0625 44.59375 C 0.34375 45.957031 1.5625 47 3 47 L 42 47 C 43.492188 47 44.71875 45.875 44.9375 44.4375 C 44.945313 44.375 44.964844 44.3125 44.96875 44.25 C 44.96875 44.230469 44.96875 44.207031 44.96875 44.1875 L 45 44.03125 C 45 44.019531 45 44.011719 45 44 L 49.96875 17.1875 L 50 17.09375 L 50 17 C 50 15.355469 48.644531 14 47 14 L 47 11 C 47 9.355469 45.644531 8 44 8 L 18.03125 8 C 18.035156 8.003906 18.023438 8 18 8 C 17.96875 7.976563 17.878906 7.902344 17.71875 7.71875 C 17.472656 7.4375 17.1875 6.96875 16.875 6.46875 C 16.5625 5.96875 16.226563 5.4375 15.8125 4.96875 C 15.398438 4.5 14.820313 4 14 4 Z M 3 6 L 14 6 C 13.9375 6 14.066406 6 14.3125 6.28125 C 14.558594 6.5625 14.84375 7.03125 15.15625 7.53125 C 15.46875 8.03125 15.8125 8.5625 16.21875 9.03125 C 16.625 9.5 17.179688 10 18 10 L 44 10 C 44.5625 10 45 10.4375 45 11 L 45 14 L 8 14 C 6.425781 14 5.171875 15.265625 5.0625 16.8125 L 5.03125 16.8125 L 5 17 L 2 33.1875 L 2 7 C 2 6.4375 2.4375 6 3 6 Z M 8 16 L 47 16 C 47.5625 16 48 16.4375 48 17 L 43.09375 43.53125 L 43.0625 43.59375 C 43.050781 43.632813 43.039063 43.675781 43.03125 43.71875 C 43.019531 43.757813 43.007813 43.800781 43 43.84375 C 43 43.863281 43 43.886719 43 43.90625 C 43 43.917969 43 43.925781 43 43.9375 C 42.984375 43.988281 42.976563 44.039063 42.96875 44.09375 C 42.964844 44.125 42.972656 44.15625 42.96875 44.1875 C 42.964844 44.230469 42.964844 44.269531 42.96875 44.3125 C 42.84375 44.71875 42.457031 45 42 45 L 3 45 C 2.4375 45 2 44.5625 2 44 L 6.96875 17.1875 L 7 17.09375 L 7 17 C 7 16.4375 7.4375 16 8 16 Z"></path>
+                                </svg> View {{ file[0] }} 
+                            </button> 
+                        </div>
+                        {% endif %}
+
+                        {% if session['role'] != "student" %} 
+                        <div class="col-sm">
+                            <button id = "file-print" class="btn btn-link btn-lg mb-4" style="white-space: normal; word-wrap: break-word;" onclick="printAtCovRoad('var/www/webApp/webApp/files/{{ fileFolder + '/' + file[0] }}')"> 
+                                print
+                            </button> 
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                
+                <hr>
+                {% for file in notesList%}
+                    {% if file[2] == "unique" %}
+                    <div class="row mb-4">
+                        <div class="col-sm">
+                            <a href="/download/{{ fileFolder + '/' + file[0] }}" >
+                                <button id = "file-download" class="btn btn-success btn-lg mb-4" style="white-space: normal; word-wrap: break-word;"> 
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                                    </svg> Download {{ file[0] }} 
+                                </button> 
+                            </a>
+                        </div>
+
+                        {% if session['role'] != "student" %} 
+                        <div class="col-sm">
+                            <button id = "file-view" class="btn btn-link btn-lg mb-4" style="white-space: normal; word-wrap: break-word;" onclick="openInNewTab('/files/{{ fileFolder + '/' + file[0] }}')"> 
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentcolor" class="bi bi-view" viewBox="0 0 50 50">
+                                    <path d="M 3 4 C 1.355469 4 0 5.355469 0 7 L 0 43.90625 C -0.0625 44.136719 -0.0390625 44.378906 0.0625 44.59375 C 0.34375 45.957031 1.5625 47 3 47 L 42 47 C 43.492188 47 44.71875 45.875 44.9375 44.4375 C 44.945313 44.375 44.964844 44.3125 44.96875 44.25 C 44.96875 44.230469 44.96875 44.207031 44.96875 44.1875 L 45 44.03125 C 45 44.019531 45 44.011719 45 44 L 49.96875 17.1875 L 50 17.09375 L 50 17 C 50 15.355469 48.644531 14 47 14 L 47 11 C 47 9.355469 45.644531 8 44 8 L 18.03125 8 C 18.035156 8.003906 18.023438 8 18 8 C 17.96875 7.976563 17.878906 7.902344 17.71875 7.71875 C 17.472656 7.4375 17.1875 6.96875 16.875 6.46875 C 16.5625 5.96875 16.226563 5.4375 15.8125 4.96875 C 15.398438 4.5 14.820313 4 14 4 Z M 3 6 L 14 6 C 13.9375 6 14.066406 6 14.3125 6.28125 C 14.558594 6.5625 14.84375 7.03125 15.15625 7.53125 C 15.46875 8.03125 15.8125 8.5625 16.21875 9.03125 C 16.625 9.5 17.179688 10 18 10 L 44 10 C 44.5625 10 45 10.4375 45 11 L 45 14 L 8 14 C 6.425781 14 5.171875 15.265625 5.0625 16.8125 L 5.03125 16.8125 L 5 17 L 2 33.1875 L 2 7 C 2 6.4375 2.4375 6 3 6 Z M 8 16 L 47 16 C 47.5625 16 48 16.4375 48 17 L 43.09375 43.53125 L 43.0625 43.59375 C 43.050781 43.632813 43.039063 43.675781 43.03125 43.71875 C 43.019531 43.757813 43.007813 43.800781 43 43.84375 C 43 43.863281 43 43.886719 43 43.90625 C 43 43.917969 43 43.925781 43 43.9375 C 42.984375 43.988281 42.976563 44.039063 42.96875 44.09375 C 42.964844 44.125 42.972656 44.15625 42.96875 44.1875 C 42.964844 44.230469 42.964844 44.269531 42.96875 44.3125 C 42.84375 44.71875 42.457031 45 42 45 L 3 45 C 2.4375 45 2 44.5625 2 44 L 6.96875 17.1875 L 7 17.09375 L 7 17 C 7 16.4375 7.4375 16 8 16 Z"></path>
+                                </svg> View {{ file[0] }} 
+                            </button> 
+                        </div>
+                        {% endif %}
+
+                        {% if session['role'] != "student" %} 
+                        <div class="col-sm">
+                            <button id = "file-print" class="btn btn-link btn-lg mb-4" style="white-space: normal; word-wrap: break-word;" onclick="printAtCovRoad('var/www/webApp/webApp/files/{{ fileFolder + '/' + file[0] }}')"> 
+                                print
+                            </button> 
+                        </div>
+                        {% endif %}
+
+                        {% if session['role'] == "admin" %}
+                        <div class="col-sm">
+                            <a href="/deleteUniqueFile?lessonID={{ request.args['lessonid']}}&filename={{ file[0] }}&weekNo={{ request.args['weekNo'] }}">
+                                <button id = "file-delete" class="btn btn-danger btn-lg mb-4" style="white-space: normal; word-wrap: break-word;"> 
+                                    <svg fill="currentColor" width="20" height="20" viewBox="0 0 16 16" class="bi bi-trash">
+                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"></path>
+                                        <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"></path>
+                                    </svg> Delete {{ file[0] }} 
+                                </button> 
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                            
+                    {% endfor %}
+
+                {% else %}
+                    <p> there are no files here </p>
+                {% endif %}
+
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <h2> Starter:  </h2>
+
+                {% if starterList|length > 0 %}
+                    {% for file in starterList %}
+
+                    {% if file[2] != "unique" %}
+                    <div class="row mb-4">
+                        <div class="col-sm">
+                            <a href="/download/{{ fileFolder + '/' + file[0] }}" >
+                                <button id = "file-download" class="btn btn-success btn-lg mb-4" style="white-space: normal; word-wrap: break-word;"> 
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                                    </svg> Download {{ file[0] }} 
+                                </button> 
+                            </a>
+                        </div>
+
+                        {% if session['role'] != "student" %} 
+                        <div class="col-sm">
+                            <button id = "file-view" class="btn btn-link btn-lg mb-4" style="white-space: normal; word-wrap: break-word;" onclick="openInNewTab('/files/{{ fileFolder + '/' + file[0] }}')"> 
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentcolor" class="bi bi-view" viewBox="0 0 50 50">
+                                    <path d="M 3 4 C 1.355469 4 0 5.355469 0 7 L 0 43.90625 C -0.0625 44.136719 -0.0390625 44.378906 0.0625 44.59375 C 0.34375 45.957031 1.5625 47 3 47 L 42 47 C 43.492188 47 44.71875 45.875 44.9375 44.4375 C 44.945313 44.375 44.964844 44.3125 44.96875 44.25 C 44.96875 44.230469 44.96875 44.207031 44.96875 44.1875 L 45 44.03125 C 45 44.019531 45 44.011719 45 44 L 49.96875 17.1875 L 50 17.09375 L 50 17 C 50 15.355469 48.644531 14 47 14 L 47 11 C 47 9.355469 45.644531 8 44 8 L 18.03125 8 C 18.035156 8.003906 18.023438 8 18 8 C 17.96875 7.976563 17.878906 7.902344 17.71875 7.71875 C 17.472656 7.4375 17.1875 6.96875 16.875 6.46875 C 16.5625 5.96875 16.226563 5.4375 15.8125 4.96875 C 15.398438 4.5 14.820313 4 14 4 Z M 3 6 L 14 6 C 13.9375 6 14.066406 6 14.3125 6.28125 C 14.558594 6.5625 14.84375 7.03125 15.15625 7.53125 C 15.46875 8.03125 15.8125 8.5625 16.21875 9.03125 C 16.625 9.5 17.179688 10 18 10 L 44 10 C 44.5625 10 45 10.4375 45 11 L 45 14 L 8 14 C 6.425781 14 5.171875 15.265625 5.0625 16.8125 L 5.03125 16.8125 L 5 17 L 2 33.1875 L 2 7 C 2 6.4375 2.4375 6 3 6 Z M 8 16 L 47 16 C 47.5625 16 48 16.4375 48 17 L 43.09375 43.53125 L 43.0625 43.59375 C 43.050781 43.632813 43.039063 43.675781 43.03125 43.71875 C 43.019531 43.757813 43.007813 43.800781 43 43.84375 C 43 43.863281 43 43.886719 43 43.90625 C 43 43.917969 43 43.925781 43 43.9375 C 42.984375 43.988281 42.976563 44.039063 42.96875 44.09375 C 42.964844 44.125 42.972656 44.15625 42.96875 44.1875 C 42.964844 44.230469 42.964844 44.269531 42.96875 44.3125 C 42.84375 44.71875 42.457031 45 42 45 L 3 45 C 2.4375 45 2 44.5625 2 44 L 6.96875 17.1875 L 7 17.09375 L 7 17 C 7 16.4375 7.4375 16 8 16 Z"></path>
+                                </svg> View {{ file[0] }} 
+                            </button> 
+                        </div>
+                        {% endif %}
+
+                        {% if session['role'] != "student" %} 
+                        <div class="col-sm">
+                            <button id = "file-print" class="btn btn-link btn-lg mb-4" style="white-space: normal; word-wrap: break-word;" onclick="printAtCovRoad('var/www/webApp/webApp/files/{{ fileFolder + '/' + file[0] }}')"> 
+                                print
+                            </button> 
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                
+                <hr>
+                {% for file in starterList %}
+                    {% if file[2] == "unique" %}
+                    <div class="row mb-4">
+                        <div class="col-sm">
+                            <a href="/download/{{ fileFolder + '/' + file[0] }}" >
+                                <button id = "file-download" class="btn btn-success btn-lg mb-4" style="white-space: normal; word-wrap: break-word;"> 
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                                    </svg> Download {{ file[0] }} 
+                                </button> 
+                            </a>
+                        </div>
+
+                        {% if session['role'] != "student" %} 
+                        <div class="col-sm">
+                            <button id = "file-view" class="btn btn-link btn-lg mb-4" style="white-space: normal; word-wrap: break-word;" onclick="openInNewTab('/files/{{ fileFolder + '/' + file[0] }}')"> 
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentcolor" class="bi bi-view" viewBox="0 0 50 50">
+                                    <path d="M 3 4 C 1.355469 4 0 5.355469 0 7 L 0 43.90625 C -0.0625 44.136719 -0.0390625 44.378906 0.0625 44.59375 C 0.34375 45.957031 1.5625 47 3 47 L 42 47 C 43.492188 47 44.71875 45.875 44.9375 44.4375 C 44.945313 44.375 44.964844 44.3125 44.96875 44.25 C 44.96875 44.230469 44.96875 44.207031 44.96875 44.1875 L 45 44.03125 C 45 44.019531 45 44.011719 45 44 L 49.96875 17.1875 L 50 17.09375 L 50 17 C 50 15.355469 48.644531 14 47 14 L 47 11 C 47 9.355469 45.644531 8 44 8 L 18.03125 8 C 18.035156 8.003906 18.023438 8 18 8 C 17.96875 7.976563 17.878906 7.902344 17.71875 7.71875 C 17.472656 7.4375 17.1875 6.96875 16.875 6.46875 C 16.5625 5.96875 16.226563 5.4375 15.8125 4.96875 C 15.398438 4.5 14.820313 4 14 4 Z M 3 6 L 14 6 C 13.9375 6 14.066406 6 14.3125 6.28125 C 14.558594 6.5625 14.84375 7.03125 15.15625 7.53125 C 15.46875 8.03125 15.8125 8.5625 16.21875 9.03125 C 16.625 9.5 17.179688 10 18 10 L 44 10 C 44.5625 10 45 10.4375 45 11 L 45 14 L 8 14 C 6.425781 14 5.171875 15.265625 5.0625 16.8125 L 5.03125 16.8125 L 5 17 L 2 33.1875 L 2 7 C 2 6.4375 2.4375 6 3 6 Z M 8 16 L 47 16 C 47.5625 16 48 16.4375 48 17 L 43.09375 43.53125 L 43.0625 43.59375 C 43.050781 43.632813 43.039063 43.675781 43.03125 43.71875 C 43.019531 43.757813 43.007813 43.800781 43 43.84375 C 43 43.863281 43 43.886719 43 43.90625 C 43 43.917969 43 43.925781 43 43.9375 C 42.984375 43.988281 42.976563 44.039063 42.96875 44.09375 C 42.964844 44.125 42.972656 44.15625 42.96875 44.1875 C 42.964844 44.230469 42.964844 44.269531 42.96875 44.3125 C 42.84375 44.71875 42.457031 45 42 45 L 3 45 C 2.4375 45 2 44.5625 2 44 L 6.96875 17.1875 L 7 17.09375 L 7 17 C 7 16.4375 7.4375 16 8 16 Z"></path>
+                                </svg> View {{ file[0] }} 
+                            </button> 
+                        </div>
+                        {% endif %}
+
+                        {% if session['role'] != "student" %} 
+                        <div class="col-sm">
+                            <button id = "file-print" class="btn btn-link btn-lg mb-4" style="white-space: normal; word-wrap: break-word;" onclick="printAtCovRoad('var/www/webApp/webApp/files/{{ fileFolder + '/' + file[0] }}')"> 
+                                print
+                            </button> 
+                        </div>
+                        {% endif %}
+
+                        {% if session['role'] == "admin" %}
+                        <div class="col-sm">
+                            <a href="/deleteUniqueFile?lessonID={{ request.args['lessonid']}}&filename={{ file[0] }}&weekNo={{ request.args['weekNo'] }}">
+                                <button id = "file-delete" class="btn btn-danger btn-lg mb-4" style="white-space: normal; word-wrap: break-word;"> 
+                                    <svg fill="currentColor" width="20" height="20" viewBox="0 0 16 16" class="bi bi-trash">
+                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"></path>
+                                        <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"></path>
+                                    </svg> Delete {{ file[0] }} 
+                                </button> 
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% endfor %}
+
+                {% else %}
+                    <p> there are no files here </p>
+                {% endif %}
+
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h2> Main:  </h2>
+                {% if mainList|length > 0 %}
+                    {% for file in mainList %}
+                        {% if file[2] != "unique" %}
+                        <div class="row mb-4">
+                            <div class="col-sm">
+                                <a href="/download/{{ fileFolder + '/' + file[0] }}" >
+                                    <button id = "file-download" class="btn btn-success btn-lg mb-4" style="white-space: normal; word-wrap: break-word;"> 
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                                        </svg> Download {{ file[0] }} 
+                                    </button> 
+                                </a>
+                            </div>
+
+                            {% if session['role'] != "student" %} 
+                            <div class="col-sm">
+                                <button id = "file-view" class="btn btn-link btn-lg mb-4" style="white-space: normal; word-wrap: break-word;" onclick="openInNewTab('/files/{{ fileFolder + '/' + file[0] }}')"> 
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentcolor" class="bi bi-view" viewBox="0 0 50 50">
+                                        <path d="M 3 4 C 1.355469 4 0 5.355469 0 7 L 0 43.90625 C -0.0625 44.136719 -0.0390625 44.378906 0.0625 44.59375 C 0.34375 45.957031 1.5625 47 3 47 L 42 47 C 43.492188 47 44.71875 45.875 44.9375 44.4375 C 44.945313 44.375 44.964844 44.3125 44.96875 44.25 C 44.96875 44.230469 44.96875 44.207031 44.96875 44.1875 L 45 44.03125 C 45 44.019531 45 44.011719 45 44 L 49.96875 17.1875 L 50 17.09375 L 50 17 C 50 15.355469 48.644531 14 47 14 L 47 11 C 47 9.355469 45.644531 8 44 8 L 18.03125 8 C 18.035156 8.003906 18.023438 8 18 8 C 17.96875 7.976563 17.878906 7.902344 17.71875 7.71875 C 17.472656 7.4375 17.1875 6.96875 16.875 6.46875 C 16.5625 5.96875 16.226563 5.4375 15.8125 4.96875 C 15.398438 4.5 14.820313 4 14 4 Z M 3 6 L 14 6 C 13.9375 6 14.066406 6 14.3125 6.28125 C 14.558594 6.5625 14.84375 7.03125 15.15625 7.53125 C 15.46875 8.03125 15.8125 8.5625 16.21875 9.03125 C 16.625 9.5 17.179688 10 18 10 L 44 10 C 44.5625 10 45 10.4375 45 11 L 45 14 L 8 14 C 6.425781 14 5.171875 15.265625 5.0625 16.8125 L 5.03125 16.8125 L 5 17 L 2 33.1875 L 2 7 C 2 6.4375 2.4375 6 3 6 Z M 8 16 L 47 16 C 47.5625 16 48 16.4375 48 17 L 43.09375 43.53125 L 43.0625 43.59375 C 43.050781 43.632813 43.039063 43.675781 43.03125 43.71875 C 43.019531 43.757813 43.007813 43.800781 43 43.84375 C 43 43.863281 43 43.886719 43 43.90625 C 43 43.917969 43 43.925781 43 43.9375 C 42.984375 43.988281 42.976563 44.039063 42.96875 44.09375 C 42.964844 44.125 42.972656 44.15625 42.96875 44.1875 C 42.964844 44.230469 42.964844 44.269531 42.96875 44.3125 C 42.84375 44.71875 42.457031 45 42 45 L 3 45 C 2.4375 45 2 44.5625 2 44 L 6.96875 17.1875 L 7 17.09375 L 7 17 C 7 16.4375 7.4375 16 8 16 Z"></path>
+                                    </svg> View {{ file[0] }} 
+                                </button> 
+                            </div>
+                            {% endif %}
+
+                            {% if session['role'] != "student" %} 
+                            <div class="col-sm">
+                                <button id = "file-print" class="btn btn-link btn-lg mb-4" style="white-space: normal; word-wrap: break-word;" onclick="printAtCovRoad('var/www/webApp/webApp/files/{{ fileFolder + '/' + file[0] }}')"> 
+                                    print
+                                </button> 
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <hr>
+                    {% for file in mainList %}
+                        {% if file[2] == "unique" %}
+                        <div class="row mb-4">
+                            <div class="col-sm">
+                                <a href="/download/{{ fileFolder + '/' + file[0] }}" >
+                                    <button id = "file-download" class="btn btn-success btn-lg mb-4" style="white-space: normal; word-wrap: break-word;"> 
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                                        </svg> Download {{ file[0] }} 
+                                    </button> 
+                                </a>
+                            </div>
+
+                            {% if session['role'] != "student" %} 
+                            <div class="col-sm">
+                                <button id = "file-view" class="btn btn-link btn-lg mb-4" style="white-space: normal; word-wrap: break-word;" onclick="openInNewTab('/files/{{ fileFolder + '/' + file[0] }}')"> 
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentcolor" class="bi bi-view" viewBox="0 0 50 50">
+                                        <path d="M 3 4 C 1.355469 4 0 5.355469 0 7 L 0 43.90625 C -0.0625 44.136719 -0.0390625 44.378906 0.0625 44.59375 C 0.34375 45.957031 1.5625 47 3 47 L 42 47 C 43.492188 47 44.71875 45.875 44.9375 44.4375 C 44.945313 44.375 44.964844 44.3125 44.96875 44.25 C 44.96875 44.230469 44.96875 44.207031 44.96875 44.1875 L 45 44.03125 C 45 44.019531 45 44.011719 45 44 L 49.96875 17.1875 L 50 17.09375 L 50 17 C 50 15.355469 48.644531 14 47 14 L 47 11 C 47 9.355469 45.644531 8 44 8 L 18.03125 8 C 18.035156 8.003906 18.023438 8 18 8 C 17.96875 7.976563 17.878906 7.902344 17.71875 7.71875 C 17.472656 7.4375 17.1875 6.96875 16.875 6.46875 C 16.5625 5.96875 16.226563 5.4375 15.8125 4.96875 C 15.398438 4.5 14.820313 4 14 4 Z M 3 6 L 14 6 C 13.9375 6 14.066406 6 14.3125 6.28125 C 14.558594 6.5625 14.84375 7.03125 15.15625 7.53125 C 15.46875 8.03125 15.8125 8.5625 16.21875 9.03125 C 16.625 9.5 17.179688 10 18 10 L 44 10 C 44.5625 10 45 10.4375 45 11 L 45 14 L 8 14 C 6.425781 14 5.171875 15.265625 5.0625 16.8125 L 5.03125 16.8125 L 5 17 L 2 33.1875 L 2 7 C 2 6.4375 2.4375 6 3 6 Z M 8 16 L 47 16 C 47.5625 16 48 16.4375 48 17 L 43.09375 43.53125 L 43.0625 43.59375 C 43.050781 43.632813 43.039063 43.675781 43.03125 43.71875 C 43.019531 43.757813 43.007813 43.800781 43 43.84375 C 43 43.863281 43 43.886719 43 43.90625 C 43 43.917969 43 43.925781 43 43.9375 C 42.984375 43.988281 42.976563 44.039063 42.96875 44.09375 C 42.964844 44.125 42.972656 44.15625 42.96875 44.1875 C 42.964844 44.230469 42.964844 44.269531 42.96875 44.3125 C 42.84375 44.71875 42.457031 45 42 45 L 3 45 C 2.4375 45 2 44.5625 2 44 L 6.96875 17.1875 L 7 17.09375 L 7 17 C 7 16.4375 7.4375 16 8 16 Z"></path>
+                                    </svg> View {{ file[0] }} 
+                                </button> 
+                            </div>
+                            {% endif %}
+
+                            {% if session['role'] != "student" %} 
+                            <div class="col-sm">
+                                <button id = "file-print" class="btn btn-link btn-lg mb-4" style="white-space: normal; word-wrap: break-word;" onclick="printAtCovRoad('var/www/webApp/webApp/files/{{ fileFolder + '/' + file[0] }}')"> 
+                                    print
+                                </button> 
+                            </div>
+                            {% endif %}
+
+                            {% if session['role'] == "admin" %}
+                            <div class="col-sm">
+                                <a href="/deleteUniqueFile?lessonID={{ request.args['lessonid']}}&filename={{ file[0] }}&weekNo={{ request.args['weekNo'] }}">
+                                    <button id = "file-delete" class="btn btn-danger btn-lg mb-4" style="white-space: normal; word-wrap: break-word;"> 
+                                        <svg fill="currentColor" width="20" height="20" viewBox="0 0 16 16" class="bi bi-trash">
+                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"></path>
+                                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"></path>
+                                        </svg> Delete {{ file[0] }} 
+                                    </button> 
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %} 
+
+                {% else %}
+                    <p> ~ there are no files here ~ </p>
+                {% endif %}
+
+
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h2> Homework:  </h2>
+                {% if homeworkList|length > 0 %}
+                    {% for file in homeworkList %}
+
+                    {% if file[2] != "unique" %}
+                    <div class="row mb-4">
+                        <div class="col-sm">
+                            <a href="/download/{{ fileFolder + '/' + file[0] }}" >
+                                <button id = "file-download" class="btn btn-success btn-lg mb-4" style="white-space: normal; word-wrap: break-word;"> 
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                                    </svg> Download {{ file[0] }} 
+                                </button> 
+                            </a>
+                        </div>
+
+                        {% if session['role'] != "student" %} 
+                        <div class="col-sm">
+                            <button id = "file-view" class="btn btn-link btn-lg mb-4" style="white-space: normal; word-wrap: break-word;" onclick="openInNewTab('/files/{{ fileFolder + '/' + file[0] }}')"> 
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentcolor" class="bi bi-view" viewBox="0 0 50 50">
+                                    <path d="M 3 4 C 1.355469 4 0 5.355469 0 7 L 0 43.90625 C -0.0625 44.136719 -0.0390625 44.378906 0.0625 44.59375 C 0.34375 45.957031 1.5625 47 3 47 L 42 47 C 43.492188 47 44.71875 45.875 44.9375 44.4375 C 44.945313 44.375 44.964844 44.3125 44.96875 44.25 C 44.96875 44.230469 44.96875 44.207031 44.96875 44.1875 L 45 44.03125 C 45 44.019531 45 44.011719 45 44 L 49.96875 17.1875 L 50 17.09375 L 50 17 C 50 15.355469 48.644531 14 47 14 L 47 11 C 47 9.355469 45.644531 8 44 8 L 18.03125 8 C 18.035156 8.003906 18.023438 8 18 8 C 17.96875 7.976563 17.878906 7.902344 17.71875 7.71875 C 17.472656 7.4375 17.1875 6.96875 16.875 6.46875 C 16.5625 5.96875 16.226563 5.4375 15.8125 4.96875 C 15.398438 4.5 14.820313 4 14 4 Z M 3 6 L 14 6 C 13.9375 6 14.066406 6 14.3125 6.28125 C 14.558594 6.5625 14.84375 7.03125 15.15625 7.53125 C 15.46875 8.03125 15.8125 8.5625 16.21875 9.03125 C 16.625 9.5 17.179688 10 18 10 L 44 10 C 44.5625 10 45 10.4375 45 11 L 45 14 L 8 14 C 6.425781 14 5.171875 15.265625 5.0625 16.8125 L 5.03125 16.8125 L 5 17 L 2 33.1875 L 2 7 C 2 6.4375 2.4375 6 3 6 Z M 8 16 L 47 16 C 47.5625 16 48 16.4375 48 17 L 43.09375 43.53125 L 43.0625 43.59375 C 43.050781 43.632813 43.039063 43.675781 43.03125 43.71875 C 43.019531 43.757813 43.007813 43.800781 43 43.84375 C 43 43.863281 43 43.886719 43 43.90625 C 43 43.917969 43 43.925781 43 43.9375 C 42.984375 43.988281 42.976563 44.039063 42.96875 44.09375 C 42.964844 44.125 42.972656 44.15625 42.96875 44.1875 C 42.964844 44.230469 42.964844 44.269531 42.96875 44.3125 C 42.84375 44.71875 42.457031 45 42 45 L 3 45 C 2.4375 45 2 44.5625 2 44 L 6.96875 17.1875 L 7 17.09375 L 7 17 C 7 16.4375 7.4375 16 8 16 Z"></path>
+                                </svg> View {{ file[0] }} 
+                            </button> 
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                
+                <hr>
+                {% for file in homeworkList %}
+                    {% if file[2] == "unique" %}
+                    <div class="row mb-4">
+                        <div class="col-sm">
+                            <a href="/download/{{ fileFolder + '/' + file[0] }}" >
+                                <button id = "file-download" class="btn btn-success btn-lg mb-4" style="white-space: normal; word-wrap: break-word;"> 
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                                    </svg> Download {{ file[0] }} 
+                                </button> 
+                            </a>
+                        </div>
+
+                        {% if session['role'] != "student" %} 
+                        <div class="col-sm">
+                            <button id = "file-view" class="btn btn-link btn-lg mb-4" style="white-space: normal; word-wrap: break-word;" onclick="openInNewTab('/files/{{ fileFolder + '/' + file[0] }}')"> 
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentcolor" class="bi bi-view" viewBox="0 0 50 50">
+                                    <path d="M 3 4 C 1.355469 4 0 5.355469 0 7 L 0 43.90625 C -0.0625 44.136719 -0.0390625 44.378906 0.0625 44.59375 C 0.34375 45.957031 1.5625 47 3 47 L 42 47 C 43.492188 47 44.71875 45.875 44.9375 44.4375 C 44.945313 44.375 44.964844 44.3125 44.96875 44.25 C 44.96875 44.230469 44.96875 44.207031 44.96875 44.1875 L 45 44.03125 C 45 44.019531 45 44.011719 45 44 L 49.96875 17.1875 L 50 17.09375 L 50 17 C 50 15.355469 48.644531 14 47 14 L 47 11 C 47 9.355469 45.644531 8 44 8 L 18.03125 8 C 18.035156 8.003906 18.023438 8 18 8 C 17.96875 7.976563 17.878906 7.902344 17.71875 7.71875 C 17.472656 7.4375 17.1875 6.96875 16.875 6.46875 C 16.5625 5.96875 16.226563 5.4375 15.8125 4.96875 C 15.398438 4.5 14.820313 4 14 4 Z M 3 6 L 14 6 C 13.9375 6 14.066406 6 14.3125 6.28125 C 14.558594 6.5625 14.84375 7.03125 15.15625 7.53125 C 15.46875 8.03125 15.8125 8.5625 16.21875 9.03125 C 16.625 9.5 17.179688 10 18 10 L 44 10 C 44.5625 10 45 10.4375 45 11 L 45 14 L 8 14 C 6.425781 14 5.171875 15.265625 5.0625 16.8125 L 5.03125 16.8125 L 5 17 L 2 33.1875 L 2 7 C 2 6.4375 2.4375 6 3 6 Z M 8 16 L 47 16 C 47.5625 16 48 16.4375 48 17 L 43.09375 43.53125 L 43.0625 43.59375 C 43.050781 43.632813 43.039063 43.675781 43.03125 43.71875 C 43.019531 43.757813 43.007813 43.800781 43 43.84375 C 43 43.863281 43 43.886719 43 43.90625 C 43 43.917969 43 43.925781 43 43.9375 C 42.984375 43.988281 42.976563 44.039063 42.96875 44.09375 C 42.964844 44.125 42.972656 44.15625 42.96875 44.1875 C 42.964844 44.230469 42.964844 44.269531 42.96875 44.3125 C 42.84375 44.71875 42.457031 45 42 45 L 3 45 C 2.4375 45 2 44.5625 2 44 L 6.96875 17.1875 L 7 17.09375 L 7 17 C 7 16.4375 7.4375 16 8 16 Z"></path>
+                                </svg> View {{ file[0] }} 
+                            </button> 
+                        </div>
+                        {% endif %}
+
+                        {% if session['role'] == "admin" %}
+                        <div class="col-sm">
+                            <a href="/deleteUniqueFile?lessonID={{ request.args['lessonid']}}&filename={{ file[0] }}&weekNo={{ request.args['weekNo'] }}">
+                                <button id = "file-delete" class="btn btn-danger btn-lg mb-4" style="white-space: normal; word-wrap: break-word;"> 
+                                    <svg fill="currentColor" width="20" height="20" viewBox="0 0 16 16" class="bi bi-trash">
+                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"></path>
+                                        <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"></path>
+                                    </svg> Delete {{ file[0] }} 
+                                </button> 
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% endfor %}
+
+                {% else %}
+                    <p> ~ there are no files here ~ </p>
+                {% endif %}
+
+
+                
+            </div>
+        </div>
+        <button class= "btn btn-success" type="button" data-toggle="modal" data-target="#sendEmailModal" onclick = "setEmailMessage()"> Send Work </button>
+
+
+    </div>
+
+</div>
+
+<div class="modal fade" id="sendEmailModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLongTitle"> Send Work to a Tutor </h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+            <form>
+                <div class="col">
+                    <div class="row mb-3">
+                        <p> Recipient: </p>
+                        <input type="email" id="email_recipient"> 
+                    </div>
+
+                    <div class="row mb-3">
+                        <p> Subject: </p>
+                        <input id="email_subject" value="">
+                    </div>
+
+                    <div class="row mb-3">
+                        <p> Message: </p>
+                        <textarea id="email_message" style="height: 300px;"> </textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal"> Cancel </button>
+          <button type="button" class="btn btn-danger" onclick="sendEmail()"> Send </button>
+        </div>
+
+        <script>
+            function setEmailMessage() {
+                var message;
+                var lesson_day = "{{ lesson_day }}";
+                var lesson_info = "{{ lesson_info }}"
+
+                document.getElementById("email_subject").value = "Work for " + lesson_day; 
+                
+                message = 'Hi,\n\nI hope this email finds you well. Please find attached the files for the work for the lesson on ' + lesson_info + ':\n'
+
+                notesList = {{notesList|tojson}}
+                starterList = {{starterList|tojson}}
+                mainList = {{mainList|tojson}}
+                homeworkList = {{homeworkList|tojson}}
+
+                files = []
+
+                if({{notesList|length}} > 0 ) {
+                    for(var i in notesList) {
+                        files.push("/var/www/webApp/webApp/files/" + "{{ fileFolder }}" + "/" + notesList[i][0])
+                    }
+                }
+
+                if({{starterList|length}} > 0 ) {
+                    for(var i in starterList) {
+                        files.push("/var/www/webApp/webApp/files/" + "{{ fileFolder }}" + "/" + starterList[i][0])
+                    }
+                }
+
+                if({{mainList|length}} > 0 ) {
+                    for(var i in mainList) {
+                        files.push("/var/www/webApp/webApp/files/" + "{{ fileFolder }}" + "/" + mainList[i][0])
+                    }
+                }
+
+                if({{homeworkList|length}} > 0 ) {
+                    for(var i in homeworkList) {
+                        files.push("/var/www/webApp/webApp/files/" + "{{ fileFolder }}" + "/" + homeworkList[i][0])
+                    }
+                }
+
+                
+                var lesson_type = "{{ lesson_type }}";
+
+                if(lesson_type == "Online") {
+                    conductionDoc = "https://ateamacad.co.uk/files/IMPORTANT_DOCS/Conducting_Online_Lessons.pdf"
+                }
+                else {
+                    conductionDoc = "https://ateamacad.co.uk/files/IMPORTANT_DOCS/Conducting_in_person_Lessons.pdf"
+                }
+
+                message = message + "It is also highly recomended that you read the following document: " + conductionDoc + " as this guide will go through the processes we expect you to follow during lessons. These are especially useful if you are about to teach your first lesson\n";
+                message = message + "If there are any issues or questions with the above work please email safwaan@ateamacademy.co.uk\n\nThanks,\nA-Team Academy";
+
+                document.getElementById("email_message").value = message
+
+            }
+
+            function sendEmail() {
+                $.ajax({
+                    url: '/sendEmail',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({"recipient": document.getElementById("email_recipient").value, "subject" : document.getElementById("email_subject").value , "message": document.getElementById("email_message").value, "files" : files}),
+                    success: function(response) {
+                        console.log("success")
+                        alert("The Email was sent")
+                        location.reload();
+
+                    },
+                    error: function(error) {
+                    console.log("error")
+                    alert("The Email could not be sent")
+                    }
+                });
+            }
+        </script>
+
+      </div>
+    </div>
+</div>
+
+<!-- Print Options Modal -->
+<div class="modal fade" id="printOptionsModal" tabindex="-1" role="dialog" aria-labelledby="printOptionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="printOptionsModalLabel">Print Options</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="printOptionsForm">
+                    <!-- Two Per Page Option -->
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="twoPerPage" checked>
+                            Print Two Pages Per Sheet
+                        </label>
+                        <div id="saveTreeMessage" class="text-danger mt-2 d-none">
+                            <img src="/static/images/tree_meme.jpeg" alt="Save the Environment" style="width: 500px;">
+                            <p> Help save the environment by using less paper!</p>
+                        </div>
+                    </div>
+
+                    <!-- Centre Option -->
+                    <div class="form-group">
+                        <label for="printCentre">Select Centre:</label>
+                        <select id="printCentre" class="form-control">
+                            <option value="SOHO">Soho Road</option>
+                            <option value="COV" selected>Coventry Road</option>
+                        </select>
+                    </div>
+
+                    <!-- Number of Copies -->
+                    <div class="form-group">
+                        <label for="numCopies">Number of Copies:</label>
+                        <select id="numCopies" class="form-control">
+                            {% for i in range(1, 11) %}
+                            <option value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Additional Note -->
+                    <div class="form-group">
+                        <p class="text-muted">
+                            For colour prints or more than 10 copies, please see the reception desk.
+                        </p>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="confirmPrint()">Confirm</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function printAtCovRoad(filePath) {
+        // Save the file path for printing
+        document.getElementById("printOptionsForm").setAttribute("data-file", filePath);
+
+        // Show the modal
+        $('#printOptionsModal').modal('show');
+    }
+
+    document.getElementById('twoPerPage').addEventListener('change', function() {
+        const saveTreeMessage = document.getElementById('saveTreeMessage');
+        if (!this.checked) {
+            saveTreeMessage.classList.remove('d-none'); // Show save the environment message
+        } else {
+            saveTreeMessage.classList.add('d-none'); // Hide save the environment message
+        }
+    });
+
+    function confirmPrint() {
+        const filePath = document.getElementById("printOptionsForm").getAttribute("data-file");
+        const twoPerPage = document.getElementById("twoPerPage").checked;
+        const centre = document.getElementById("printCentre").value;
+        const numCopies = document.getElementById("numCopies").value;
+
+        // Perform the print operation
+        fetch('/print_files_at_centre', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                "filepath": filePath,
+                "two_up": twoPerPage,
+                "centre": centre,
+                "copies": numCopies
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Print job submitted successfully!');
+                $('#printOptionsModal').modal('hide');
+            } else {
+                alert('Failed to submit print job: ' + data.message);
+            }
+        })
+        .catch(err => console.error('Error submitting print job:', err));
+    }
+</script>
+
+
+
+
+
+<script>
+    function openInNewTab(url) {
+        window.open(url, '_blank');
+    }
+</script>
+
+
+
+<script>
+    // Show custom context menu for files
+    document.addEventListener('contextmenu', function (e) {
+        const target = e.target.closest('.file-item'); // Add 'file-item' class to relevant elements
+        if (target) {
+            e.preventDefault();
+
+            const contextMenu = document.getElementById('fileContextMenu');
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${e.pageX}px`;
+            contextMenu.style.top = `${e.pageY}px`;
+
+            // Set the current file ID in the context menu
+            const fileID = target.dataset.fileId;
+            contextMenu.dataset.fileId = fileID;
+        }
+    });
+
+    // Hide the context menu
+    document.addEventListener('click', function () {
+        document.getElementById('fileContextMenu').style.display = 'none';
+    });
+
+    // Function to toggle auto_print using editFiles route
+    function editFileAutoPrint(value) {
+        const contextMenu = document.getElementById('fileContextMenu');
+        const fileID = contextMenu.dataset.fileId;
+
+        if (fileID) {
+            $.ajax({
+                url: '/editFiles',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    fileID: fileID,
+                    key: 'auto_print',
+                    value: value
+                }),
+                success: function (response) {
+                    const button = document.querySelector(`[data-file-id="${fileID}"]`);
+                    if (value) {
+                        button.classList.add('auto-print-enabled');
+                        button.innerHTML += ' <i class="fa fa-print text-success"></i>'; // Add print icon
+                    } else {
+                        button.classList.remove('auto-print-enabled');
+                        const icon = button.querySelector('.fa-print');
+                        if (icon) icon.remove(); // Remove print icon
+                    }
+                    alert(`Auto print successfully set to ${value ? 'enabled' : 'disabled'}.`);
+                },
+                error: function (error) {
+                    alert("Error updating file. Please try again later.");
+                }
+            });
+        }
+    }
+</script>
+
+
+{% endblock %}

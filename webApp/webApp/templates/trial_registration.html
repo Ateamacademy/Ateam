@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trial Session Booking</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="{{ url_for('static', filename='js/scripts.js') }}" defer></script>
+</head>
+<body>
+    <style>
+        .transparent-button {
+            background: none;
+            border: 2px solid grey; /* White outline */
+            color: black;
+            padding: 15px 30px; /* Large button size */
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Smooth transitions */
+          }
+          
+          .transparent-button:hover {
+            background-color: white;
+            color: #333; /* Dark background color on hover */
+            border-color: black;
+          }
+          
+          .transparent-button.selected {
+            background-color: white;
+            color: #333; /* Dark text color when selected */
+            border-color: black;
+          }
+    </style>
+
+
+    {% extends "base_page.html" %}
+    {% block middleContent %}
+    
+    <div class="container mt-5">
+        <h2>Book a Trial Session</h2>
+        <div class="card">
+            <!-- Filters Section -->
+            <div id="lessonsContainer">
+                <hr>
+                <div class="filters row">
+                    <div class="col">
+                        <p>Tier</p>
+                        <select id="filterTier" class="underline-select" onchange="filterLessons()"></select>
+                    </div>
+                    <div class="col">
+                        <p>Subject</p>
+                        <select id="filterTitle" class="underline-select" onchange="filterLessons()"></select>
+                    </div>
+                    <div class="col">
+                        <p>Centre</p>
+                        <select id="filterCentre" class="underline-select" onchange="filterLessons()"></select>
+                    </div>
+                    <div class="col">
+                        <p>Day</p>
+                        <select id="filterDay" class="underline-select" onchange="filterLessons()"></select>
+                    </div>
+                </div>
+                <div class="lessons-grid" id="lessonsGrid">
+                    <!-- Lessons buttons will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Student Selection Section -->
+            <hr>
+            <div class="row">
+                <div class="col">
+                    <p>Select Student:</p>
+                    <select id="studentSelect" class="underline-select">
+                        <option value="">Select Registered Student</option>
+                        <!-- Add dynamically generated student options here -->
+                        {% for student in students %}
+                          <option value="{{ student.id }}">{{ student.firstName }} {{ student.secondName }}</option>
+                        {% endfor %}
+                    </select>
+                    <p>Or add an unregistered student:</p>
+                    <input type="text" id="unregisteredStudentName" class="form-control mb-2" placeholder="Student Name">
+                    <input type="email" id="unregisteredStudentEmail" class="form-control mb-2" placeholder="Email (optional)">
+                    <input type="tel" id="unregisteredStudentPhone" class="form-control mb-2" placeholder="Phone (optional)">
+                </div>
+            </div>
+
+            <!-- Week Number and Notes Section -->
+            <hr>
+            <div class="row">
+                <div class="col">
+                    <p>Week Number:</p>
+                    <select id="weekSelect" class="underline-select">
+                        <!-- Generate options dynamically based on available weeks -->
+                        {% for week in range(0, 53) %}
+                          <option value="{{ week }}">{{ week }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col">
+                    <p>Notes:</p>
+                    <textarea id="notes" class="form-control" placeholder="TRIAL LESSON">TRIAL LESSON</textarea>
+                </div>
+            </div>
+
+            <!-- Register Button -->
+            <button type="button" class="btn btn-success mt-4" id="submitBtn" onclick="register_student()" disabled>Register</button>
+
+            <!-- Status Message -->
+            <div class="alert alert-success" id="statusmessagediv" style="display:none;">
+                <strong id="statusmessage">Success!</strong> {{ message }}
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // Fetch lessons data from the server-side (already passed via Flask)
+        let lessons = {{ lessons | tojson }};
+        var selectedLessonID = -1;
+
+        // Automatically show lessons and filters when the page loads
+        document.addEventListener("DOMContentLoaded", function() {
+            populateFilters();
+            displayLessons(lessons);
+        });
+
+        function activateButton() {
+            document.getElementById('submitBtn').disabled = false;
+        }
+
+        function populateFilters() {
+            var tiers = new Set();
+            var titles = new Set();
+            var centres = new Set();
+            var days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+
+            lessons.forEach(function(lesson) {
+                tiers.add(lesson.tier);
+                titles.add(lesson.title);
+                centres.add(lesson.centre);
+            });
+
+            populateFilterOptions('filterTier', tiers);
+            populateFilterOptions('filterTitle', titles);
+            populateFilterOptions('filterCentre', centres);
+            populateFilterOptions('filterDay', days);
+        }
+
+        function populateFilterOptions(filterId, options) {
+            var filter = document.getElementById(filterId);
+            filter.innerHTML = '<option value="">All</option>'; // Default option
+            options.forEach(function(option) {
+                var opt = document.createElement('option');
+                opt.value = option;
+                opt.innerHTML = option;
+                filter.appendChild(opt);
+            });
+        }
+
+        function filterLessons() {
+            var tier = document.getElementById('filterTier').value;
+            var title = document.getElementById('filterTitle').value;
+            var centre = document.getElementById('filterCentre').value;
+            var day = document.getElementById('filterDay').value;
+
+            var filteredLessons = lessons.filter(function(lesson) {
+                return (!tier || lesson.tier === tier) &&
+                    (!title || lesson.title === title) &&
+                    (!centre || lesson.centre === centre) &&
+                    (!day || lesson.day === day);
+            });
+
+            displayLessons(filteredLessons);
+        }
+
+        function displayLessons(lessons) {
+            var lessonsGrid = document.getElementById('lessonsGrid');
+            lessonsGrid.innerHTML = '';
+
+            lessons.forEach(function(lesson) {
+                var lessonButton = document.createElement('button');
+                lessonButton.className = 'transparent-button';
+                lessonButton.classList.add("lesson-btn");
+                lessonButton.classList.add("ml-3");
+
+                lessonButton.innerHTML = `${lesson.title} (${lesson.tier})<br>${lesson.day}, ${lesson.time}<br>${lesson.centre}`;
+                lessonButton.onclick = function() {
+                    selectLesson(lesson.id, lessonButton);
+                };
+                lessonsGrid.appendChild(lessonButton);
+            });
+        }
+
+        function selectLesson(lessonID, button) {
+            selectedLessonID = lessonID; // Update the global variable
+            document.getElementById('submitBtn').disabled = false;
+            // Highlight the selected button
+            document.querySelectorAll('.lesson-btn').forEach(function(btn) {
+                btn.classList.remove('selected');
+                btn.style.display = "none";
+            });
+            button.classList.add('selected');
+            button.style.display = "block";
+        }
+
+        function register_student() {
+            var studentID = document.getElementById('studentSelect').value;
+            var unregisteredName = document.getElementById('unregisteredStudentName').value;
+            var unregisteredEmail = document.getElementById('unregisteredStudentEmail').value;
+            var unregisteredPhone = document.getElementById('unregisteredStudentPhone').value;
+            var weekNo = document.getElementById('weekSelect').value;
+            var notes = document.getElementById('notes').value;
+
+            var studentInfo = {
+                lessonID: selectedLessonID,
+                studentID: studentID ? studentID : null,
+                unregisteredName: unregisteredName ? unregisteredName : null,
+                unregisteredEmail: unregisteredEmail ? unregisteredEmail : null,
+                unregisteredPhone: unregisteredPhone ? unregisteredPhone : null,
+                weekNo: weekNo,
+                notes: notes
+            };
+
+            // Send studentInfo to the server-side route via POST
+            fetch('/register_trial_session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(studentInfo)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('statusmessage').innerText = "Successfully registered!";
+                    document.getElementById('statusmessagediv').style.display = "block";
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+
+    {% endblock %}
+</body>
+</html>

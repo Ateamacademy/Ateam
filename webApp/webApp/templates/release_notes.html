@@ -1,0 +1,597 @@
+<head>
+    <title> Admin Overview </title>
+    <link rel="apple-touch-icon-precomposed" sizes="57x57" href="static/images/favicomatic/apple-touch-icon-57x57.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="static/images/favicomatic/apple-touch-icon-114x114.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="static/images/favicomatic/apple-touch-icon-72x72.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="static/images/favicomatic/apple-touch-icon-144x144.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="60x60" href="static/images/favicomatic/apple-touch-icon-60x60.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="120x120" href="static/images/favicomatic/apple-touch-icon-120x120.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="76x76" href="static/images/favicomatic/apple-touch-icon-76x76.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="static/images/favicomatic/apple-touch-icon-152x152.png" />
+    <link rel="icon" type="image/png" href="static/images/favicomatic/favicon-196x196.png" sizes="196x196" />
+    <link rel="icon" type="image/png" href="static/images/favicomatic/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/png" href="static/images/favicomatic/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="static/images/favicomatic/favicon-16x16.png" sizes="16x16" />
+    <link rel="icon" type="image/png" href="static/images/favicomatic/favicon-128.png" sizes="128x128" />
+    <meta name="application-name" content="&nbsp;"/>
+    <meta name="msapplication-TileColor" content="#FFFFFF" />
+    <meta name="msapplication-TileImage" content="mstile-144x144.png" />
+    <meta name="msapplication-square70x70logo" content="mstile-70x70.png" />
+    <meta name="msapplication-square150x150logo" content="mstile-150x150.png" />
+    <meta name="msapplication-wide310x150logo" content="mstile-310x150.png" />
+    <meta name="msapplication-square310x310logo" content="mstile-310x310.png" />
+
+</head>
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+<div class="col">
+    <div class="card"> 
+        <div class="card-body">
+
+
+        <div class="card-header"> key: vMAJOR_UPDATE.FUNCTIONAL_CHANGE_OR_ADDITION.APPEARANCE_CHANGE.MINOR_BUG_FIX <br> Current Version: v3.21.0.0 </div>
+
+        <h2> v5.0.0.0 - (--/12/24)</h2>
+        <p> Themes are now available to pick from the user preferences section including dark theme, blue, red, green and neutral (tan) theme</p>
+        <p> Search Bar is now functional for all users above tutors</p>
+        <p> CSV Download for hours is now funcitonal </p>
+        <p> Email templates can now be edited on the site </p>
+        <p> Financial Dashboard </p>
+        <p> Auto printing now fully functional </p>
+        <p> Print button available for all users above students </p>
+        <p> Print Code </p>
+        <p> Disable register student button for 30 seconds once its pressed </p>
+        <p> Student accounts now go straight to the timetable to avoid confusion </p>
+        <p> Parent Login </p>
+
+
+    <hr>     
+
+        <h2> v4.16.0.1 - (11/12/24)</h2>
+        <p> Fixed bug for the students timetable also displaying previous years lessons </p>
+    <hr>         
+        <h2> v4.16.0.0 - (03/12/24)</h2>
+        <p> Weekend Work will now be printed automatically during the night along with a report for the number of sheets used </p>
+    <hr> 
+        <h2> v4.15.0.1 - (03/12/24)</h2>
+        <p> Error with sending class messages now fixed </p>
+    <hr>         
+        <h2> v4.15.0.0 - (29/11/24)</h2>
+        <p> Dates can now be specified for the timetables to be sent out to students </p>
+    <hr> 
+        <h2> v4.14.0.1 - (27/11/24)</h2>
+        <p> Hide from students button now visible on ipad </p>
+    <hr>         
+        <h2> v4.14.0.0 - (26/11/24)</h2>
+        <p> AUTOMATIC PRINTING: sheets will now be printed 15 minutes before the lesson (extras may be needed) </p>
+    <hr>   
+        <h2> v4.13.0.2 - (26/11/24)</h2>
+        <p> Fixed error in wekly hours tally where it counted every years lessons </p>
+    <hr>         
+        <h2> v4.13.0.1 - (26/11/24)</h2>
+        <p> Anyone with the permission view all lessons can view tutors timetable </p>
+    <hr>          
+        <h2> v4.13.0.0 - (22/11/24)</h2>
+        <p> Files to print page was made </p>
+    <hr>  
+        <h2> v4.12.1.1 - (19/11/24)</h2>
+        <p> Fixed issue with sending timetables for exam students when in collapsed view. </p>
+    <hr>              
+        <h2> v4.12.1.0 - (15/11/24)</h2>
+        <p> Can now show/hide the students with past exams only in the exam students page </p>
+    <hr>           
+        <h2> v4.12.0.0 - (3/11/24)</h2>
+        <p> Report cards page has been made with the ability to select a range of dates and send report cards out to everybody </p>
+    <hr>   
+        <h2> v4.11.3.0 - (7/11/24)</h2>
+        <p> Added big logs for points system </p>
+    <hr>   
+        <h2> v4.11.2.4 - (3/11/24)</h2>
+        <p> Bug where mac users were able to access all files page has been fixed </p>
+    <hr>   
+        <h2> v4.11.2.3 - (25/10/24)</h2>
+        <p> Added red shading to the lesson files page where files dont exist and a lesson for that week does </p>
+    <hr>           
+        <h2> v4.11.2.2 - (17/10/24)</h2>
+        <p> Fixed issue where exam students shading was alternating when paid status = false </p>
+    <hr>           
+        <h2> v4.11.2.1 - (17/10/24)</h2>
+        <p> Fixed issues with timetable not showing on schedule email </p>
+    <hr>        
+        <h2> v4.11.2.0 - (15/10/24)</h2>
+        <p> Migrated 'Schedule For Tomorrow' emails over to the new template </p>
+    <hr>          
+        <h2> v4.11.1.0 - (9/10/24)</h2>
+        <p> Exams are now sorted by series, tier, title then code for adding to students profiles. Created exams are now also filterable </p>
+    <hr>          
+        <h2> v4.11.0.2 - (27/09/24)</h2>
+        <p> Loading Screen removed due to percieved lower performance + infinite loading</p>
+    <hr>     
+        <h2> v4.11.0.1 - (27/09/24)</h2>
+        <p> Loading Screen for slow pages: Dealt with issues triggering on modals, input fields and sidebar expansion</p>
+    <hr>         
+        <h2> v4.11.0.0 - (27/09/24)</h2>
+        <p> Exam students can now upload access arrangement documents </p>
+    <hr>       
+        <h2> v4.10.0.2 - (25/09/24)</h2>
+        <p> Locked down permissions and pages so that links dont show rather than apearing disabled for users without approproate permissions </p>
+    <hr> 
+        <h2> v4.10.0.1 - (23/09/24)</h2>
+        <p> Student Dashboard now includes the lesson descriptions </p>
+    <hr>
+        <h2> v4.10.0.0 - (18/09/24)</h2>
+        <p> Receptionists can now reset passwords </p>
+    <hr>  
+        <h2> v4.9.0.0 - (18/09/24)</h2>
+        <p> Scheduler fully works with emails being sent to all tutors with lessons the next day  </p>
+    <hr>  
+        <h2> v4.8.0.3 - (15/09/24)</h2>
+        <p> Exam Officer can now send emails with timetables to students and parents with the click of a button= </p>
+    <hr>   
+        <h2> v4.8.0.2 - (14/09/24)</h2>
+        <p> CSV can now be downloaded from the exam students page and cadidate number can now be updated from the main page </p>
+    <hr>   
+        <h2> v4.8.0.1 - (11/09/24)</h2>
+        <p> Lessons can now be viewed per tutor for admin accounts </p>
+    <hr>     
+        <h2> v4.8.0.1 - (11/09/24)</h2>
+        <p> Lessons can now be viewed depending on the week they were created making the timetable more accurate </p>
+    <hr> 
+        <h2> v4.8.0.0 - (10/09/24)</h2>
+        <p> Exams can now be edited and papers can be added / removed. All student enquiry information can be edited.  </p>
+    <hr> 
+        <h2> v4.7.0.0 - (6/09/24)</h2>
+        <p> UCAS references can now be submitted via the site <br>
+            Exam students can now be properley converted to regular students and exams can be added to their profiles. They can also assign ucas references to the profiles and check whether they have paid or not
+        </p>
+    <hr> 
+        <h2> v4.6.0.7 - (4/09/24)</h2>
+        <p> When inputting emails the emails get stripped and turned lower case to prevent login issues </p>
+    <hr> 
+        <h2> v4.6.0.6 - (21/08/24)</h2>
+        <p> Staff can noe edit their own information </p>
+    <hr> 
+        <h2> v4.6.0.5 - (16/08/24)</h2>
+        <p> Email is no longer required for enquiries</p>
+    <hr> 
+        <h2> v4.6.0.4 - (15/08/24)</h2>
+        <p> Enquiries can now be logged with several options for results and with the ability to escalate and confetti when marked as complete </p>
+    <hr>        
+        <h2> v4.6.0.3 - (15/08/24)</h2>
+        <p> Mailing list implemented with public facing API </p>
+    <hr>
+        <h2> v4.6.0.3 - (11/08/24)</h2>
+        <p> subjects can now be added properley </p>
+    <hr>
+        <h2> v4.6.0.2 - (11/08/24)</h2>
+        <p> Maintenance is now available to updated on the fly for users with a permission </p>
+    <hr>
+        <h2> v4.6.0.1 - (3/08/24)</h2>
+        <p> Subject Resources are now fxed for all users</p>
+    <hr> 
+        <h2> v4.6.0.0 - (17/07/24)</h2>
+        <p> Events are now able to be created and booked publicly for meetings. Emails are also sent</p>
+    <hr>           
+        <h2> v4.5.0.0 - (17/07/24)</h2>
+        <p> The Calendar feature is now live with events that the user is associated with appearing. This is seperate to the main timetable for now but will be integrated later. Users wil the correct permissions are able to create their own events  </p>
+    <hr>          
+        <h2> v4.4.1.0 - (17/07/24)</h2>
+        <p> Submitted Hours will now appear Yellow on the timetable and approved will be green  </p>
+    <hr>    
+        <h2> v4.4.0.0 - (17/07/24)</h2>
+        <p> Marketplace update - staff members can now claim products and some can be given permissions to create 'products' which have some value for others to complete </p>
+    <hr>       
+        <h2> v4.3.0.0 - (16/07/24)</h2>
+        <p> Admin / Staff info can now be viewed by any admin account and their own account. My Profile also works now </p>
+    <hr> 
+        <h2> v4.2.0.0 - (16/07/24)</h2>
+        <p> Documents can now be created, viewed and edited. Essentially a restricted version of confluence </p>
+    <hr>                    
+        <h2> v4.1.0.0 - (15/07/24)</h2>
+        <p> A-Team Games is now live @ /begin_game and /leaderboard and the questions can be altered @ /game_questions </p>
+    <hr>
+        <h2> v4.0.0.0 - (18/06/24 - 11/07/24)</h2>
+        <p> Log ins have been moved from separate tables to the single user table </p>
+        <p> Staff table to replace the tutors and admins to allow for more staff members and rolse to be defined later. </p> 
+        <p> user permissions and roles are also now in the user table </p>
+        <p> refactoring most queries to simply use the getters defined in the Schema </p>
+        <p> [BUG FIX] fixed login issues where users were accessing the wrong data </p>
+        <p> replacing any pages with roles required with a required permission to ease the flow</p>
+        <p> Updated payslips to be for evreyone not just tutors, with students being the only excpetion </p>
+        <p> Roles can now be created whenever necessary with adjusted permissions </p>
+        <p> BRAND NEW reduced student registration page with animated background and lesson booking built in </p>
+        <p> Site is now based on the dashboard look </p>
+        <p> Hours must be approved by a member of the admin team </p>
+        <p> Tutors now have a home page / dashboard with all the relevant information </p>
+        <p> base page and buttons are now disabled / enabled with every page load so that there is less intial lag and updated with javascript </p>
+        <p> some issues still with permissions but wont affect 90% of the users </p>
+        <p> Centre page now displays the correct Point of Contact </p>
+
+    <hr>
+        <h2> v3.35.0.0 - 18/06/24</h2>
+        <p> Exam room allocation can now be done through the website with a select number of students</p>
+    <hr>
+        <h2> v3.34.0.0 - 4/06/24</h2>
+        <p> Descriptions of lessons can now be added for each lesson. Submitted with the register</p>
+    <hr>
+        <h2> v3.33.0.0 - 31/05/24</h2>
+        <p> Refactored Timetable room generation to be dynamic to centres rather than hardcoding rooms. If the capacity / room size of a centre changes the timetable now changes. Also the timeatble will no longer have whitespace and only the required rooms will show - useful for online days where 6 different lessons appear to be happening at the same time</p>
+    <hr>
+        <h2> v3.32.0.0 - 31/05/24</h2>
+        <p> Centre overview page for rAdmins account accessible via the dashboard</p>
+    <hr>
+        <h2> v3.31.0.5 - 31/05/24</h2>
+        <p> Fixed location related register issue for all accounts preventing lessons being viewed / added</p>
+    <hr>
+        <h2> v3.31.0.4 - 26/04/24</h2>
+        <p> The fix files tab is no longer needed so has been removed for the admin accounts </p>
+    <hr>
+        <h2> v3.31.0.3 - 23/04/24</h2>
+        <p> Important files and payslips are now arranged in a table rather than the cards and are orderd based on name </p>
+    <hr>
+        <h2> v3.31.0.2 - 23/04/24</h2>
+        <p> Payslips can now be uploaded via the webiste by admin accounts   </p>
+    <hr>
+        <h2> v3.31.0.1 - 23/04/24</h2>
+        <p> Both student and parent email are now required in student registration </p>
+    <hr>
+        <h2> v3.31.0.0 - 18/04/24</h2>
+        <p> Marks can now be changed via the students grades page </p>
+    <hr>
+        <h2> v3.30.1.0 - 18/04/24</h2>
+        <p> Fields are full width in send class email</p>
+    <hr>
+        <h2> v3.30.0.2 - 3/04/24</h2>
+        <p> The grades tab only allows numbers to be put in for totals </p>
+    <hr>
+        <h2> v3.30.0.1 - 1/04/24</h2>
+        <p> The log messagse generated for the test creation has been updated </p>
+    <hr>
+        <h2> v3.30.1.0 - 1/04/24</h2>
+        <p> Making test page now has varying size rows to increase readability of the test name field </p>
+    <hr>
+        <h2> v3.30.0.4 - 30/03/24</h2>
+        <p> Emails can be sent to an entire class for admins or tutors. Only applies to the registered students </p>
+    <hr>  
+        <h2> v3.30.0.3 - 30/03/24</h2>
+        <p> Deleting a tutor properley removes from all tables </p>
+    <hr>  
+        <h2> v3.30.0.3 - 25/03/24</h2>
+        <p> Updating Student information now works without need for page reload. Throws error if it doesnt work </p>
+    <hr>      
+        <h2> v3.30.0.2 - 25/03/24</h2>
+        <p> Timetable buttons now work dynamically </p>
+    <hr>                 
+        <h2> v3.30.0.1 - 22/03/24</h2>
+        <p> hide from students button now works in classroom updates </p>
+    <hr> 
+        <h2> v3.30.0.0 - 20/03/24</h2>
+        <p> Exam Students Can now be registered </p>
+    <hr> 
+        <h2> v3.29.1.0 - 20/03/24</h2>
+        <p> Note added to the registration page notifying people to only press the submit button once </p>
+    <hr> 
+        <h2> v3.29.0.1 - 7/03/24</h2>
+        <p> Moved month filtering out of sql and used list comprehension for accuracy </p>
+    <hr> 
+        <h2> v3.29.0.1 - 4/03/24</h2>
+        <p> Fixed bug where the hours were just the total of four weeks instead of using the dates </p>
+    <hr> 
+        <h2> v3.29.0.0 - 4/03/24</h2>
+        <p> Tutor hours can now be viewed per month in their top menu bar</p>
+    <hr>  
+        <h2> v3.29.0.0 - 4/03/24</h2>
+        <p> Tutor hours can now be viewed per month </p>
+    <hr>  
+        <h2> v3.28.6.0 - 4/03/24</h2>
+        <p> Deleted lessons now appear on the past timetable if the hours were logged for the tutor view </p>
+    <hr>  
+        <h2> v3.28.6.0 - 1/03/24</h2>
+        <p> Re ordered the timetable </p>
+    <hr>  
+        <h2> v3.28.5.0 - 1/03/24</h2>
+        <p> Amended Mobile view for Classroom pages </p>
+    <hr>  
+        <h2> v3.28.4.0 - 1/03/24</h2>
+        <p> Amended Mobile view for Student View </p>
+    <hr>  
+        <h2> v3.28.3.0 - 1/03/24</h2>
+        <p> Amended Mobile view for Student Info </p>
+    <hr>  
+        <h2> v3.28.2.0 - 1/03/24</h2>
+        <p> Amended Mobile view for Tutor Registration </p>
+    <hr>  
+        <h2> v3.28.1.0 - 1/03/24</h2>
+        <p> Amended Mobile view for timetable </p>
+    <hr>   
+        <h2> v3.28.0.1 - 29/02/24</h2>
+        <p> Tutors with the same email address cannot be added </p>
+    <hr>     
+        <h2> v3.28.0.0 - 27/02/24</h2>
+        <p> Question extraction and Paper Generation functions created locally </p>
+    <hr>        
+        <h2> v3.27.0.2 - 25/02/24</h2>
+        <p> Removing Grades from the grades tab now no longer gives the alert and just updates the page in javascript </p>
+    <hr>         
+        <h2> v3.27.0.1 - 25/02/24</h2>
+        <p> Removing Students now no longer gives the alert and just updates the page in javascript </p>
+    <hr> 
+        <h2> v3.27.0.0 - 24/02/24</h2>
+        <p> Can now convert between starter, main, homework, notes in lesson_files </p>
+    <hr> 
+        <h2> v3.26.1.0 - 21/02/24</h2>
+        <p> Tutor Site usage is now only the most recent week not forever </p>
+    <hr> 
+        <h2> v3.26.0.0 - 21/02/24</h2>
+        <p> Test Info can now be edited by double clicking on total and name </p>
+    <hr> 
+        <h2> v3.25.0.7 - 19/02/24</h2>
+        <p> tutors which have been removed can no longer be selected in the drop down menus </p>
+    <hr> 
+        <h2> v3.25.0.6 - 19/02/24</h2>
+        <p> removed all undefined students from table that were messing with the stats </p>
+    <hr>         
+        <h2> v3.25.0.6 - 19/02/24</h2>
+        <p> Tests are now ordered by date, then by name in studentgrades </p>
+    <hr>         
+        <h2> v3.25.0.5 - 19/02/24</h2>
+        <p> removed tests with a mark of -1 from view on studentgrades page. To make them appear the mark must be updated via the grades tab in a lesson by a tutor </p>
+    <hr>           
+        <h2> v3.25.0.4 - 19/02/24</h2>
+        <p> Added the delete grade button to the unregisteredGrades page </p>
+    <hr>        
+        <h2> v3.25.0.3 - 19/02/24</h2>
+        <p> Made some fields required for tutor registration to prevent invalid inputs </p>
+    <hr>         
+        <h2> v3.25.0.2 - 17/02/24</h2>
+        <p> Added a delete button to the grades tab for admins to remove the repeats </p>
+    <hr> 
+        <h2> v3.25.0.1 - 17/02/24</h2>
+        <p> removed (unreg) from the grades which caused repeats to be created  </p>
+    <hr> 
+        <h2> v3.25.0.0 - 15/02/24</h2>
+        <p> Can now convert existing students to exam students </p>
+    <hr>        
+        <h2> v3.24.1.0 - 15/02/24</h2>
+        <p> Grade input menu is shorter so that view doesnt change much </p>
+    <hr>
+        <h2> v3.24.0.0 - 15/02/24</h2>
+        <p> Double clicking to edit a students grades in the students grades page now fully works </p>
+    <hr>
+        <h2> v3.23.0.1 - 15/02/24</h2>
+        <p> Creating all tests now only creates it for active non-temporary lessons </p>
+    <hr>        
+        <h2> v3.23.0.0 - 14/02/24</h2>
+        <p> Implemented the payslip page and folders for later use </p>
+    <hr>  
+        <h2> v3.22.1.0 - 14/02/24</h2>
+        <p> Made the student info page more responsive to the viewport so that it wont expand more than 1920X1080p window </p>
+    <hr>  
+        <h2> v3.22.0.0 - 14/02/24</h2>
+        <p> GP post Code is seperate to the address and they can now be edited </p>
+    <hr>   
+        <h2> v3.21.1.0 - 14/02/24</h2>
+        <p> Second Medical Info was removed and the priority contacts were moved side by side to make more room for lessons too in teh student info view page </p>
+    <hr>   
+        <h2> v3.21.0.0 - 14/02/24</h2>
+        <p> Medical Info can now be updated for students from an admin / student account </p>
+    <hr>          
+        <h2> v3.20.0.0 - 14/02/24</h2>
+        <p> Files now require a login to view anything to prevent any file sharing or unwanted access </p>
+    <hr>  
+        <h2> v3.19.0.0 - 14/02/24</h2>
+        <p> Edit button for boolean values now implemented </p>
+    <hr>             
+        <h2> v3.18.0.0 - 14/02/24</h2>
+        <p> Students can now be blocked from logging using the student access rights page </p>
+    <hr> 
+        <h2> v3.17.1.0 - 14/02/24</h2>
+        <p> Student Access Rights page created with no functionality </p>
+    <hr> 
+        <h2> v3.17.0.0 - 13/02/24</h2>
+        <p> Reply to and thread starter now also get an email when a new message is sent </p>
+    <hr>  
+        <h2> v3.16.0.2 - 11/02/24</h2>
+        <p> Alerts now work properley when a new user logs in </p>
+    <hr>  
+        <h2> v3.16.0.0 - 10/02/24</h2>
+        <p> Student Emails can now be updated </p>
+    <hr> 
+        <h2> v3.15.0.1 - 9/02/24</h2>
+        <p> filename is sent for the attachments in emails instead of filepaths </p>
+    <hr>          
+        <h2> v3.15.0.0 - 9/02/24</h2>
+        <p> Viewing active alerts as well as who as viewed them is now a feature through the admin dashboard </p>
+    <hr>     
+        <h2> v3.14.0.5 - 9/02/24</h2>
+        <p> Alert message outlining error when too many lessons have been added </p>
+    <hr>
+        <h2> v3.14.0.4 - 9/02/24</h2>
+        <p> Proper HTML formatting for alerts so can have nicely formatted messages and titles </p>
+    <hr>    
+        <h2> v3.14.0.3 - 9/02/24</h2>
+        <p> Now logs when a user reads an alert </p>
+    <hr>    
+        <h2> v3.14.0.2 - 9/02/24</h2>
+        <p> Fixed email logging when no email is supplied to say that none were given instead not saying anything </p>
+    <hr>                 
+        <h2> v3.14.0.1 - 9/02/24</h2>
+        <p> Upload files for the subject resources required the <code> change_lesson_plan </code> permission rather than the <code> upload_and_edit_files permission </code> </p>
+    <hr>          
+        <h2> v3.14.0.0 - 7/02/24</h2>
+        <p> Create Alerts page created with working forms</p>
+    <hr>
+        <h2> v3.13.0.10 - 7/02/24</h2>
+        <p> Dissmiss button on the alerts now dismisses it forever </p>
+    <hr>
+        <h2> v3.13.0.9 - 7/02/24</h2>
+        <p> Removed the alert at night </p>
+    <hr>
+        <h2> v3.13.0.8 - 5/02/24</h2>
+        <p> Error message when parent email = student email to prevent complications later on </p>
+    <hr>
+        <h2> v3.13.0.7 - 5/02/24</h2>
+        <p> Files are now sent as attachments rather than links </p>
+    <hr>
+        <h2> v3.13.0.6 - 5/02/24</h2>
+        <p> Email Sending is now plain text </p>
+    <hr>
+        <h2> v3.13.0.5 - 5/02/24</h2>
+        <p> Password Creation email has the correct subject now </p>
+    <hr>
+        <h2> v3.13.0.4 - 5/02/24</h2>
+        <p> Bug fix where a single email is split into character in the logs </p>
+    <hr> 
+        <h2> v3.13.0.3 - 5/02/24</h2>
+        <p> Bug fix where if a list of emails is supplied then the logs are able to show them </p>
+    <hr>
+        <h2> v3.13.0.2 - 5/02/24</h2>
+        <p> Email Logs are now handled by EmailSender and so are more accurate with error messages on the site </p>
+    <hr>
+        <h2> v3.13.0.1 - 5/02/24</h2>
+        <p> Emails are now sent in a singl threaded way to prevent the different app contexts being an issue </p>
+    <hr>
+        <h2> v3.13.0.0 - 5/02/24</h2>
+        <p> Email work button is now implemented in the files section for every lesson. Fixed pervious bugs where the email wouldnt send due to policy restrictions when it wasnt being supplied an email at all. Work is currently sent as links to the files. This is intended for users who are not yet logged on to the system so markschemes may not work </p>
+    <hr>
+        <h2> v3.13.1.1 - 3/02/24</h2>
+        <p> Deleting a tutor now asks for confirmation and doesnt remove all the data from the system anymore </p>
+    <hr>
+        <h2> v3.13.1.0 - 3/02/24</h2>
+        <p> Students can only see the past 4 weeks of work rather than the entire past again to prevent resource theft </p>
+    <hr>
+        <h2> v3.12.1.0 - 3/02/24</h2>
+        <p> Removed the view button for students to prevent the download through browser </p>
+    <hr>
+        <h2> v3.12.0.0 - 3/02/24</h2>
+        <p> Restricted Students to 5 downloads every 30 minutes to prevent mass downloads and resource theft </p>
+    <hr>
+        <h2> v3.11.4.0 - 1/02/24</h2>
+        <p> Added a 'back to profile' button when viewing students grades </p>
+    <hr>
+        <h2> v3.11.3.7 - 3/02/24</h2>
+        <p> Fixed blank page when deleted a grade and stopped forced reload </p>
+    <hr>
+        <h2> v3.11.3.6 - 1/02/24</h2>
+        <p> Removal of file when deleting from subject resources </p>
+    <hr>
+        <h2> v3.11.3.5 - 1/02/24</h2>
+        <p> Major bug where if there was no value for hide from all, the files wouldnt show in classroom files. Repaired 144 entries in the table (mainly RE) and then fixed the files initialiser to set hide from all to false. Will monitoring to assess. </p>
+    <hr>
+        <h2> v3.11.3.4 - 31/01/24</h2>
+        <p> Ensured that files with the same name cannot be uploaded into the same folder </p>
+    <hr>
+        <h2> v3.11.3.3 - 31/01/24</h2>
+        <p> Fixed deletion of the subject resources  </p>
+    <hr>
+        <h2> v3.11.3.2 - 30/01/24</h2>
+        <p> Fixed context menu bug where the menu would always display unhide from Students and unihde from all after an action because of innerHTML setting. Have to Reset innerHTML </p>
+    <hr>
+        <h2> v3.11.3.1 - 30/01/24</h2>
+        <p> Fixed file deletion so the actual file is removed instead of it just deleting the table entry. Also added delete button for Subject Resources </p>
+    <hr>
+        <h2> v3.11.3.0 - 30/01/24</h2>
+        <p> Changed the .py file extension image </p>
+    <hr>        
+        <h2> v3.11.2.1 - 30/01/24</h2>
+        <p> Improve the accuracy of logging tutor hours so that if a lessons register has been submitted with no students the hour is not logged </p>
+    <hr>
+        <h2> v3.11.2.0 - 30/01/24</h2>
+        <p> added pptx icon for the files </p>
+    <hr>    
+        <h2> v3.11.1.0 - 30/01/24</h2>
+        <p> Cards for subject resources were huge so made them smaller </p>
+    <hr>       
+        <h2> v3.11.0.0 - 30/01/24</h2>
+        <p> Added the ability to delete files from lesson_files </p>
+    <hr> 
+        <h2> v3.10.0.2 - 30/01/24</h2>
+        <p> Fixded logging issue where studentView wasnt being logged as part of file upload </p>
+    <hr> 
+        <h2> v3.10.0.1 - 30/01/24</h2>
+        <p> Subject Resources used to appear to go to files, fixed to highlight the correct tab. </p>
+    <hr> 
+        <h2> v3.10.0.0 - 29/01/24</h2>
+        <p> New classroom page - subject Resources. The place to upload work that isnt assigned to a particular week such as textbooks, vocab sheets, equation sheets etc </p>
+    <hr> 
+        <h2> v3.9.2.0 - 29/01/24</h2>
+        <p> Easy scroll through students grades for admin accounts </p>
+    <hr>        
+        <h2> v3.9.1.0 - 29/01/24</h2>
+        <p> Used Javscript to update the status of a file so a page reload is not necessary </p>
+    <hr>   
+        <h2> v3.9.0.0 - 29/01/24</h2>
+        <p> Removed old route for hiding files and Added new context menu to the all files section which allows for hiding from all and hiding from students  </p>
+    <hr> 
+        <h2> v3.8.0.1 - 26/01/24</h2>
+        <p> Fixed permission issues which restricted tutors from being able to make unregistered student permanent</p>
+    <hr>        
+        <h2> v3.8.0.0 - 26/01/24</h2>
+        <p> Added a new route which allowed hiding files from view for all.</p>
+    <hr>       
+        <h2> v3.7.0.0 - 24/01/24</h2>
+        <p> Selected grades can now be emailed bu navigating to the students grade view and pressing 'email grades'  </p>
+    <hr> 
+        <h2> v3.6.1.0 - 15/01/24</h2>
+        <p> Changed the way the unregistered student list looks on mobile</p>
+    <hr> 
+        <h2> v3.6.0.2 - 12/01/24</h2>
+        <p> Fixed bug that prevented some grades from being deleted.  </p>
+    <hr>    
+        <h2> v3.6.0.1 - 12/01/24</h2>
+        <p> Fixed bug with timetabling where the tutors timetable would no longer be displayed for the admin accounts caused by changes made in v3.4.0.0 </p>
+    <hr>     
+        <h2> v3.6.0.0 - 12/01/24</h2>
+        <p> Email Updates for tutors when a new message is posted </p>
+    <hr>
+        <h2> v3.5.0.0 - 12/01/24</h2>
+        <p> Made a tutor hours page (admin use only) available through the admin dashboard </p>
+    <hr>
+        <h2> v3.4.0.0 - 12/01/24</h2>
+        <p> Updated the tutors timetables so that the past shows only lessons that they have completed rather than the past lessons of the ones they are currently assigned to. </p>
+    <hr>
+        <h2> v3.3.0.0 - 11/01/24</h2> 
+        <p> When registering, students now get two emails. One for confirmation and another containing the password they need to log on. Tutors also get an email containing their password</p>
+    <hr>
+        <h2> v3.2.1.1 - 11/01/24</h2> 
+        <p> The tutors logged hours are now available for viewing in the top navbar. This is calculated based on the completion of the register and/or uploading of work </p>
+    <hr>
+        <h2> v3.2.0.1 -  9/01/24</h2> 
+        <p> Fixed a bug in the access rights which was preventing users from uploading files when they had the correct permissions </p>
+    <hr>
+        <h2> v3.2.0.0 -  9/01/24</h2>
+        <p> Made the tutor access rights page and fully functional </p>
+    <hr>
+        <h2> v3.1.0.1 -  03/01/24</h2>
+        <p> Added grades to be viewable by admins with the student profile </p>
+    <hr>
+        <h2> v3.0.0.1 -  03/01/24</h2>
+        <p> Fixed a slight error in the register which was checking for admin using the session instead of the current user </p>
+    <hr>
+        <h2> v3.0.0.0 -  01/01/24</h2>
+        <p> Fixed several students grades and converted them to regular students </p>
+        <p> Added the ability to view lessons for a student when veiwing their profile </p>
+        <p> Added default values to the student initialiser function so should mess up less  </p>
+        <p> Cleaned up the separation between registered and unregistered students and made it easier to add and delete the above </p>
+        <p> more responsive buttons for phone use </p>
+        <p> new page @ /lesson_files which displays all the files currently being stored and allows drag and drop to move between the subjects  </p>
+        <p> new admin dashboard showing perfomance on tutors and students </p>
+        <p> Fixed so students cannot see files in the future. They can only see past and current weeks Files </p>
+        <p> Made a Q&A section with a forum style look - can be used for class feedback and questions outside of lessons.  </p>
+        <p> Can Create and reply to messages </p>
+    <hr>
+        <h2> v2.0 -  </h2>
+        <p> fixed timetable issues so lessons with weird durations and start and end times could still be added and viewed </p>
+    <hr>
+        <h2> v1.0.0.0 - 01/09/23</h2>
+        <p> Had images as the admin admin_dashboard </p>
+        <p> Had a dodgy timetable </p>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

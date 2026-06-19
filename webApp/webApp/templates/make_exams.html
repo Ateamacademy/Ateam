@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+
+<head>
+    <title> Make a new Exam </title>
+</head>
+
+{% extends 'base_page.html' %}
+
+{% block middleContent %}
+
+<style>
+    .yearButton {
+        border-radius: 10px;
+        background-color: lightgray;
+        margin-right: 10px; 
+        border: none; 
+        padding: 6px;
+        color: white;
+    }
+
+    .yearButton:hover {
+        background-color: gray;
+        transition-duration: 1000ms;
+    }
+</style>
+
+    <script>
+        $( document ).ready(function() {
+            document.getElementById("exam-link").classList.add("active");
+        });
+    </script>
+
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 mt-4">
+        <h1 class="h3 mb-0 text-gray-800"> Exam View </h1>
+    </div>
+
+    <script>
+        var count = 0;
+        function addPapers() {
+            div = document.getElementById("newPapers"); 
+            row = document.createElement("div");
+            row.classList.add("col-4", "mb-4");
+
+
+            row.innerHTML = `
+            <div class="row ml-2 mb-1 "> <div class = "col-lg-4"> Paper Number: </div> <div class="col-8"> <input placeholder = "1" id = "paperNo-` + count.toString() +`" type="number"> </div> </div>
+            <div class="row ml-2 mb-1 "> <div class = "col-lg-4"> Paper Code: </div> <div class="col-8"> <input placeholder = "8MA0/01" id = "paperCode-` + count.toString() +`"> </div> </div>
+            <div class="row ml-2 mb-1 "> <div class = "col-lg-4"> Duration (mins): </div> <div class="col-8"> <input placeholder = "90" id = "duration-` + count.toString() +`" type="number"> </div> </div>
+            <div class="row ml-2 mb-1 "> <div class = "col-lg-4"> Start Time: </div> <div class="col-8"> <input id = "startTime-` + count.toString() +`" type="time"> </div> </div>
+
+            <div class="row ml-2 mb-1 "> <div class = "col-lg-4"> Total Marks: </div> <div class="col-8"> <input placeholder = "80" id = "total-` + count.toString() +`" type="number">  </div> </div>
+            <div class="row ml-2 mb-1 "> <div class = "col-lg-4"> Date: </div> <div class="col-8"> <input placeholder = "24/05/24" id = "date-` + count.toString() +`" type="date">  </div> </div>
+            <div class="row ml-2 mb-1 "> <div class = "col-lg-4"> Extra Information: </div> <div class="col-8"> <input placeholder = "This paper requires a computer" id = "extraInfo-` + count.toString() +`"> </div> </div>
+            `
+
+            div.appendChild(row)
+            count++;
+        }
+    </script>
+
+    <script>
+        function createTest() {
+            tier = document.getElementById("tier").value;
+            title  = document.getElementById("title").value;
+            examBoard  = document.getElementById("examBoard").value;
+            examCode = document.getElementById("examCode").value;
+            option  = document.getElementById("option").value;
+            examSeries = document.getElementById("examSeries").value;
+            academicYear = document.getElementById("academicYear").value;
+
+            papers = []
+
+            for(var i = 0 ; i < count ; i++) {
+                console.log("paperNo-" + i.toString());
+                paperNumber = document.getElementById("paperNo-" + i.toString()).value || null;
+                paperCode = document.getElementById("paperCode-" + i.toString()).value || null;
+                duration = document.getElementById("duration-" + i.toString()).value || null;
+                startTime = document.getElementById("startTime-" + i.toString()).value || null;
+                total = document.getElementById("total-" + i.toString()).value || null;
+                date = document.getElementById("date-" + i.toString()).value || null;
+                extraInfo = document.getElementById("extraInfo-" + i.toString()).value || null;
+
+                papers.push({"paperNumber" : paperNumber, "paperCode" : paperCode, "duration" : duration, "startTime" : startTime, "total" : total, "date" : date, "extra_info": extraInfo})
+            }
+
+
+            $.ajax({
+                url: '/add_exam',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({"tier" : tier, "title" : title, "examBoard" : examBoard, "examCode": examCode, "option" : option, "examSeries" : examSeries, "academicYear" : academicYear, "papers" : papers}),
+                success: function(response) {
+                    setTimeout(function() {alert("the excam has been added"); location.reload();}, 1000);
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            })
+        }
+    </script>
+
+    <div class = "row"> 
+        <div class="col-12 mb-4">
+            <div class="card border-bottom-success shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-3"> Make a New Exam </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">                         
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Tier: </div> <div class="col"> <input placeholder = "GCSE" id = "tier"> </div> </div>
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Title: </div> <div class="col"> <input placeholder = "Mathematics" id = "title"> </div> </div>
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Examboard: </div> <div class="col"> <input placeholder = "Edexcel" id = "examBoard"> </div> </div>
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Exam Code: </div> <div class="col"> <input placeholder = "8MA0" id = "examCode">  </div> </div>
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Option: </div> <div class="col"> <input placeholder = "Higher" id = "option">  </div> </div>
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Exam Series: </div> <div class="col"> <input placeholder = "Summer/November/Mocks" id = "examSeries"> </div> </div>
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Academic Year: </div> <div class="col"> <select id = "academicYear"> {% for year in AcademicYears %} <option value="{{ year }}" {% if year == AcademicYear %} selected {% endif %}> {{ year }} </option> {% endfor %} </select> </div> </div>
+
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-3 mt-3"> Add Papers </div>
+                                <div class = "row" id="newPapers"> 
+                                    <!-- <div class="col" id="newPapers">
+                                    </div> -->
+                                </div>
+
+                                <button class="btn btn-primary" onclick="addPapers()"> 
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus" viewBox="0 0 12 12" style="cursor: pointer;">
+                                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+                                    </svg>
+                                    Add Paper
+                            </button>
+
+                                <button class="btn btn-success" onclick = "createTest()"> Add Test </button> 
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-pen fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- <div class="row mb-4">
+        <div class="col">
+        {% for year in AcademicYears %}
+            <a class="yearButton" href = '/make_exams?AcademicYear={{year}}'> {{ year }} </a>
+        {% endfor %}
+        </div>
+    </div> -->
+
+    <div class="row mb-4">
+        <!-- Filter Buttons -->
+        <div class="col-md-3 mb-2">
+            <select class="form-select rounded-pill bg-light" id="filterExamBoard" onchange="applyFilter()">
+                <option value="">Filter by Exam Board</option>
+                {% for examBoard in examBoards %}
+                <option value="{{ examBoard }}">{{ examBoard }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    
+        <div class="col-md-3 mb-2">
+            <select class="form-select rounded-pill bg-light" id="filterTier" onchange="applyFilter()">
+                <option value="">Filter by Tier</option>
+                {% for tier in tiers %}
+                <option value="{{ tier }}">{{ tier }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    
+        <div class="col-md-3 mb-2">
+            <select class="form-select rounded-pill bg-light" id="filterAcademicYear" onchange="applyFilter()">
+                <option value="">Filter by Academic Year</option>
+                {% for year in academicYears %}
+                <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    
+        <div class="col-md-3 mb-2">
+            <select class="form-select rounded-pill bg-light" id="filterExamSeries" onchange="applyFilter()">
+                <option value="">Filter by Exam Series</option>
+                {% for series in examSeriesList %}
+                <option value="{{ series }}">{{ series }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    
+    <!-- Selected Filters Row -->
+    <div class="row mb-3" id="selectedFilters"></div>
+    
+
+    <!-- Content Row -->
+    <div class="row">
+        
+        {% for exam in exams %}
+        <!-- Earnings (Monthly) Card Example -->
+        <div class="col-xl-3 col-md-6 mb-4 exam-card"
+        data-examboard="{{ exam.examBoard }}"
+        data-tier="{{ exam.tier }}"
+        data-academicyear="{{ exam.AcademicYear }}"
+        data-examseries="{{ exam.examSeries }}">            <div class="card shadow h-100 py-2 mb-4 border-left-primary">
+                <a href="#card-{{ exam.id }}" class="d-block card-header py-3" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseCardExample">
+                    <h6 class="m-0 font-weight-bold text-primary"> {{ exam.name }} </h6>
+                </a>
+                <div class="collapse show" id="card-{{ exam.id }}">
+                    <div class="card-body">
+                        {% for paper in exam.papers %}
+                            <div class="row"> Paper {{ paper.number }} ({{ paper.paperCode }}) - {{ paper.date }} - {{ paper.total }} marks </div>
+                            <div class="row"> {{ paper.duration }} minutes </div>
+                        {% endfor %}
+                        <div class="row"> {{ exam.studentNo }} enrolled students </div>
+        
+                        <!-- Edit Button to open modal -->
+                        <div class="row mt-2">
+                            <button class="btn btn-info" onclick="openEditExamModal('{{ exam.id }}')">Edit Exam</button>
+                            <button class="btn btn-warning" onclick="openEditModal('{{ exam.id }}', 'papers')">Edit Papers</button>
+                            <button class="btn btn-danger" onclick="deleteExam('{{ exam.id }}')">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% endfor %}
+
+    </div>
+
+    <script>
+        let selectedFilters = {};
+    
+        // Function to apply the filters
+        function applyFilter() {
+            let filterExamBoard = document.getElementById('filterExamBoard').value;
+            let filterTier = document.getElementById('filterTier').value;
+            let filterAcademicYear = document.getElementById('filterAcademicYear').value;
+            let filterExamSeries = document.getElementById('filterExamSeries').value;
+    
+            // Update selectedFilters object based on current dropdown values
+            selectedFilters = {
+                examBoard: filterExamBoard || null,
+                tier: filterTier || null,
+                academicYear: filterAcademicYear || null,
+                examSeries: filterExamSeries || null
+            };
+    
+            // Remove any null values from the object
+            selectedFilters = Object.fromEntries(Object.entries(selectedFilters).filter(([key, value]) => value));
+    
+            // Display the selected filters
+            displaySelectedFilters();
+            
+            // Call the filtering function to filter the exams
+            filterExams();
+        }
+    
+        // Display selected filters with an 'X' button to remove them
+        function displaySelectedFilters() {
+            const selectedFiltersDiv = document.getElementById('selectedFilters');
+            selectedFiltersDiv.innerHTML = '';
+    
+            Object.entries(selectedFilters).forEach(([key, value]) => {
+                const filterTag = document.createElement('div');
+                filterTag.className = 'btn btn-light rounded-pill mr-2';
+                filterTag.innerHTML = `${value} <i class="fa fa-times" onclick="removeFilter('${key}')"></i>`;
+                selectedFiltersDiv.appendChild(filterTag);
+            });
+        }
+    
+        // Remove a filter when 'X' is clicked
+        function removeFilter(filterType) {
+            document.getElementById('filter' + capitalizeFirstLetter(filterType)).value = '';  // Reset dropdown value
+            delete selectedFilters[filterType];  // Remove from selectedFilters
+            displaySelectedFilters();  // Update UI
+            filterExams();  // Reapply filters
+        }
+    
+        // Capitalize first letter for matching element IDs
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+    
+        // Function to filter exams based on selected filters
+        function filterExams() {
+            let exams = document.querySelectorAll('.exam-card'); // Assuming each exam card has a class 'exam-card'
+            exams.forEach(exam => {
+                let examBoard = exam.getAttribute('data-examboard');
+                let tier = exam.getAttribute('data-tier');
+                let academicYear = exam.getAttribute('data-academicyear');
+                let examSeries = exam.getAttribute('data-examseries');
+    
+                let show = true;
+    
+                // Check each filter
+                if (selectedFilters.examBoard && examBoard !== selectedFilters.examBoard) show = false;
+                if (selectedFilters.tier && tier !== selectedFilters.tier) show = false;
+                if (selectedFilters.academicYear && academicYear !== selectedFilters.academicYear) show = false;
+                if (selectedFilters.examSeries && examSeries !== selectedFilters.examSeries) show = false;
+    
+                // Show or hide the card
+                exam.style.display = show ? 'block' : 'none';
+            });
+        }
+    </script>
+    
+
+    <!-- Edit Exam Modal -->
+<div class="modal fade" id="editExamModal" tabindex="-1" role="dialog" aria-labelledby="editExamModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editExamModalLabel">Edit Exam</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="edit-examBoard">Exam Board</label>
+                    <input type="text" class="form-control" id="edit-examBoard">
+                </div>
+                <div class="form-group">
+                    <label for="edit-tier">Tier</label>
+                    <input type="text" class="form-control" id="edit-tier">
+                </div>
+                <div class="form-group">
+                    <label for="edit-title">Title</label>
+                    <input type="text" class="form-control" id="edit-title">
+                </div>
+                <div class="form-group">
+                    <label for="edit-examCode">Exam Code</label>
+                    <input type="text" class="form-control" id="edit-examCode">
+                </div>
+                <div class="form-group">
+                    <label for="edit-option">Option</label>
+                    <input type="text" class="form-control" id="edit-option">
+                </div>
+                <div class="form-group">
+                    <label for="edit-examSeries">Exam Series</label>
+                    <input type="text" class="form-control" id="edit-examSeries">
+                </div>
+                <div class="form-group">
+                    <label for="edit-academicYear">Academic Year</label>
+                    <input type="text" class="form-control" id="edit-academicYear">
+                </div>
+                <!-- Hidden exam ID to track which exam is being edited -->
+                <input type="hidden" id="edit-examId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary mr-4" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveExamChanges()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Edit Papers Modal -->
+<div class="modal fade" id="editPapersModal" tabindex="-1" role="dialog" aria-labelledby="editPapersModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPapersModalLabel">Edit Papers</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="editPapersList"></div>
+                <button class="btn btn-primary" onclick="addPaperField()">Add Paper</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="savePapersChanges()">Save Changes</button>
+            </div>
+
+            <input type="hidden" id="paper-examId">
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    function openEditExamModal(examId) {
+        // Fetch the exam data (can be from your data source)
+        exams = {{ exams | tojson }};
+        const exam = exams.find(e => e.id.toString() === examId.toString());
+        console.log(exam)
+    
+        // Prepopulate the modal with the exam data
+        document.getElementById('edit-tier').value = exam.tier;
+        document.getElementById('edit-title').value = exam.title;
+        document.getElementById('edit-examBoard').value = exam.examBoard;
+        document.getElementById('edit-examCode').value = exam.code;
+        document.getElementById('edit-option').value = exam.Option;
+        document.getElementById('edit-examSeries').value = exam.examSeries;
+        document.getElementById('edit-academicYear').value = exam.AcademicYear;
+        document.getElementById('edit-examId').value = examId; // Hidden exam ID
+    
+        // Show the modal
+        $('#editExamModal').modal('show');
+    }
+    
+    function saveExamChanges() {
+        const examId = document.getElementById('edit-examId').value;
+        const updatedData = {
+            tier: document.getElementById('edit-tier').value,
+            title: document.getElementById('edit-title').value,
+            examBoard: document.getElementById('edit-examBoard').value,
+            code: document.getElementById('edit-examCode').value,
+            Option: document.getElementById('edit-option').value,
+            examSeries: document.getElementById('edit-examSeries').value,
+            AcademicYear: document.getElementById('edit-academicYear').value
+        };
+    
+        $.ajax({
+            url: `/update_exam/${examId}`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(updatedData),
+            success: function(response) {
+                $('#editExamModal').modal('hide');
+                alert('Exam updated successfully!');
+                location.reload();
+            },
+            error: function(error) {
+                console.error(error);
+                alert('An error occurred while updating the exam.');
+            }
+        });
+    }
+</script>    
+
+<script>
+    function deleteExam(examID) {
+        if (confirm("Are you sure you want to delete this exam?")) {
+            $.ajax({
+                url: '/delete_exam/' + examID,
+                type: 'POST',
+                contentType: 'application/json',
+                success: function(response) {
+                    alert("Exam deleted successfully");
+                    location.reload(); // Reload the page after deletion
+                },
+                error: function(error) {
+                    console.log(error);
+                    alert("Error deleting the exam");
+                }
+            });
+        }
+    }
+
+    
+</script>
+
+<script>
+    let paperFields = {};
+
+    function openEditModal(examId, type) {
+        if (type === 'papers') {
+            $.ajax({
+                url: `/get_papers/${examId}`,
+                type: 'GET',
+                success: function(papers) {
+                    let editPapersList = document.getElementById('editPapersList');
+                    editPapersList.innerHTML = '';
+                    paperFields[examId] = papers;
+                    
+                    papers.forEach((paper, index) => {
+                        editPapersList.innerHTML += `
+                            <div class="paper-field" id="paper-${index}">
+                                <div class="form-group">
+                                    <label>Paper Number</label>
+                                    <input type="number" class="form-control" value="${paper.paperNo}" data-index="${index}" data-field="paperNo">
+                                </div>
+                                <div class="form-group">
+                                    <label>Paper Code</label>
+                                    <input type="text" class="form-control" value="${paper.paperCode}" data-index="${index}" data-field="paperCode">
+                                </div>
+                                <div class="form-group">
+                                    <label>Duration (mins)</label>
+                                    <input type="number" class="form-control" value="${paper.duration}" data-index="${index}" data-field="duration">
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-option"> Start Time </label>
+                                    <input class="custom-select form-control" id="edit-Time" type="time" value="${paper.startTime}" data-index="${index}" data-field="startTime">
+                                </div>
+                                <div class="form-group">
+                                    <label>Total Marks</label>
+                                    <input type="number" class="form-control" value="${paper.total}" data-index="${index}" data-field="total">
+                                </div>
+                                <div class="form-group">
+                                    <label>Date</label>
+                                    <input type="date" class="form-control" value="${paper.date}" data-index="${index}" data-field="date">
+                                </div>
+                                <div class="form-group">
+                                    <label>Extra Information</label>
+                                    <input type="text" class="form-control" value="${paper.extra_info}" data-index="${index}" data-field="extra_info">
+                                </div>
+                                <button class="btn btn-danger" onclick="removePaperField(${index})">Remove</button>
+                                <hr>
+                            </div>
+                        `;
+                    });
+                    document.getElementById('paper-examId').value = examId;
+                    console.log(document.getElementById('paper-examId').value)
+                    $('#editPapersModal').modal('show');
+                },
+                error: function(error) {
+                    console.error(error);
+                }
+            });
+        }
+    }
+
+    function addPaperField() {
+        let index = document.querySelectorAll('.paper-field').length;
+        let editPapersList = document.getElementById('editPapersList');
+        editPapersList.innerHTML += `
+            <div class="paper-field" id="paper-${index}">
+                <div class="form-group">
+                    <label>Paper Number</label>
+                    <input type="number" class="form-control" data-index="${index}" data-field="paperNo">
+                </div>
+                <div class="form-group">
+                    <label>Paper Code</label>
+                    <input type="text" class="form-control" data-index="${index}" data-field="paperCode">
+                </div>
+                <div class="form-group">
+                    <label>Duration (mins)</label>
+                    <input type="number" class="form-control" data-index="${index}" data-field="duration">
+                </div>
+                <div class="form-group">
+                    <label for="edit-option"> Start Time </label>
+                    <input type="time" class="custom-select form-control" data-index="${index} data-field="startTime" >
+                </div>
+                <div class="form-group">
+                    <label>Total Marks</label>
+                    <input type="number" class="form-control" data-index="${index}" data-field="total">
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" class="form-control" data-index="${index}" data-field="date">
+                </div>
+                <div class="form-group">
+                    <label>Extra Information</label>
+                    <input type="text" class="form-control" data-index="${index}" data-field="extra_info">
+                </div>
+                <button class="btn btn-danger" onclick="removePaperField(${index})">Remove</button>
+                <hr>
+            </div>
+        `;
+    }
+
+    function removePaperField(index) {
+        document.getElementById(`paper-${index}`).remove();
+    }
+
+    function savePapersChanges() {
+        let examId = document.getElementById('paper-examId').value
+        
+        let papers = [];
+        document.querySelectorAll('.paper-field').forEach(field => {
+            let paper = {};
+            field.querySelectorAll('input').forEach(input => {
+                paper[input.getAttribute('data-field')] = input.value;
+            });
+            papers.push(paper);
+        });
+
+        $.ajax({
+            url: `/update_papers/${examId}`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ papers: papers }),
+            success: function(response) {
+                $('#editPapersModal').modal('hide');
+                alert('Papers updated successfully!');
+                location.reload();
+            },
+            error: function(error) {
+                console.error(error);
+                alert('An error occurred while updating papers.');
+            }
+        });
+    }
+</script>
+
+
+
+
+
+{% endblock %}

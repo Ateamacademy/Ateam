@@ -1,0 +1,167 @@
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+<div class="container mt-5">
+    <h2 class="text-center">UCAS References</h2>
+
+    <table class="table table-bordered mt-4">
+        <thead>
+            <tr>
+                <th>Student Name</th>
+                <th>Course</th>
+                <th>Submitted At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reference in references %}
+            <tr id="reference-row-{{ reference.id }}">
+                <td>{{ reference.name }}</td>
+                <td>{{ reference.course }}</td>
+                <td>{{ reference.submitted_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>
+                    <!-- View/Edit Button -->
+                    <button class="btn btn-primary" 
+                    data-id="{{ reference.id }}"
+                    data-name="{{ reference.name|e }}"
+                    data-subjects="{{ reference.subjects|e }}"
+                    data-course="{{ reference.course|e }}"
+                    data-qualifications="{{ reference.qualifications|e }}"
+                    data-work_experience="{{ reference.work_experience|e }}"
+                    data-reason="{{ reference.reason|e }}"
+                    data-hobbies="{{ reference.hobbies|e }}"
+                    data-extra_info="{{ reference.extra_info|e }}"
+                    data-completed_reference="{{ reference.completed_reference|e }}"
+
+                    onclick="openModal(this)">
+                View
+            </button>
+                    
+
+                    <!-- Delete Button -->
+                    <button class="btn btn-danger" onclick="deleteReference({{ reference.id }})">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<!-- Modal -->
+<div class="modal fade" id="viewReferenceModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">UCAS Reference</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Name:</strong> <span id="referenceName"></span></p>
+          <p><strong>Subjects:</strong> <span id="referenceSubjects"></span></p>
+          <p><strong>Course:</strong> <span id="referenceCourse"></span></p>
+          <p><strong>Qualifications:</strong> <span id="referenceQualifications"></span></p>
+          <p><strong>Work Experience:</strong> <span id="referenceWorkExperience"></span></p>
+          <p><strong>Reason:</strong> <span id="referenceReason"></span></p>
+          <p><strong>Hobbies:</strong> <span id="referenceHobbies"></span></p>
+          <p><strong>Extra Info:</strong></p>
+          <textarea id="referenceExtraInfo" class="form-control"></textarea> <!-- Editable field -->
+          <p><strong>Completed References:</strong></p>
+          <textarea id="referenceCompletedReference" class="form-control"></textarea> <!-- Editable field -->
+        </div>
+        <div class="modal-footer">
+            <div id="referenceID" data-id=""> </div>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="saveReference()"> Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+
+  <script>
+    function openModal(button) {
+        // Function to replace newlines with <br> tags
+        function nl2br(str) {
+            return str.replace(/\n/g, '<br>');
+        }
+    
+        // Get data from the button's data attributes
+        var referenceId = $(button).data('id');
+        var name = $(button).data('name');
+        var subjects = $(button).data('subjects');
+        var course = $(button).data('course');
+        var qualifications = $(button).data('qualifications');
+        var work_experience = $(button).data('work_experience');
+        var reason = $(button).data('reason');
+        var hobbies = $(button).data('hobbies');
+        var extra_info = $(button).data('extra_info');
+        var CompletedReference = $(button).data('completed_reference');
+        document.getElementById('referenceID').setAttribute('data-id', referenceId);
+    
+        // Populate the modal fields
+        $('#referenceName').text(name);
+        $('#referenceSubjects').html(nl2br(subjects));
+        $('#referenceCourse').html(nl2br(course));
+        $('#referenceQualifications').html(nl2br(qualifications));
+        $('#referenceWorkExperience').html(nl2br(work_experience));
+        $('#referenceReason').html(nl2br(reason));
+        $('#referenceHobbies').html(nl2br(hobbies));
+        $('#referenceExtraInfo').val(extra_info); // Assuming extra_info is editable
+        $('#referenceCompletedReference').val(CompletedReference); // Assuming extra_info is editable
+
+    
+        // Open the modal programmatically
+        $('#viewReferenceModal').modal('show');
+    }
+    
+</script>
+
+
+
+<script>
+
+// Save edited reference (update extra info)
+function saveReference() {
+    var referenceId = document.getElementById("referenceID").getAttribute("data-id");
+    var extraInfo = $('#referenceExtraInfo').val();
+    var referenceCompletedReference = $('#referenceCompletedReference').val();
+
+    console.log(referenceId)
+    $.ajax({
+        url: '/update_ucas_reference',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ "referenceID": referenceId, "extra_info": extraInfo, "completed_reference" : referenceCompletedReference}),
+        success: function(response) {
+            alert('UCAS Reference updated successfully!');
+            $('#viewReferenceModal').modal('hide');
+        },
+        error: function(error) {
+            alert('Error updating reference');
+        }
+    });
+   
+}
+
+// Delete reference
+function deleteReference(id) {
+    if (confirm('Are you sure you want to delete this reference?')) {
+        $.ajax({
+            url: '/delete_ucas_reference/' + id,
+            method: 'POST',
+            success: function(response) {
+                alert('Reference deleted successfully');
+                $('#reference-row-' + id).remove();
+            },
+            error: function(error) {
+                alert('Error deleting reference');
+            }
+        });
+    }
+}
+</script>
+
+{% endblock %}

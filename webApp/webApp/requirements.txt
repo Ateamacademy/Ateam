@@ -1,0 +1,8 @@
+flask
+psycopg2-binary
+flask_sqlalchemy
+Flask-Migrate
+werkzeug
+flask_login
+numpy
+matplotlib

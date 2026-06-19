@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> Payslips </title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <link rel="stylesheet" href="static\css\admin_tutor_view.css" />
+</head>
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+    <h1> {{ name }} </h1>
+    <div class="col-12" style="width: 100%;">
+        {% if upload %}
+        <div class="row mb-4">
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h2> Upload Files:  </h2>
+                    <form id = "uploadForm" method="POST" action="/uploadPayslip/{{request.args['userID']}}" enctype="multipart/form-data">
+                        
+                        <input type="file" name="file" autocomplete="off" multiple>
+                        <input type="submit" value="Submit">
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class = "row">
+            <div class="card">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Filename</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doc in payslips %}
+                        <tr>
+                            <td><img src="static/images/{{ doc.type }}_icon.png" onerror="this.onerror=null;this.src='static/images/file_icon.svg.png;'" style="width: 30px;"></td>
+                            <td>{{ doc.name }}</td>
+                            <td><a href="/payslips/{{id}}/{{doc.name}}" target="_blank" class="btn btn-success">Download</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+{% endblock  %}

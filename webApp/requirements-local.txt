@@ -1,0 +1,31 @@
+# Complete dependency set for running webApp locally.
+# The original requirements.txt was incomplete (missing ~11 imported packages).
+
+# --- config ---
+python-dotenv
+
+# --- web framework ---
+flask
+flask_sqlalchemy
+Flask-Migrate
+flask_login
+flask_cors
+flask_apscheduler
+werkzeug
+jinja2
+
+# --- database ---
+psycopg2-binary
+
+# --- data / numeric ---
+numpy
+babel
+matplotlib
+
+# --- PDF / documents / images ---
+weasyprint          # needs system libs: libpango, libcairo, libgdk-pixbuf
+PyPDF2
+reportlab
+pdf2image           # needs system binary: poppler-utils
+pdfminer.six
+Pillow

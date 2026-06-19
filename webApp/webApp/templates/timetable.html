@@ -1,0 +1,34 @@
+<head>
+    <title>Timetable</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="static\css\timetable.css" />
+</head>
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+
+    <div class="timetable">
+        <div class="week-names">
+            {% for i in ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'] %}
+                <div class = "table-header"> {{ i }} </div>
+            {% endfor %}
+
+        </div>
+
+        <div class="time-interval">
+            {% for i in range(13) %}    
+                <div class = "table-header" >{{ i+8 }}:00 - {{ i+9 }}:00</div>
+            {% endfor %}
+        </div>
+
+        <div class="content">  
+
+            {% for i in html %}
+                {{ i|safe }}     
+            {% endfor %} 
+
+    </div>
+
+{% endblock %}

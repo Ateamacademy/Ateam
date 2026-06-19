@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> All Tutors </title>
+
+    <link rel="stylesheet" href="static\css\admin_tutor_view.css" />
+
+</head>
+
+{% extends 'base_page.html' %}
+
+{% block middleContent %}
+
+<style>
+
+.image-container {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    height: 150px; /* Adjust this height as needed */
+    position: relative; /* Set relative positioning for the image container */
+}
+.profile-img {
+    width: 150px; /* Fixed width */
+    height: 150px; /* Fixed height to maintain circular shape */
+    margin-top: 20px; /* Move image down to show more of the top */
+    object-position: top; /* Show the top of the image */
+    object-fit: cover; /* Maintain aspect ratio while covering the container */
+    border: 2px solid #555; /* Add border for all images */
+    transition: transform 0.3s ease, margin-top 0.3s ease; /* Smooth zoom effect */
+    z-index: 1; /* Ensure the image is above other elements */
+}
+.image-container:hover .profile-img {
+    transform: scale(2.5); /* Zoom in on hover */
+    margin-top: -50px; /* Move image up when hovered to expand above the card */
+    z-index: 2; /* Bring image to the front */
+}
+</style>
+<body>
+
+    <div class="row">
+        {% for tutor in tutors %}
+        {% if tutor.logOn %}
+        <div class="col mr-2">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <div class="image-container">
+                        {% if tutor.gender == 'Male' %}
+                            <img src="userFiles/{{ tutor.id }}/profile_picture.jpg" alt="avatar" class="rounded-circle profile-img" onerror="this.onerror=null; this.src='https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp';">
+                        {% elif tutor.gender == 'Female' %}
+                            <img src="userFiles/{{ tutor.id }}/profile_picture.jpg" alt="avatar" class="rounded-circle profile-img" onerror="this.onerror=null; this.src='https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava6.webp';">
+                        {% else %}
+                            <img src="userFiles/{{ tutor.id }}/profile_picture.jpg" alt="avatar" class="rounded-circle profile-img" onerror="this.onerror=null; this.src='static/images/default-avatar.jpg';">
+                        {% endif %}
+                    </div>
+                    <h5 class="my-3"> {{ tutor.firstName }} {{ tutor.secondName }} </h5>
+                    <p class="text-muted mb-1"> {{ tutor.email }} </p>
+                    {% if tutor.phone == "" %}
+                        <p class="text-muted mb-4"> - </p>
+                    {% else %}
+                        <p class="text-muted mb-4"> {{ tutor.phone }} </p>
+                    {% endif %}
+                    <div class="d-flex justify-content-center mb-2">
+                        <a href="admin_tutor_info?tutorid={{ tutor.id }}">
+                            <button type="button" class="btn btn-primary mr-2"> View info </button>
+                        </a>
+                        <a href="/allTimetable?tutorid={{ tutor.id }}&offset=0">
+                            <button type="button" class="btn btn-primary mr-2"> View Lessons </button>
+                        </a>
+                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#exampleModalCenter" onclick="setID('{{tutor.id}}', '{{tutor.firstName}} {{tutor.secondName}}')"> Delete </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+    
+
+        {% else %}
+        <div class="col mr-2"   >
+            <div class="card mb-4" >
+                <div class="card-body text-center">
+                    {% if tutor.gender == 'Male' %} <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp" alt="avatar"  class="rounded-circle img-fluid" style="width: 150px;   border: 2px solid #555; opacity: 0.7;">
+                    {% elif tutor.gender == 'Female' %} <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava6.webp" alt="avatar"  class="rounded-circle img-fluid" style="width: 150px;   border: 2px solid #555; opacity: 0.7;">
+                    {% else %} <img src="static/images/default-avatar.jpg" alt="avatar"  class="rounded-circle img-fluid" style="width: 150px; height:158.84px; opacity: 0.8;">
+                    {% endif %}
+                    <h5 class="my-3" style = "color:gray;"> {{ tutor.firstName }}  {{ tutor.secondName }}</h5>
+                    <p class="text-muted mb-4"> ~ tutor has been removed ~ </p> 
+                    <p class="text-muted mb-1" style = "color:gray;"> - </p>
+                    <div class="d-flex justify-content-center mb-2">
+                        <a href="admin_tutor_info?tutorid={{ tutor.id }}"> <button type="button" class="btn btn-primary mr-2 disabled" > View info </button> </a>
+                        <a href="/allTimetable?tutorid={{ tutor.id }}&offset=0"> <button type="button" class="btn btn-primary mr-2 disabled"> View Lessons </button> </a>
+                        <button type="button" class="btn btn-danger disabled"  data-toggle="modal" data-target="#exampleModalCenter" onclick="setID('{{tutor.id}}', '{{tutor.firstName}}  {{ tutor.secondName }}')"> Delete </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+
+        {% if session['role'] == "admin" %}
+        <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Are You sure?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+
+                <div class="modal-body">
+                    <form>
+                        <div class="col">
+                            <div class="row mb-3"> 
+                                <p class="mb-0" id="lessonToRemove"> </p>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"> Cancel </button>
+                <button type="button" class="btn btn-outline-danger" onclick="preventLogOn()" > Temporarily Remove </button>
+                <button type="button" class="btn btn-danger" onclick="removeTutor()" > Permanently remove </button>
+                </div>
+
+                <script>
+                    var id = -1;
+                    function setID(id2, lesson) {
+                        id = id2; 
+                        document.getElementById("lessonToRemove").innerText = "Are you sure that you want to remove " + lesson;
+                    };
+
+                    function removeTutor() {
+                        console.log(id)
+
+                        $.ajax({
+                            url: '/deleteTutor/' + id,
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({"id": id}),
+                            success: function(response) {
+                                alert("The tutor was temporarily removed")
+                                location.reload(1000)
+                            },
+                            error: function(error) {
+                            alert("The Tutor could not be removed")
+                            }
+                        });
+                    }
+
+                    function preventLogOn() {
+                        $.ajax({
+                            url: '/updateTutorAccessRights',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({"key": "log_on", "value" : false, "tutorID" : id}),
+                            success: function(response) {
+                                alert("The tutor was removed")
+                                location.reload(1000)
+                            },
+                            error: function(error) {
+                            alert("The Tutor could not be removed")
+                            }
+                        });
+
+                    }
+                </script>
+
+            </div>
+            </div>
+        </div>
+        {% endif %}
+
+</body>
+
+
+
+
+{% endblock  %}
+
+
+
+

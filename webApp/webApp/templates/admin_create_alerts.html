@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+
+<head>
+    <title> Create Alerts </title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Admin Dashboard</title>
+
+</head>
+
+{% extends 'base_page.html' %}
+
+{% block middleContent %}
+
+    <script>
+        $( document ).ready(function() {
+            document.getElementById("alert-link").classList.add("active");
+        });
+    </script>
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 mt-4">
+        <h1 class="h3 mb-0 text-gray-800"> Create Alerts </h1>
+    </div>
+
+
+    <script>
+        function createAlert() {
+            title = document.getElementById("titleToFill").value;
+            message = document.getElementById("messageToFill").value;
+            role = document.getElementById("role").value;
+            $.ajax({
+                url: '/createAlert',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({"title" : title, "message" : message, "role" : role}),
+                success: function(response) {
+                    setTimeout(function() {alert("the alert has been created"); location.reload();}, 1000);
+                },
+                error: function(error) {
+                    alert(error);
+                }
+            })
+        }
+
+        function previewAlert() {
+                document.getElementById("modalTitle").innerHTML = document.getElementById("titleToFill").value;
+                document.getElementById("modalMessage").innerHTML = document.getElementById("messageToFill").value;
+
+                $('#exampleModal').modal('show');
+
+        }
+    </script>
+
+    <div class = "row"> 
+        <div class="col-12 mb-4">
+            <div class="card border-bottom-success shadow h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-3"> Make a New Alert </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">                         
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Title: </div> <div class="col-lg-10"> <input placeholder = "Example Title" id = "titleToFill"> </div> </div>
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Message: </div> <div class="col-lg-10"> <textarea id = "messageToFill" style = "width: 80%; resize: horizontal; resize: vertical;"> </textarea> </div> </div>
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Show to: </div> <div class="col-lg-10"> <select id="role"> <option value="student"> Students </option> <option value = "admin"> Admins </option> <option value= "tutor" selected> Tutors </option> </select> </div> </div>
+
+
+                                <button class="btn btn-secondary" onclick = "previewAlert()"> Preview Alert </button> 
+                                <button class="btn btn-success" onclick = "createAlert()"> Create Alert </button> 
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-pen fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <p> code - displays as red code text</p>
+            <p> mark - Yellow Highlighting</p>
+            <p> b - bold text </p>
+            <p> i - italic text </p>
+            <p> u - Underline text </p>
+            <p> strong - strong text </p>
+            <p> del - line through text </p>
+
+
+
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTitle">  </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+            
+                    <div class="modal-body" id="modalMessage">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" data-dismiss="modal"> I have read and acknowledged this </button>
+                    </div>
+            
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        
+        {% for exam in exams %}
+        <!-- Earnings (Monthly) Card Example -->
+        <div class="col-xl-3 col-md-6 mb-4">
+
+            <div class="card shadow h-100 py-2 mb-4 border-left-primary">
+                <!-- Card Header - Accordion -->
+                <a href="#card-{{ exam.id }}" class="d-block card-header py-3" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseCardExample">
+                    <h6 class="m-0 font-weight-bold text-primary"> {{ exam.name }} </h6>
+                </a>
+                <!-- Card Content - Collapse -->
+                <div class="collapse show" id="card-{{ exam.id }}">
+                    <div class="card-body">
+                        {% for paper in exam.papers %}
+                            <div class="row"> paper {{ paper.number }} ({{ paper.paperCode }}) - {{ paper.date }} - {{ paper.total }} marks </div>
+                            <div class="row"> {{ paper.duration }} minutes </div>
+
+                        {% endfor %}
+
+                        <div class="row"> 20 enrolled students </div>
+                    </div>
+                </div>
+            </div>            
+        </div>
+        {% endfor %}
+
+    </div>
+
+{% endblock %}

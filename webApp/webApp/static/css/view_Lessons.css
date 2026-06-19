@@ -1,0 +1,12 @@
+
+  .even-distribute {
+    justify-content: space-between;
+  
+  }
+
+  #students_select {
+    overflow:scroll; 
+    height: 150px;
+  }
+
+

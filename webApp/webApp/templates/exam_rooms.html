@@ -1,0 +1,161 @@
+<head>
+    <title> View Exam Rooms </title>
+
+</head>
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+<h1 class="my-4">Manage Exam Rooms</h1>
+
+<div class="mb-3">
+    <button class="btn btn-primary" data-toggle="modal" data-target="#addRoomModal">Add Room</button>
+</div>
+
+<!-- Existing Rooms List -->
+<div id="rooms-list">
+    <h2>Existing Rooms</h2>
+    {% if rooms %}
+        <ul class="list-group">
+            {% for room in rooms %}
+                <li class="list-group-item" id="room-{{ room.id }}">
+                    <strong>{{ room.name }}</strong> ({{ room.max_rows }} rows x {{ room.max_columns }} columns)
+                    <!-- <button class="btn btn-info btn-sm float-right ml-2" data-toggle="modal" data-target="#assignRoomModal" data-room-id="{{ room.id }}">Assign Exam</button> -->
+                    <a href="/edit_exam_room?room_id={{room.id}}"> <button class="btn btn-primary btn-sm float-right ml-2"> Edit room </button> </a>
+
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No rooms available. Please create a room.</p>
+    {% endif %}
+</div>
+
+<!-- Modal to Add Room -->
+<div class="modal fade" id="addRoomModal" tabindex="-1" role="dialog" aria-labelledby="addRoomModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addRoomModalLabel">Add New Exam Room</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addRoomForm">
+                    <div class="form-group">
+                        <label for="room-name">Room Name</label>
+                        <input type="text" id="room-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="room-rows">Max Rows</label>
+                        <input type="number" id="room-rows" class="form-control" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="room-columns">Max Columns</label>
+                        <input type="number" id="room-columns" class="form-control" required min="1">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create Room</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal to View Room -->
+<div class="modal fade" id="viewRoomModal" tabindex="-1" role="dialog" aria-labelledby="viewRoomModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewRoomModalLabel">Room Layout</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="room-layout"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal to Assign Room -->
+<div class="modal fade" id="assignRoomModal" tabindex="-1" role="dialog" aria-labelledby="assignRoomModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignRoomModalLabel">Assign Students to Room</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h5 id="exam-name"></h5>
+                <div id="seating-plan"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Room creation form submission
+        const addRoomForm = document.getElementById('addRoomForm');
+        addRoomForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const roomName = document.getElementById('room-name').value;
+            const rows = parseInt(document.getElementById('room-rows').value);
+            const columns = parseInt(document.getElementById('room-columns').value);
+
+            // Create new room HTML element
+            const roomList = document.getElementById('rooms-list').querySelector('ul');
+            const newRoom = document.createElement('li');
+            newRoom.classList.add('list-group-item');
+            newRoom.innerHTML = `
+                <strong>${roomName}</strong> (${rows} rows x ${columns} columns)
+                <button class="btn btn-info btn-sm float-right ml-2" data-toggle="modal" data-target="#assignRoomModal" data-room-id="new">Assign Exam</button>
+            `;
+            roomList.appendChild(newRoom);
+
+            // Close the modal
+            $('#addRoomModal').modal('hide');
+        });
+
+        // Assign room modal opening
+        $('#assignRoomModal').on('show.bs.modal', function(event) {
+            const button = $(event.relatedTarget); // Button that triggered the modal
+            const roomId = button.data('room-id');
+            const modal = $(this);
+
+            // Get the exam details and dynamically generate the seating plan
+            const examName = "Sample Exam"; // You would retrieve this dynamically in your actual setup
+            const numStudents = 10; // Assume 10 students for this example
+            const rows = 3; // Example row count
+            const columns = 4; // Example column count
+
+            modal.find('#exam-name').text(`Exam: ${examName}`);
+            
+            // Generate the seating grid
+            const seatingPlan = document.getElementById('seating-plan');
+            seatingPlan.innerHTML = '';
+            for (let row = 0; row < rows; row++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.classList.add('row');
+                for (let col = 0; col < columns; col++) {
+                    const seatDiv = document.createElement('div');
+                    seatDiv.classList.add('col');
+                    seatDiv.classList.add('border');
+                    seatDiv.classList.add('text-center');
+                    seatDiv.style.padding = '10px';
+                    seatDiv.style.margin = '5px';
+                    seatDiv.innerText = String.fromCharCode(65 + row) + (col + 1); // A1, B1, etc.
+                    rowDiv.appendChild(seatDiv);
+                }
+                seatingPlan.appendChild(rowDiv);
+            }
+        });
+    });
+</script>
+
+{% endblock %}

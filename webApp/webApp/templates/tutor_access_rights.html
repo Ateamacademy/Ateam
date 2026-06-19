@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Tutor Access Rights</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="static/css/sb-admin-2.min.css" rel="stylesheet">
+
+</head>
+
+
+{% extends 'base_page.html' %}
+
+{% block middleContent %}
+
+<style>
+    .table-wrapper {
+      position: relative;
+      max-height: 80vh; /* Adjust as needed */
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .table-wrapper table {
+      width: max-content;
+    }
+    .table-wrapper thead tr th {
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 2;
+    }
+    .table-wrapper tbody th {
+      position: sticky;
+      left: 0;
+      background: white;
+      z-index: 1;
+    }
+
+    .highlight-row, .highlight-col {
+        background-color: #f0f0f0 !important;
+      }
+
+    .highlight-cell {
+    background-color: #e0e0e0 !important;
+    }
+
+    .greyed-out {
+        background-color: #e0e0e0 !important;
+      }
+      .greyed-out input[type="checkbox"]:not(.log-in-checkbox) {
+        pointer-events: none;
+      }
+  </style>
+  
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 mt-4">
+    <h1 class="h3 mb-0 text-gray-800">{{ 'Role' if role }} {{ 'Student' if student else 'Tutor' }} Access and Abilities</h1>
+</div>
+
+<!-- Content Row -->
+<div class="row">
+
+    <!-- Area Chart -->
+    <div class="col">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary"> Abilities </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive table-wrapper">
+                    <table class="table table-hover table-fixed-header">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                {% if role %} <th scope = "col"> level </th> {% endif %}
+                                <th scope="col">log_on</th>
+                                {% if not student %} <th scope="col">view_all_lessons</th> {% endif %}
+                                {% if not student %} <th scope="col">view_lessons_at_centre</th> {% endif %}
+                                {% if not student %} <th scope="col">change_lesson_time</th> {% endif %}
+                                {% if not student %} <th scope="col">change_lesson_day</th> {% endif %}
+                                {% if not student %} <th scope="col">change_lesson_tutor</th> {% endif %}
+                                {% if not student %} <th scope="col">change_lesson_subject</th> {% endif %}
+                                {% if not student %} <th scope="col">change_lesson_centre</th> {% endif %}
+                                {% if not student %} <th scope="col">change_lesson_students</th> {% endif %}
+                                {% if not student %} <th scope="col">add_a_new_lesson</th> {% endif %}
+                                {% if not student %} <th scope="col">delete_a_lesson</th> {% endif %}
+                                {% if not student %} <th scope="col">make_individual_test</th> {% endif %}
+                                {% if not student %} <th scope="col">make_a_test_for_a_subject</th> {% endif %}
+                                {% if not student %} <th scope="col">add_a_new_subject</th> {% endif %}
+                                <th scope="col">upload_work_to_lesson</th>
+                                {% if not student %} <th scope="col">upload_to_subject_resources</th> {% endif %}
+                                {% if not student %} <th scope="col">upload_to_subject</th> {% endif %}
+                                {% if not student %} <th scope="col">change_lesson_plan</th> {% endif %}
+                                {% if not student %} <th scope="col">view_all_tutor_information</th> {% endif %}
+                                {% if not student %} <th scope="col">view_below_payslips</th> {% endif %}
+                                {% if not student %} <th scope="col">upload_payslips</th> {% endif %}
+                                {% if not student %} <th scope="col">edit_tutor_information</th> {% endif %}
+                                {% if not student %} <th scope="col">create_below_roles</th> {% endif %}
+                                {% if not student %} <th scope="col">view_all_student_information</th> {% endif %}
+                                {% if not student %} <th scope="col">view_student_payment_information</th> {% endif %}
+                                {% if not student %} <th scope="col">edit_student_information</th> {% endif %}
+                                {% if not student %} <th scope="col">reset_below_password</th> {% endif %}
+                                {% if not student %} <th scope="col">delete_a_student</th> {% endif %}
+                                {% if not student %} <th scope="col">view_all_logs</th> {% endif %}
+                                {% if not student %} <th scope="col">view_centre_logs</th> {% endif %}
+                                {% if not student %} <th scope="col">approve_hours</th> {% endif %}
+                                {% if not student %} <th scope="col">send_emails_to_parents</th> {% endif %}
+                                {% if not student %} <th scope="col">send_emails_to_students</th> {% endif %}
+                                {% if not student %} <th scope="col">delete_messages</th> {% endif %}
+                                {% if not student %} <th scope="col">create_alerts</th> {% endif %}
+                                {% if not student %} <th scope="col">dismiss_alerts</th> {% endif %}
+                                {% if not student %} <th scope="col">create_marketplace_products</th> {% endif %}
+                                {% if not student %} <th scope="col">view_staff</th> {% endif %}
+                                {% if not student %} <th scope="col">view_staff_info</th> {% endif %}
+                                <th scope="col">create_events</th>
+                                <th scope="col">allow_maintenance</th>
+                                <th scope="col">view_enquiries</th>
+
+
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tutor in tutors %}
+                            <tr>
+                                <th scope="row"> {{ tutor.name }} </th>
+                                {% if role %} <td> <input type="number" value = "{{ tutor.level }}" onchange="updateRights('{{ role.name}}', 'level', this.value)"> </td> {% endif %}
+                                <td> <input type="checkbox" {{ 'checked' if tutor.log_on }} onchange="updateRights('{{ tutor.id }}', 'log_on', this.checked)"> </td>
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.view_all_lessons }} onchange="updateRights('{{ tutor.id}}', 'view_all_lessons', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.view_lessons_at_centre }} onchange="updateRights('{{ tutor.id}}', 'view_lessons_at_centre', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.change_lesson_time }} onchange="updateRights('{{ tutor.id}}', 'change_lesson_time', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.change_lesson_day }} onchange="updateRights('{{ tutor.id}}', 'change_lesson_day', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.change_lesson_tutor }} onchange="updateRights('{{ tutor.id}}', 'change_lesson_tutor', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.change_lesson_subject }} onchange="updateRights('{{ tutor.id}}', 'change_lesson_subject', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.change_lesson_centre }} onchange="updateRights('{{ tutor.id}}', 'change_lesson_centre', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.change_lesson_students }} onchange="updateRights('{{ tutor.id}}', 'change_lesson_students', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.add_a_new_lesson }} onchange="updateRights('{{ tutor.id}}', 'add_a_new_lesson', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.delete_a_lesson }} onchange="updateRights('{{ tutor.id}}', 'delete_a_lesson', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.make_individual_test }} onchange="updateRights('{{ tutor.id}}', 'make_individual_test', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.make_a_test_for_a_subject }} onchange="updateRights('{{ tutor.id}}', 'make_a_test_for_a_subject', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.add_a_new_subject }} onchange="updateRights('{{ tutor.id}}', 'add_a_new_subject', this.checked)"> </td> {% endif %}
+                                <td> <input type="checkbox" {{ 'checked' if tutor.upload_work_to_lesson }} onchange="updateRights('{{ tutor.id}}', 'upload_work_to_lesson', this.checked)"> </td>
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.upload_to_subject_resources }} onchange="updateRights('{{ tutor.id}}', 'upload_to_subject_resources', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.upload_to_subject }} onchange="updateRights('{{ tutor.id}}', 'upload_to_subject', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.change_lesson_plan }} onchange="updateRights('{{ tutor.id}}', 'change_lesson_plan', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.view_all_tutor_information }} onchange="updateRights('{{ tutor.id}}', 'view_all_tutor_information', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.view_below_payslips }} onchange="updateRights('{{ tutor.id}}', 'view_below_payslips', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.upload_payslips }} onchange="updateRights('{{ tutor.id}}', 'upload_payslips', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.edit_tutor_information }} onchange="updateRights('{{ tutor.id}}', 'edit_tutor_information', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.create_below_roles }} onchange="updateRights('{{ tutor.id}}', 'create_below_roles', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.view_all_student_information }} onchange="updateRights('{{ tutor.id}}', 'view_all_student_information', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.view_student_payment_information }} onchange="updateRights('{{ tutor.id}}', 'view_student_payment_information', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.edit_student_information }} onchange="updateRights('{{ tutor.id}}', 'edit_student_information', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.reset_below_password }} onchange="updateRights('{{ tutor.id}}', 'reset_below_password', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.delete_a_student }} onchange="updateRights('{{ tutor.id}}', 'delete_a_student', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.view_all_logs }} onchange="updateRights('{{ tutor.id}}', 'view_all_logs', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.view_centre_logs }} onchange="updateRights('{{ tutor.id}}', 'view_centre_logs', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.approve_hours }} onchange="updateRights('{{ tutor.id}}', 'approve_hours', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.send_emails_to_parents }} onchange="updateRights('{{ tutor.id}}', 'send_emails_to_parents', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.send_emails_to_students }} onchange="updateRights('{{ tutor.id}}', 'send_emails_to_students', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.delete_messages }} onchange="updateRights('{{ tutor.id}}', 'delete_messages', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.create_alerts }} onchange="updateRights('{{ tutor.id}}', 'create_alerts', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.dismiss_alerts }} onchange="updateRights('{{ tutor.id}}', 'dismiss_alerts', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.create_marketplace_products }} onchange="updateRights('{{ tutor.id}}', 'create_marketplace_products', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.view_staff }} onchange="updateRights('{{ tutor.id}}', 'view_staff', this.checked)"> </td> {% endif %}
+                                {% if not student %} <td> <input type="checkbox" {{ 'checked' if tutor.view_staff_info }} onchange="updateRights('{{ tutor.id}}', 'view_staff_info', this.checked)"> </td> {% endif %}
+
+                                <td> <input type="checkbox" {{ 'checked' if tutor.create_events }} onchange="updateRights('{{ tutor.id}}', 'create_events', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if tutor.allow_maintenance }} onchange="updateRights('{{ tutor.id}}', 'allow_maintenance', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if tutor.view_enquiries }} onchange="updateRights('{{ tutor.id}}', 'view_enquiries', this.checked)"> </td>
+
+
+
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if role %}
+                                  <!-- Add Role Button -->
+                <div class="mt-3">
+                  <button class="btn btn-primary" data-toggle="modal" data-target="#addRoleModal">Add Role</button>
+              </div>
+                {% endif %}
+
+            </div>
+
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+      const table = document.querySelector('.table-wrapper table');
+      const rows = table.querySelectorAll('tbody tr');
+      const cols = table.querySelectorAll('thead th');
+      
+      table.addEventListener('mouseover', (e) => {
+        const cell = e.target.closest('td, th');
+        if (!cell) return;
+  
+        const colIndex = cell.cellIndex;
+        const rowIndex = cell.parentElement.rowIndex;
+  
+        rows.forEach((row, i) => {
+          row.classList.toggle('highlight-row', i + 1 === rowIndex);
+          row.querySelectorAll('td, th').forEach((cell, j) => {
+            cell.classList.toggle('highlight-col', j === colIndex);
+            cell.classList.toggle('highlight-cell', i + 1 === rowIndex && j === colIndex);
+          });
+        });
+  
+        cols.forEach((col, i) => {
+          col.classList.toggle('highlight-col', i === colIndex);
+        });
+      });
+  
+      table.addEventListener('mouseout', () => {
+        rows.forEach(row => {
+          row.classList.remove('highlight-row');
+          row.querySelectorAll('td, th').forEach(cell => {
+            cell.classList.remove('highlight-col');
+            cell.classList.remove('highlight-cell');
+          });
+        });
+  
+        cols.forEach(col => {
+          col.classList.remove('highlight-col');
+        });
+      });
+    });
+</script>
+  
+{% if role %}
+<script>
+  $( document ).ready(function() {
+      document.getElementById("role-link").classList.add("active");
+  });
+</script>
+
+<div class="modal fade" id="addRoleModal" tabindex="-1" role="dialog" aria-labelledby="addRoleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="addRoleModalLabel">Add New Role</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body">
+              <form>
+                  <div class="form-group">
+                      <label for="role-name" class="col-form-label">Role Name:</label>
+                      <input type="text" class="form-control" id="role-name">
+
+                      <label for="role-level" class="col-form-label">Role Level:</label>
+                      <input type="number" class="form-control" id="role-level">
+                  </div>
+              </form>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" onclick="addRole()">Save</button>
+          </div>
+      </div>
+  </div>
+</div>
+<script>
+  function updateRights(roleName, key, checked) {
+    $.ajax({
+      url: '/updateRoleAccessRights',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({"roleName" : roleName, "key" : key, "value" : checked}),
+      success: function(response) {
+      },
+      error: function(error) {
+          alert("Unfortunately the Access Rights couldnt be updated please try again because of Error".concat(error))
+          console.log(error);
+      }
+
+  })
+  }
+
+  function addRole() {
+      var roleName = document.getElementById('role-name').value;
+      var level = document.getElementById("role-level").value;
+
+      if (roleName) {
+          var tbody = document.querySelector('table tbody');
+          var newRow = document.createElement('tr');
+          var columns = ['name', 'view_all_lessons', 'view_lessons_at_centre', 'change_lesson_time', 'change_lesson_day', 'change_lesson_tutor', 'change_lesson_subject', 'add_a_new_lesson', 'delete_a_lesson', 'make_individual_test', 'make_a_test_for_a_subject', 'add_a_new_subject', 'upload_work_to_lesson', 'upload_to_subject_resources', 'upload_to_subject', 'change_lesson_plan', 'view_all_tutor_information', 'view_tutor_payslips', 'edit_tutor_information', 'add_a_new_tutor', 'delete_a_tutor', 'view_all_student_information', 'view_student_payment_information', 'edit_student_information', 'delete_a_student', 'delete_a_student', 'view_all_logs', 'view_centre_logs', 'approve_hours', 'send_emails_to_parents', 'send_emails_to_students', 'delete_messages'];
+
+          columns.forEach(function(column, index) {
+              var cell = document.createElement(index === 0 ? 'th' : 'td');
+              if (index === 0) {
+                  cell.scope = 'row';
+                  cell.textContent = roleName;
+              } else {
+                  var checkbox = document.createElement('input');
+                  checkbox.type = 'checkbox';
+                  checkbox.onchange = function() {
+                      updateRights(roleName, column, checkbox.checked);
+                  };
+                  cell.appendChild(checkbox);
+              }
+              newRow.appendChild(cell);
+          });
+
+          tbody.appendChild(newRow);
+          $('#addRoleModal').modal('hide');
+
+          $.ajax({
+            url: '/addRole',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({"name" : roleName, "level" : level}),
+            success: function(response) {
+            },
+            error: function(error) {
+                alert("Unfortunately the Access Rights couldnt be updated please try again because of Error".concat(error))
+                console.log(error);
+            }
+
+        })
+      }
+  }
+</script>
+{% else %}
+
+  {% if student %}
+    <script>
+      $( document ).ready(function() {
+          document.getElementById("student-link").classList.add("active");
+      });
+    </script>
+  {% else %}
+    <script>
+      $( document ).ready(function() {
+          document.getElementById("tutor-link").classList.add("active");
+      });
+    </script>
+  {% endif %}
+<script> 
+  function updateRights(tutorID, key, checked) {
+      
+      $.ajax({
+          url: '/updateTutorAccessRights',
+          type: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({"tutorID" : tutorID, "key" : key, "value" : checked}),
+          success: function(response) {
+          },
+          error: function(error) {
+              alert("Unfortunately the Access Rights couldnt be updated please try again because of Error".concat(error))
+              console.log(error);
+          }
+
+      })
+  }
+</script>
+{% endif %}
+
+
+{% endblock %}
+

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Tutor Performance</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="static/css/sb-admin-2.min.css" rel="stylesheet">
+
+</head>
+
+{% extends 'base_page.html' %}
+
+{% block middleContent %}
+
+<script>
+  $( document ).ready(function() {
+      document.getElementById("tutor-link").classList.add("active");
+  });
+</script>
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 mt-4">
+        <h1 class="h3 mb-0 text-gray-800">Tutor Performance</h1>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+
+        <!-- Area Chart -->
+        <div class="col">
+            <div class="card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div
+                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary"> Tutor Lessons </h6>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="myAreaChart"></canvas> <!-- this is being changed by the chart demo-->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="row">
+
+        <!-- Area Chart -->
+        <div class="col">
+            <div class="card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div
+                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary"> Tutors By Subject </h6>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="tutorsBySubject"></canvas> <!-- this is being changed by the chart demo-->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+
+    <!-- Content Row -->
+    <div class="row">
+
+        <!-- Content Column -->
+        <div class="col-lg-6 mb-4">
+
+            <!-- Project Card Example -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"> Average Test Percentage </h6>
+                </div>
+                <div class="card-body">
+                    {% for i in range(tutorsPerformance|length) %}
+                    <h4 class="small font-weight-bold"> {{tutorsPerformance[i]}} <span
+                            class="float-right">{{average_scores[i]}}%</span></h4>
+                    <div class="progress mb-4">
+                    {% if average_scores[i]|int > 70 %} <div class="progress-bar bg-success" role="progressbar" style="width: {{average_scores[i]}}%" aria-valuenow="{{average_scores[i]}}" aria-valuemin="0" aria-valuemax="100"></div>
+                    {% elif average_scores[i]|int > 40 %} <div class="progress-bar bg-warning" role="progressbar" style="width: {{average_scores[i]}}%" aria-valuenow="{{average_scores[i]}}" aria-valuemin="0" aria-valuemax="100"></div>
+                    {% else %} <div class="progress-bar bg-danger" role="progressbar" style="width: {{average_scores[i]}}%" aria-valuenow="{{average_scores[i]}}" aria-valuemin="0" aria-valuemax="100"></div>
+                    {% endif %}
+                    </div>
+                    {% endfor %}
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-lg-6 mb-4">
+
+            <!-- Pie Chart -->
+            <div class="card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div
+                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Site Usage (Past 7 Days) </h6>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="myPieChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        {% for i in range(tutorUsage|length) %}
+                        <span class="mr-2">
+                            <i class="fas fa-circle" style ="color: {{tutorColours[i]}}; background-color: {{tutorColours[i]}};"></i> {{ tutorUsage[i].name }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+
+
+
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="static/vendor/jquery/jquery.min.js"></script>
+    <script src="static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="static/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="static/javascript/sb-admin-2.min.js"></script>
+
+    <!-- Page level plugins -->
+    <script src="static/vendor/chart.js/Chart.min.js"></script>
+
+    <!-- Page level custom scripts -->
+    <script src="static/javascript/demo/chart-area-demo.js"></script>
+    <script src="static/javascript/demo/chart-pie-demo.js"></script>
+
+    <!-- Line Graph -->
+    <script>
+        var ctx = document.getElementById("myAreaChart");
+        var data_json = {{ lesson_counts|tojson }}
+        var tutors = {{ tutors|tojson }}
+        var myBarChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: tutors,
+              datasets: [{
+                label: "Lessons",
+                backgroundColor: "#4e73df",
+                hoverBackgroundColor: "#2e59d9",
+                borderColor: "#4e73df",
+                data: data_json,
+              }],
+            },
+            options: {
+              maintainAspectRatio: false,
+              layout: {
+                padding: {
+                  left: 10,
+                  right: 25,
+                  top: 25,
+                  bottom: 0
+                }
+              },
+              scales: {
+                xAxes: [{
+                  time: {
+                    unit: 'Tutors'
+                  },
+                  gridLines: {
+                    display: false,
+                    drawBorder: false
+                  },
+                  ticks: {
+                    maxTicksLimit: 100
+                  },
+                  maxBarThickness: 25,
+                }],
+                yAxes: [{
+                  ticks: {
+                    min: 0,
+                    max: Math.max(...data_json),
+                    maxTicksLimit: 5,
+                    padding: 10,
+                  },
+                  gridLines: {
+                    color: "rgb(234, 236, 244)",
+                    zeroLineColor: "rgb(234, 236, 244)",
+                    drawBorder: false,
+                    borderDash: [2],
+                    zeroLineBorderDash: [2]
+                  }
+                }],
+              },
+              legend: {
+                display: false
+              },
+              tooltips: {
+                titleMarginBottom: 10,
+                titleFontColor: '#6e707e',
+                titleFontSize: 14,
+                backgroundColor: "rgb(255,255,255)",
+                bodyFontColor: "#858796",
+                borderColor: '#dddfeb',
+                borderWidth: 1,
+                xPadding: 15,
+                yPadding: 15,
+                displayColors: false,
+                caretPadding: 10,
+
+              },
+            }
+          });
+
+    </script>
+
+        <!-- Pie Chart -->
+        <script>
+            var ctx = document.getElementById("myPieChart");
+            var tutorUsage = {{ tutorUsage|tojson }}
+            var tutorNames = []
+            var tutorNumber = []
+            var tutorColours = {{ tutorColours|tojson }}
+            for(i in tutorUsage) {
+                tutorNames.push(tutorUsage[i].name)
+                tutorNumber.push(tutorUsage[i].amount)
+            }
+
+            var myPieChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: tutorNames,
+                datasets: [{
+                data: tutorNumber,
+                backgroundColor: tutorColours,
+                hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#8442a7', '#1a7f56'],
+                hoverBorderColor: "rgba(234, 236, 244, 1)",
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                tooltips: {
+                backgroundColor: "rgb(255,255,255)",
+                bodyFontColor: "#858796",
+                borderColor: '#dddfeb',
+                borderWidth: 1,
+                xPadding: 15,
+                yPadding: 15,
+                displayColors: false,
+                caretPadding: 10,
+                },
+                legend: {
+                display: false
+                },
+                cutoutPercentage: 80,
+            },
+            });
+    
+        </script>
+
+        <script>
+            var ctx = document.getElementById("tutorsBySubject");
+            var tutor_counts = {{ tutor_counts|tojson }}
+            var subjects = {{ subjects|tojson }}
+            var myBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                  labels: subjects,
+                  datasets: [{
+                    label: "Tutors:",
+                    backgroundColor: "#4e73df",
+                    hoverBackgroundColor: "#2e59d9",
+                    borderColor: "#4e73df",
+                    data: tutor_counts,
+                  }],
+                },
+                options: {
+                  maintainAspectRatio: false,
+                  layout: {
+                    padding: {
+                      left: 10,
+                      right: 25,
+                      top: 25,
+                      bottom: 0
+                    }
+                  },
+                  scales: {
+                    xAxes: [{
+                      time: {
+                        unit: 'Subject'
+                      },
+                      gridLines: {
+                        display: false,
+                        drawBorder: false
+                      },
+                      ticks: {
+                        maxTicksLimit: 100
+                      },
+                      maxBarThickness: 25,
+                    }],
+                    yAxes: [{
+                      ticks: {
+                        min: 0,
+                        max: Math.max(...tutor_counts),
+                        maxTicksLimit: 5,
+                        padding: 10,
+                      },
+                      gridLines: {
+                        color: "rgb(234, 236, 244)",
+                        zeroLineColor: "rgb(234, 236, 244)",
+                        drawBorder: false,
+                        borderDash: [2],
+                        zeroLineBorderDash: [2]
+                      }
+                    }],
+                  },
+                  legend: {
+                    display: false
+                  },
+                  tooltips: {
+                    titleMarginBottom: 10,
+                    titleFontColor: '#6e707e',
+                    titleFontSize: 14,
+                    backgroundColor: "rgb(255,255,255)",
+                    bodyFontColor: "#858796",
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    xPadding: 15,
+                    yPadding: 15,
+                    displayColors: false,
+                    caretPadding: 10,
+    
+                  },
+                }
+              });
+    
+        </script>
+
+
+{% endblock %}

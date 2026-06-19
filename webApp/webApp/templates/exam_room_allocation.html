@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <title>Exam Calendar with Room Arrangements</title>
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.js'></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+
+    <div class="container mt-4">
+        <h1>Exam Calendar</h1>
+        <div id="calendar"></div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="examModal" tabindex="-1" aria-labelledby="examModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="examModalLabel">Exam Details and Room Arrangements</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="modalBody">
+                        <!-- Exam details and room arrangements will be injected here -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const examData = {{ exam_data | tojson }};
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                events: examData.map(function(paper) {
+                    return {
+                        title: paper.title + ' - ' + paper.paperCode,
+                        start: paper.date + 'T' + paper.startTime,
+                        extendedProps: { ...paper }
+                    };
+                }),
+                dateClick: function(info) {
+                    const examsOnDate = examData.filter(paper => paper.date === info.dateStr);
+                    
+                    if (examsOnDate.length > 0) {
+                        fetch(`/get_seating_arrangements?date=${info.dateStr}`)
+                            .then(response => response.json())
+                            .then(roomArrangements => {
+                                let modalBody = `<h4>Exams on ${info.dateStr}</h4><ul class="list-group">`;
+                                
+                                examsOnDate.forEach(exam => {
+                                    modalBody += `<li class="list-group-item">
+                                        <b>${exam.title} (${exam.paperCode})</b> - Duration: ${exam.duration} mins
+                                        <br>Registered Students: ${exam.registered_students.join(', ')}
+                                    </li>`;
+                                });
+                                
+                                modalBody += `</ul><hr><h4>Room Arrangements</h4>`;
+
+                                roomArrangements.forEach(room => {
+                                    modalBody += `<h5>${room.room_name} (ID: ${room.room_id})</h5><table class="table table-bordered">`;
+                                    
+                                    for (let row = 0; row < room.rows; row++) {
+                                        modalBody += '<tr>';
+                                        for (let col = 0; col < room.columns; col++) {
+                                            const student = examsOnDate[0].registered_students.shift();
+                                            modalBody += `<td>${student || ''}</td>`;
+                                        }
+                                        modalBody += '</tr>';
+                                    }
+                                    modalBody += '</table>';
+                                });
+
+                                document.getElementById('modalBody').innerHTML = modalBody;
+                                $('#examModal').modal('show');
+                            });
+                    } else {
+                        alert("No exams scheduled for this date.");
+                    }
+                }
+            });
+            calendar.render();
+        });
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

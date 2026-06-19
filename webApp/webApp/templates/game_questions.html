@@ -1,0 +1,103 @@
+{% extends "base_page.html" %}
+
+
+{% block middleContent %}
+    <div class="card">
+        <div class="card-header">
+            Add New Question
+        </div>
+        <div class="card-body">
+            <form id="addQuestionForm">
+                <div class="form-group">
+                    <label for="question">Question:</label>
+                    <input type="text" class="form-control" id="question" name="question" required>
+                </div>
+                <div class="form-group">
+                    <label for="correctAnswer">Correct Answer:</label>
+                    <input type="text" class="form-control" id="correctAnswer" name="correctAnswer" required>
+                </div>
+                <div class="form-group">
+                    <label for="answer2">Answer 2:</label>
+                    <input type="text" class="form-control" id="answer2" name="answer2" required>
+                </div>
+                <div class="form-group">
+                    <label for="answer3">Answer 3:</label>
+                    <input type="text" class="form-control" id="answer3" name="answer3" required>
+                </div>
+                <div class="form-group">
+                    <label for="answer4">Answer 4:</label>
+                    <input type="text" class="form-control" id="answer4" name="answer4" required>
+                </div>
+                <button class="btn btn-primary" onclick = "add_question()">Add Question</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="questionsContainer" class="mt-4">
+        <!-- Questions will be dynamically added here -->
+    </div>
+
+    <script>
+        // Function to load questions from Flask backend
+        function loadQuestions() {
+            $.ajax({
+                url: '/get_questions',
+                type: 'GET',
+                success: function(data) {
+                    $('#questionsContainer').empty(); // Clear existing content
+                    data.forEach(function(question) {
+                        var cardHtml = `
+                            <div class="card mt-3">
+                                <div class="card-header">${question.question}</div>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">${question.correctAnswer}</li>
+                                    <li class="list-group-item">${question.answer2}</li>
+                                    <li class="list-group-item">${question.answer3}</li>
+                                    <li class="list-group-item">${question.answer4}</li>
+                                </ul>
+                            </div>
+                        `;
+                        $('#questionsContainer').append(cardHtml);
+                    });
+                },
+                error: function(err) {
+                    console.error('Error loading questions:', err);
+                }
+            });
+        };
+    </script>
+
+    <script>
+        // Submit new question form via AJAX
+        function add_question() {
+            console.log("doing this")
+            var formData = {
+                question: $('#question').val(),
+                correctAnswer: $('#correctAnswer').val(),
+                answer2: $('#answer2').val(),
+                answer3: $('#answer3').val(),
+                answer4: $('#answer4').val()
+            };
+
+            $.ajax({
+                url: '/add_question',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    console.log('Question added successfully');
+                    $('#addQuestionForm')[0].reset(); // Reset form fields
+                    loadQuestions(); // Reload questions after adding new one
+                },
+                error: function(err) {
+                    console.error('Error adding question:', err);
+                }
+            });
+        };
+
+        // Initial load of questions when page loads
+        $(document).ready(function() {
+            loadQuestions();
+        });
+    </script>
+{% endblock %}

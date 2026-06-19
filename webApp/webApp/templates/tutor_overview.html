@@ -1,0 +1,32 @@
+<head>
+    <title> Overview  </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="static\css\tutor_overview.css" />
+
+</head>
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+<div class="col">
+
+    {% for task in tasks %}
+        <div class="card mb-2"> 
+            <div class="card-body">
+                <div class="row">
+                    <div class="col col-sm-4 text-center"> <p> week {{ task.weekNo }} - {{ task.day}} </p> </div>
+                    <div class="col col-sm-2 text-center"> <p> {{ task.name }} </p> </div>
+                    <div class="col col-sm-2 text-center"> <p> {{ task.start }} - {{ task.end }} </p> </div>
+                    <div class="col col-sm-2 text-center"> {% if task.register %} <p style="color:green"> Register </p> 
+                    {% else %} <p style="color:red"> register </p> {% endif %} </div>
+
+                    <div class="col col-sm-2 text-center"> {% if task.Homework %} <p class="card text" style="color:green"> Homework Set </p> 
+                    {% else %} <p style="color:red"> Homework Set </p> {% endif %} </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

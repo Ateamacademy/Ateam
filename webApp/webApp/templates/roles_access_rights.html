@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Roles Access Rights</title>
+</head>
+{% extends 'base_page.html' %}
+{% block middleContent %}
+<style>
+    .table-wrapper {
+      position: relative;
+      max-height: 80vh; /* Adjust as needed */
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .table-wrapper table {
+      width: max-content;
+    }
+    .table-wrapper thead tr th {
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 2;
+    }
+    .table-wrapper tbody th {
+      position: sticky;
+      left: 0;
+      background: white;
+      z-index: 1;
+    }
+    .highlight-row, .highlight-col {
+        background-color: #f0f0f0 !important;
+      }
+    .highlight-cell {
+    background-color: #e0e0e0 !important;
+    }
+    .greyed-out {
+        background-color: #e0e0e0 !important;
+      }
+      .greyed-out input[type="checkbox"]:not(.log-in-checkbox) {
+        pointer-events: none;
+      }
+  </style>
+<script>
+    $( document ).ready(function() {
+        document.getElementById("role-link").classList.add("active");
+    });
+</script>
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 mt-4">
+    <h1 class="h3 mb-0 text-gray-800">Roles Access and Abilities</h1>
+</div>
+<!-- Content Row -->
+<div class="row">
+    <!-- Area Chart -->
+    <div class="col">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary"> Abilities </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive table-wrapper">
+                    <table class="table table-hover table-fixed-header">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th scope = "col"> level </th>
+                                <th scope="col">view_all_lessons</th>
+                                <th scope="col">view_lessons_at_centre</th>
+                                <th scope="col">change_lesson_time</th>
+                                <th scope="col">change_lesson_day</th>
+                                <th scope="col">change_lesson_tutor</th>
+                                <th scope="col">change_lesson_subject</th>
+                                <th scope="col">change_lesson_centre</th>
+                                <th scope="col">change_lesson_students</th>
+                                <th scope="col">add_a_new_lesson</th>
+                                <th scope="col">delete_a_lesson</th>
+                                <th scope="col">make_individual_test</th>
+                                <th scope="col">make_a_test_for_a_subject</th>
+                                <th scope="col">add_a_new_subject</th>
+                                <th scope="col">upload_work_to_lesson</th>
+                                <th scope="col">upload_to_subject_resources</th>
+                                <th scope="col">upload_to_subject</th>
+                                <th scope="col">change_lesson_plan</th>
+                                <th scope="col">view_all_tutor_information</th>
+                                <th scope="col">view_below_payslips</th>
+                                <th scope="col">upload_payslips</th>
+                                <th scope="col">edit_tutor_information</th>
+                                <th scope="col">add_a_new_tutor</th>
+                                <th scope="col">view_all_student_information</th>
+                                <th scope="col">view_student_payment_information</th>
+                                <th scope="col">edit_student_information</th>
+                                <th scope="col">delete_a_student</th>
+                                <th scope="col">view_all_logs</th>
+                                <th scope="col">view_centre_logs</th>
+                                <th scope="col">approve_hours</th>
+                                <th scope="col">send_emails_to_parents</th>
+                                <th scope="col">send_emails_to_students</th>
+                                <th scope="col">delete_messages</th>
+                                <th scope="col">create_alerts</th>
+                                <th scope="col">dismiss_alerts</th>
+                                <th scope="col">create_marketplace_products</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for role in roles %}
+                            <tr>
+                                <th scope="row"> {{ role.name }} </th>
+                                <td> <input type="number" value = "{{ role.level }}" onchange="updateRights('{{ role.name}}', 'level', this.value)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.view_all_lessons }} onchange="updateRights('{{ role.name}}', 'view_all_lessons', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.view_lessons_at_centre }} onchange="updateRights('{{ role.name}}', 'view_lessons_at_centre', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.change_lesson_time }} onchange="updateRights('{{ role.name}}', 'change_lesson_time', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.change_lesson_day }} onchange="updateRights('{{ role.name}}', 'change_lesson_day', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.change_lesson_tutor }} onchange="updateRights('{{ role.name}}', 'change_lesson_tutor', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.change_lesson_subject }} onchange="updateRights('{{ role.name}}', 'change_lesson_subject', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.change_lesson_centre }} onchange="updateRights('{{ role.name}}', 'change_lesson_centre', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.change_lesson_students }} onchange="updateRights('{{ role.name}}', 'change_lesson_students', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.add_a_new_lesson }} onchange="updateRights('{{ role.name}}', 'add_a_new_lesson', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.delete_a_lesson }} onchange="updateRights('{{ role.name}}', 'delete_a_lesson', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.make_individual_test }} onchange="updateRights('{{ role.name}}', 'make_individual_test', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.make_a_test_for_a_subject }} onchange="updateRights('{{ role.name}}', 'make_a_test_for_a_subject', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.add_a_new_subject }} onchange="updateRights('{{ role.name}}', 'add_a_new_subject', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.upload_work_to_lesson }} onchange="updateRights('{{ role.name}}', 'upload_work_to_lesson', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.upload_to_subject_resources }} onchange="updateRights('{{ role.name}}', 'upload_to_subject_resources', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.upload_to_subject }} onchange="updateRights('{{ role.name}}', 'upload_to_subject', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.change_lesson_plan }} onchange="updateRights('{{ role.name}}', 'change_lesson_plan', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.view_all_tutor_information }} onchange="updateRights('{{ role.name}}', 'view_all_tutor_information', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.view_below_payslips }} onchange="updateRights('{{ role.name}}', 'view_below_payslips', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.upload_payslips }} onchange="updateRights('{{ role.name}}', 'upload_payslips', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.edit_tutor_information }} onchange="updateRights('{{ role.name}}', 'edit_tutor_information', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.add_a_new_tutor }} onchange="updateRights('{{ role.name}}', 'add_a_new_tutor', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.view_all_student_information }} onchange="updateRights('{{ role.name}}', 'view_all_student_information', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.view_student_payment_information }} onchange="updateRights('{{ role.name}}', 'view_student_payment_information', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.edit_student_information }} onchange="updateRights('{{ role.name}}', 'edit_student_information', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.delete_a_student }} onchange="updateRights('{{ role.name}}', 'delete_a_student', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.view_all_logs }} onchange="updateRights('{{ role.name}}', 'view_all_logs', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.view_centre_logs }} onchange="updateRights('{{ role.name}}', 'view_centre_logs', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.approve_hours }} onchange="updateRights('{{ role.name}}', 'approve_hours', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.send_emails_to_parents }} onchange="updateRights('{{ role.name}}', 'send_emails_to_parents', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.send_emails_to_students }} onchange="updateRights('{{ role.name}}', 'send_emails_to_students', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.delete_messages }} onchange="updateRights('{{ role.name}}', 'delete_messages', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.create_alerts }} onchange="updateRights('{{ role.name}}', 'create_alerts', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.dismiss_alerts }} onchange="updateRights('{{ role.name}}', 'dismiss_alerts', this.checked)"> </td>
+                                <td> <input type="checkbox" {{ 'checked' if role.create_marketplace_products }} onchange="updateRights('{{ role.name}}', 'create_marketplace_products', this.checked)"> </td>
+
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Add Role Button -->
+                <div class="mt-3">
+                    <button class="btn btn-primary" data-toggle="modal" data-target="#addRoleModal">Add Role</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Add Role Modal -->
+<div class="modal fade" id="addRoleModal" tabindex="-1" role="dialog" aria-labelledby="addRoleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addRoleModalLabel">Add New Role</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="role-name" class="col-form-label">Role Name:</label>
+                        <input type="text" class="form-control" id="role-name">
+
+                        <label for="role-level" class="col-form-label">Role Level:</label>
+                        <input type="number" class="form-control" id="role-level">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="addRole()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function updateRights(roleName, key, checked) {
+      $.ajax({
+        url: '/updateRoleAccessRights',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({"roleName" : roleName, "key" : key, "value" : checked}),
+        success: function(response) {
+        },
+        error: function(error) {
+            alert("Unfortunately the Access Rights couldnt be updated please try again because of Error".concat(error))
+            console.log(error);
+        }
+
+    })
+    }
+
+    function addRole() {
+        var roleName = document.getElementById('role-name').value;
+        var level = document.getElementById("role-level").value;
+
+        if (roleName) {
+            var tbody = document.querySelector('table tbody');
+            var newRow = document.createElement('tr');
+            var columns = ['name', 'view_all_lessons', 'view_lessons_at_centre', 'change_lesson_time', 'change_lesson_day', 'change_lesson_tutor', 'change_lesson_subject', 'add_a_new_lesson', 'delete_a_lesson', 'make_individual_test', 'make_a_test_for_a_subject', 'add_a_new_subject', 'upload_work_to_lesson', 'upload_to_subject_resources', 'upload_to_subject', 'change_lesson_plan', 'view_all_tutor_information', 'view_tutor_payslips', 'edit_tutor_information', 'add_a_new_tutor', 'delete_a_tutor', 'view_all_student_information', 'view_student_payment_information', 'edit_student_information', 'delete_a_student', 'delete_a_student', 'view_all_logs', 'view_centre_logs', 'approve_hours', 'send_emails_to_parents', 'send_emails_to_students', 'delete_messages'];
+
+            columns.forEach(function(column, index) {
+                var cell = document.createElement(index === 0 ? 'th' : 'td');
+                if (index === 0) {
+                    cell.scope = 'row';
+                    cell.textContent = roleName;
+                } else {
+                    var checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.onchange = function() {
+                        updateRights(roleName, column, checkbox.checked);
+                    };
+                    cell.appendChild(checkbox);
+                }
+                newRow.appendChild(cell);
+            });
+
+            tbody.appendChild(newRow);
+            $('#addRoleModal').modal('hide');
+
+            $.ajax({
+              url: '/addRole',
+              type: 'POST',
+              contentType: 'application/json',
+              data: JSON.stringify({"name" : roleName, "level" : level}),
+              success: function(response) {
+              },
+              error: function(error) {
+                  alert("Unfortunately the Access Rights couldnt be updated please try again because of Error".concat(error))
+                  console.log(error);
+              }
+
+          })
+        }
+    }
+</script>
+{% endblock %}

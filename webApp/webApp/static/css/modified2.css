@@ -1,0 +1,177 @@
+/* General Styling */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f8f9fc;
+    margin: 0;
+    padding: 0;
+    color: #343a40;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 6.5rem;
+    min-height: 100vh;
+    background-color: rgba(255, 255, 255, 0.3); /* Transparent background showing the border */
+    border: 1px solid #ddd;
+    border-radius: 30px; /* Rounded Sidebar */
+    padding-top: 2rem;
+    transition: width 0.3s ease-in-out;
+}
+
+.sidebar:hover {
+    width: 12rem; /* Expands on hover */
+}
+
+.sidebar .menu-item {
+    text-align: center;
+    padding: 1.5rem 0;
+    color: #333;
+    transition: color 0.3s ease;
+}
+
+.sidebar .menu-item:hover {
+    color: #5c5c5c; /* Slightly darker on hover */
+}
+
+.sidebar .menu-item i {
+    font-size: 2rem;
+}
+
+/* Dashboard Main Content */
+.dashboard {
+    padding: 2rem;
+}
+
+h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #343a40;
+}
+
+h2 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+/* Cards */
+.card {
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-10px); /* Raise the card on hover */
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Card colors based on the data category */
+.card.sales {
+    background: #ffe5e2;
+}
+
+.card.profit {
+    background: #e2f9e2;
+}
+
+.card.visits {
+    background: #e2f0ff;
+}
+
+.card.orders {
+    background: #fff9e2;
+}
+
+/* Card titles */
+.card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+/* Card stats */
+.card-stat {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #333;
+}
+
+/* Circular progress for stats */
+.circular-progress {
+    width: 5rem;
+    height: 5rem;
+    border-radius: 50%;
+    border: 8px solid #ddd;
+    position: relative;
+}
+
+.circular-progress .progress-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+/* Dark Theme Cards */
+.card-dark {
+    background-color: #222;
+    color: #fff;
+}
+
+.card-dark h2 {
+    color: #eaeaea;
+}
+
+.card-dark .card-stat {
+    color: #fff;
+}
+
+/* Statistics Section */
+.stats-card {
+    padding: 2rem;
+    border-radius: 15px;
+    background-color: #343a40;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.stats-title {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+}
+
+.stats-info {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+/* Charts */
+.chart {
+    height: 150px;
+    width: 100%;
+    background-color: #333;
+    border-radius: 10px;
+    margin-top: 1rem;
+    padding: 1rem;
+    color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 4rem;
+    }
+
+    .card {
+        flex-direction: column;
+    }
+}

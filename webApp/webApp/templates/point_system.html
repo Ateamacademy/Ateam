@@ -1,0 +1,116 @@
+{% extends 'base_page.html' %}
+
+{% block middleContent %}
+<div class="container mt-5">
+    <h2 class="text-center">Point System Management</h2>
+
+    <!-- Table displaying all points -->
+    <table class="table table-bordered mt-4">
+        <thead>
+            <tr>
+                <th>Reason</th>
+                <th>Amount</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="points-table-body">
+            {% for point in points %}
+            <tr id="point-{{ point.reason }}">
+                <td>{{ point.reason }}</td>
+                <td>{{ point.amount }}</td>
+                <td>
+                    <button class="btn btn-primary" onclick="showEditModal('{{ point.reason }}', {{ point.amount }})">Edit</button>
+                    <button class="btn btn-danger" onclick="deletePoint('{{ point.reason }}')">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Add Point Button -->
+    <button class="btn btn-success mt-3" onclick="showAddModal()">Add New Point</button>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal fade" id="pointModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel">Add/Edit Point</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="pointForm">
+                        <input type="hidden" id="originalReason">
+                        <div class="form-group">
+                            <label for="reason">Reason</label>
+                            <input type="text" class="form-control" id="reason" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="amount">Amount</label>
+                            <input type="number" class="form-control" id="amount" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="savePoint()">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showAddModal() {
+        document.getElementById('modalLabel').innerText = 'Add New Point';
+        document.getElementById('reason').value = '';
+        document.getElementById('amount').value = '';
+        document.getElementById('originalReason').value = '';
+        $('#pointModal').modal('show');
+    }
+
+    function showEditModal(reason, amount) {
+        document.getElementById('modalLabel').innerText = 'Edit Point';
+        document.getElementById('reason').value = reason;
+        document.getElementById('amount').value = amount;
+        document.getElementById('originalReason').value = reason;
+        $('#pointModal').modal('show');
+    }
+
+    function savePoint() {
+        const reason = document.getElementById('reason').value;
+        const amount = document.getElementById('amount').value;
+        const originalReason = document.getElementById('originalReason').value;
+        
+        $.ajax({
+            url: '/save_point',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ reason, amount, originalReason }),
+            success: function() {
+                location.reload();
+            },
+            error: function() {
+                alert('Error saving point');
+            }
+        });
+    }
+
+    function deletePoint(reason) {
+        if (confirm('Are you sure you want to delete this point?')) {
+            $.ajax({
+                url: `/delete_point/${reason}`,
+                method: 'DELETE',
+                success: function() {
+                    location.reload();
+                },
+                error: function() {
+                    alert('Error deleting point');
+                }
+            });
+        }
+    }
+</script>
+{% endblock %}

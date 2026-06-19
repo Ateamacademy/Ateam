@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Exam Timetable</title>
+</head>
+<body>
+    <h2>Exam Timetable for {{ student_name }}</h2>
+    
+    <p>Thank you for choosing A-Team Academy to sit your exams. We have now processed the entries, and you can find below the exam timetable. Please check the timetable accordingly (Name and date of birth) and note that any details not pointed out now could result in additional charges if changes are required later.</p>
+
+    <p>Please also read the Instructions to Candidates for exams documents attached while preparing for your exams.</p>
+
+    <p>Candidates are expected to arrive at least 15 minutes prior to each exam with ID presented at the time of registration, as well as the correct stationary. Mobile phones, AirPods, Bluetooth devices, and smartwatches are not allowed into the exam room (you can leave them with the exam officer who will guide you on the day).</p>
+
+    <p>
+        <b>All exams will take place at the Yardley Centre:</b><br><br>
+        1772 Coventry Road<br>
+        Birmingham<br>
+        B26 1PB
+    </p>
+
+    <p>Failure to turn up on time or altogether for the exams can impact your overall performance. If you have any further questions, please email examsofficer@ateamacademy.co.uk.</p>
+
+    <p>Kind Regards,</p>
+    <p>Hannah Tse</p>
+
+    <hr>
+    
+    <p><strong>STUDENT NAME:</strong> {{ student_name }}</p>
+    <p><strong>D.O.B:</strong> {{ student_dob }}</p>
+    <p><strong>CANDIDATE NUMBER:</strong> {{ candidate_number }}</p>
+
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Exam Board</th>
+                <th>Exam Title</th>
+                <th>Paper Code</th>
+                <th>Paper Number</th>
+                <th>Date</th>
+                <th>Start Time</th>
+                <th>Duration (minutes)</th>
+                <th>Extra Information</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for exam in exams %}
+                {% for paper in exam.papers %}
+                <tr>
+                    <td>{{ exam.exam_board }}</td>
+                    <td>{{ exam.title }}</td>
+                    <td>{{ paper.paper_code }}</td>
+                    <td>{{ paper.paper_no }}</td>
+                    <td>{{ paper.date | default('--/--/--') }}</td>
+                    <td>{{ paper.start_time | default('--:--') }}</td>
+                    <td>{{ paper.duration }}</td>
+                    <td>{{ paper.extra_info | default('N/A') }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="8">No exams or papers found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

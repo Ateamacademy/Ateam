@@ -1,0 +1,329 @@
+<head>
+    <title> Lesson Plans </title>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+</head>
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+        <div class="col-12">
+            <div class="card mb-4">
+                <div clas="card body">
+                    
+                        <div class="row">
+                            <div class="col">
+                                <p class="card-text"> Please select a subject </p>
+                            </div>
+                            <div class="col">
+                                <select class="custom-select" id="subject_choice" onchange="filter(this.value)"> 
+                                    <option value="-1" default> Please choose an Option </option> 
+                                    {% for subject in subjects %}
+                                        <option value = {{ subject[0] }}> {{ subject[1] }} </option>
+                                    {% endfor  %}
+                                </select>
+                            </div>
+
+                            <div class="col">
+                                {% if lessonPlanAllowed %} <button class="btn btn-success" onclick="updateLessonPlan()"> Save Plan </button>  {% endif %}
+                            </div>
+                        </div>
+                        {% if upload_to_subject_resources %}
+                        <hr>
+                        <div class="row mt-3 mb-4"> 
+                            <div class="col-md-3"> Upload Subject Resource:  </div>
+                            
+                            <div class="col-9"> 
+                                <form method="POST" action="" enctype="multipart/form-data" id="subjectForm">
+                                    <div class="row">
+                                        <div class="col-md-3"> <input type="file" name="file" multiple="" autocomplete="off"> </div>
+                                        <div class="col-md-3"> <input type="submit" value="Submit"></div><div class="row"> </div>
+                                        <div class="col-md-3"> <input type="checkbox" id="studentView" name="studentView" value="this.checked"> <label for="studentView">Hide From Students?</label> </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <script>
+                            const allTopics = JSON.parse('{{ topics | tojson }}');
+                            var dates = JSON.parse('{{ dates|tojson }}')
+
+                            function filter(id) {
+                                resetTable();
+                                var i = 0;
+                                var count = 0;
+
+                                for(i=0 ; i<allTopics.length ; i++) {
+                                    if(allTopics[i][0] == id) {
+                                        row = document.createElement('tr');
+                                        row.classList.add("oneWeek");       
+
+                                        col1 = document.createElement('td');
+                                        col1.setAttribute("width", "10%");
+                                        col1.setAttribute('scope', 'row');
+                                        col1.innerHTML = count
+
+                                        col2 = document.createElement('td');
+                                        col2.setAttribute("width", "50%");
+                                        col2.setAttribute('scope', 'row');
+                                        input = document.createElement("input");
+                                        p = document.createElement("p");
+                                        p.innerHTML = allTopics[i][2];
+                                        p.style.width = "80%";
+                                        input.setAttribute("value", allTopics[i][2]);
+                                        input.style.width = "80%";
+                                        
+                                        if("{{ change_lesson_plan  }}" == "True" ) {
+                                            col2.append(input);
+                                        }
+                                        else {
+                                            col2.append(p);
+                                        }
+
+                                        if("{{ upload_to_subject  }}" == "True" ) {
+
+                                            col3 = document.createElement("td");
+                                            col3.setAttribute("width", "40%");
+                                            col3.setAttribute('scope', 'row');
+                                            form = document.createElement("form");
+                                            form.setAttribute("method", "POST");
+                                            form.setAttribute("action", "/uploadForAll?weekNo=".concat(count).concat("&subjectID=".concat(id)));
+                                            form.setAttribute("enctype", "multipart/form-data");
+
+                                            input2 = document.createElement("input");
+                                            input2.setAttribute("type", "file");
+                                            input2.setAttribute("name", "file");
+                                            input2.setAttribute("multiple", "");
+                                            input2.setAttribute("autocomplete", "off");
+
+                                            input3 = document.createElement("input");
+                                            input3.setAttribute("type", "submit");
+                                            input3.setAttribute("value", "Submit");
+
+                                            select = document.createElement("select");
+                                            select.setAttribute("name", "days");
+                                            option1 = document.createElement("option");
+                                            option1.setAttribute("value", "all");
+                                            option1.innerHTML = "all" ;
+                                            option2 = document.createElement("option");
+                                            option2.setAttribute("value", "week"); 
+                                            option2.innerHTML = "week";
+                                            option3 = document.createElement("option");
+                                            option3.setAttribute("value", "weekend"); 
+                                            option3.innerHTML = "weekend"
+
+                                            select.append(option1);
+                                            select.append(option2);
+                                            select.append(option3);
+
+                                            studentView = document.createElement("input");
+                                            studentView.setAttribute("type", "checkbox");
+                                            studentView.setAttribute("id", "studentView");
+                                            studentView.setAttribute("name", "studentView");
+                                            studentView.setAttribute("value", "this.checked");
+
+
+                                            label = document.createElement("label");
+                                            label.setAttribute("for", "studentView");
+                                            label.innerHTML = "Hide From Students?";
+        
+
+                                            div1 = document.createElement("div");
+                                            div1.classList.add("row");
+                                            div1.append(input2);
+                                            div1.append(input3);
+                                            
+                                            div2 = document.createElement("div");
+                                            div2.classList.add("row");
+                                            div2.append(select);
+
+                                            
+                                            div3 = document.createElement("div");
+                                            div3.classList.add("row");
+                                            div3.append(studentView);
+                                            div3.append(label);
+                                            
+
+                                            form.append(div1);
+                                            form.append(div2);
+                                            form.append(div3) ;
+                                            col3.append(form);
+                                        }
+                                        
+                                        file = document.createElement("input");
+
+                                        row.append(col1);
+                                        row.append(col2);
+
+                                        if("{{ upload_to_subject  }}" == "True" ) {
+                                            row.append(col3);
+                                        }
+                                        document.getElementById("topicList").append(row);
+
+                                        count ++;
+                                    }
+                                }
+
+                                for(count; count<=52 ; count++) {
+                                    row = document.createElement('tr');
+                                    row.classList.add("oneWeek");       
+
+                                    col1 = document.createElement('td');
+                                    col1.setAttribute('scope', 'row');
+                                    col1.innerHTML = count
+
+                                    col2 = document.createElement('td');
+                                    col2.setAttribute('scope', 'row');
+                                    input = document.createElement("input");
+                                    input.setAttribute("value", " ")
+                                    col2.append(input)
+
+                                        if("{{ upload_to_subject  }}" == "True" ) {
+
+                                        col3 = document.createElement("td");
+                                        col3.setAttribute('scope', 'row');
+                                        form = document.createElement("form");
+                                        form.setAttribute("method", "POST");
+                                        form.setAttribute("action", "/uploadForAll?weekNo=".concat(count).concat("&subjectID=".concat(id)));
+                                        form.setAttribute("enctype", "multipart/form-data");
+                                        
+                                        input2 = document.createElement("input");
+                                        input2.setAttribute("type", "file");
+                                        input2.setAttribute("name", "file");
+                                        input2.setAttribute("multiple", "");
+                                        input2.setAttribute("autocomplete", "off");
+                                        
+                                        input3 = document.createElement("input");
+                                        input3.setAttribute("type", "submit");
+                                        input3.setAttribute("value", "Submit");
+
+                                        select = document.createElement("select");
+                                        select.setAttribute("name", "days");
+                                        option1 = document.createElement("option");
+                                        option1.setAttribute("value", "all"); 
+                                        option1.innerHTML = "all";
+                                        option2 = document.createElement("option");
+                                        option2.setAttribute("value", "week"); 
+                                        option2.innerHTML = "week";
+                                        option3 = document.createElement("option");
+                                        option3.setAttribute("value", "weekend"); 
+                                        option3.innerHTML = "weekend"
+
+                                        select.append(option1);
+                                        select.append(option2);
+                                        select.append(option3);
+
+                                        studentView = document.createElement("input");
+                                        studentView.setAttribute("type", "checkbox");
+                                        studentView.setAttribute("id", "studentView");
+                                        studentView.setAttribute("name", "studentView");
+                                        studentView.setAttribute("value", "this.checked");
+
+
+                                        label = document.createElement("label");
+                                        label.setAttribute("for", "studentView");
+                                        label.innerHTML = "Hide From Students?";
+
+
+                                        div1 = document.createElement("div");
+                                        div1.classList.add("row");
+                                        div1.append(input2);
+                                        div1.append(input3);
+                                        
+                                        div2 = document.createElement("div");
+                                        div2.classList.add("row");
+                                        div2.append(select);
+
+                                        
+                                        div3 = document.createElement("div");
+                                        div3.classList.add("row");
+                                        div3.append(studentView);
+                                        div3.append(label);
+                                        
+                                        form.append(div1);
+                                        form.append(div2);
+                                        form.append(div3);
+                                        col3.append(form);
+                                    }
+
+                                    row.append(col1)
+                                    row.append(col2)
+
+                                    if("{{ upload_to_subject  }}" == "True" ) {
+                                        row.append(col3);
+                                    }
+                                    document.getElementById("topicList").append(row)
+                                }
+                                
+                                document.getElementById("subjectForm").setAttribute("action", "/uploadForAll?weekNo=-1&subjectID=".concat(id));;
+
+                            }
+
+                            function resetTable() {
+                                document.getElementById("topicList").innerHTML = "";
+                            }
+                        </script>
+
+                    <div class="row">
+                        <div class="col">
+                            <table class="table"> 
+                                <thead>
+                                    <th scope = "col-1"> Week Number </th> 
+                                    <th scope = "col-5"> Topic </th>
+                                    {% if change_lesson_plan %} <th scope = "col-6"> File Upload </th> {% endif %}
+                                </thead>
+
+                                <tbody id="topicList">
+                                    {% for topic in topics %}
+                                    <tr class="oneWeek">
+                                        <td scope = "row"> {{ topic[0] }} </td>
+                                        <td scope = "row"> <input style="width:100%"> </td>
+                                        {% if change_lesson_plan %} <td scope = "row"> </td> {% endif %}
+
+                                    </tr>
+                                    {% endfor %}
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {% if lessonPlanAllowed %}
+                    <script>
+                        function updateLessonPlan() {
+                            var id = document.getElementById('subject_choice').value;
+
+                            var newTopics = [];
+
+                            rows = document.getElementsByClassName('oneWeek');
+
+
+                            for(i=0 ; i < rows.length ; i++) {
+                                newTopics.push([rows[i].children[0].innerHTML, String(rows[i].children[1].children[0].value)])
+                            };
+
+
+                            $.ajax({
+                                url:  '/updateLessonPlan/'.concat(id),
+                                type: 'POST',
+                                contentType : "application/json",
+                                data: JSON.stringify(newTopics),
+                                success: function(response) { alert("The lesson plan was updated") } ,
+                                error: function(error) { alert("Sorry the Lesson Plan could not be Updated right now - please try again later") }
+                            });
+                        }
+                    </script>
+                    {% endif %}
+                </div>  
+            </div>  
+        </div>
+    
+    
+
+
+
+
+
+{% endblock  %}

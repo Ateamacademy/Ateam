@@ -1,0 +1,88 @@
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+<div class="container mt-5">
+    <h2>Email Templates</h2>
+
+    <div class="row">
+        <!-- Sidebar for template list -->
+        <div class="col-md-3">
+            <h4>Templates</h4>
+            <ul class="list-group" id="templateList">
+                {% for template in templates %}
+                <li class="list-group-item template-item" data-template="{{ template }}">{{ template }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Editor and Preview -->
+        <div class="col-md-9">
+            <h4>Editor</h4>
+            <textarea id="templateEditor" class="form-control" rows="10"></textarea>
+
+            <button class="btn btn-primary mt-3" id="saveTemplateButton">Save Changes</button>
+
+            <h4 class="mt-5">Live Preview</h4>
+            <div id="templatePreview" class="border p-3"></div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const templateList = document.querySelectorAll(".template-item");
+    const templateEditor = document.getElementById("templateEditor");
+    const templatePreview = document.getElementById("templatePreview");
+    const saveButton = document.getElementById("saveTemplateButton");
+
+    let currentTemplate = null;
+
+    // Load template content on click
+    templateList.forEach(item => {
+        item.addEventListener("click", () => {
+            const templateName = item.dataset.template;
+            currentTemplate = templateName;
+
+            fetch(`email_templates/${templateName}`)
+                .then(response => response.text())
+                .then(data => {
+                    templateEditor.value = data;
+                    templatePreview.innerHTML = data; // Update live preview
+                });
+        });
+    });
+
+    // Update live preview on input
+    templateEditor.addEventListener("input", () => {
+        templatePreview.innerHTML = templateEditor.value;
+    });
+
+    // Save the edited template
+    saveButton.addEventListener("click", () => {
+        if (!currentTemplate) {
+            alert("Please select a template to edit.");
+            return;
+        }
+
+        fetch('/save_email_templates/' + currentTemplate, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                template_name: currentTemplate,
+                template_content: templateEditor.value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(`Error: ${data.error}`);
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error("Error saving template:", err));
+    });
+});
+</script>
+{% endblock %}

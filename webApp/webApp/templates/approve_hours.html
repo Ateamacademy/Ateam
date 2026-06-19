@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Tutor Hours</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="static/css/sb-admin-2.min.css" rel="stylesheet">
+
+</head>
+
+{% extends 'base_page.html' %}
+
+{% block middleContent %}
+
+<script>
+    $( document ).ready(function() {
+        document.getElementById("tutor-link").classList.add("active");
+    });
+</script>
+
+
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 mt-4">
+        <h1 class="h3 mb-0 text-gray-800">Tutor Hours</h1>
+
+    </div>
+
+    <script>
+      function approveHours(approve, id, weekNo) {
+        document.getElementById("row-" + id).remove();
+
+        $.ajax({
+          url: '/updateHours',
+          type: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({"approve": approve, "lessonID" : id, "weekNo" : weekNo }),
+          success: function(response) {
+            document.getElementById("row-" + id).remove();          
+          },
+          error: function(error) {
+            alert("The hours could not be approved / rejected")
+          }
+      });
+
+      }
+    </script>
+
+    <div class="row">
+
+      <!-- Area Chart -->
+      <div class="col">
+          <div class="card shadow mb-4">
+              <div
+                  class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                  <h6 class="m-0 font-weight-bold text-primary"> Hours to Approve </h6>
+              </div>
+              <div class="card-body">
+                  <table class="table table-hover" id = "monthHours">
+                      <thead>
+                        <tr>
+                          <th scope="col" onclick = "sortTable(0, 'monthHours')"> Tutor <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+                          <th scope="col" onclick = "sortTable(0, 'monthHours')"> Day <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+                          <th scope="col" onclick = "sortTable(0, 'monthHours')"> Start-Time <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+                          <th scope="col" onclick = "sortTableByNumber(0)"> Week <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+                          <th scope="col" onclick = "sortTableByNumber(0)"> Duration <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+                          <th scope="col" onclick = "sortTable(0, 'monthHours')"> Register <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+                          <th scope="col" onclick = "sortTable(0, 'monthHours')"> HW <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+                          <th scope="col" onclick = "sortTable(0, 'monthHours')"> Description <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+                          <th scope="col" onclick = "sortTable(0, 'monthHours')"> Action <i class="fas fa-sort" style = "cursor: pointer;"></i> </th>
+
+                        </tr>
+                      </thead>
+                      <tbody>
+
+                      {% for lesson in shifts %}
+                        <tr id="row-{{ lesson.id }}">
+                          <td> {{ lesson.tutor }} </td>
+                          <td> {{ lesson.day }} </td>
+                          <td> {{ lesson.startTime }} </td>
+                          <td> {{ lesson.weekNo }} </td>
+                          <td> {{ lesson.duration }} </td>
+                          <td> {{ lesson.register }} </td>
+                          <td> {{ lesson.homework }} </td>
+                          <td> {{ lesson.description }} </td>
+                          <td> <button class="btn btn-success" onclick="approveHours('approve', {{ lesson.id }}, {{ lesson.weekNo }})"> Approve </button> 
+                            <button class="btn btn-danger" onclick="approveHours('reject', {{ lesson.id }}, {{ lesson.weekNo }})"> Reject </button> </td>
+                          
+                        </tr>
+                      {% endfor %}
+                      </tbody>
+                  </table>
+              </div>
+          </div>
+      </div>
+      
+    </div>
+
+
+
+
+    <script>
+        function sortTable(n, id) {
+            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+            table = document.getElementById(id);
+            switching = true;
+            dir = "desc";
+            while (switching) {
+              switching = false;
+              rows = table.rows;
+              for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("TD")[n];
+                y = rows[i + 1].getElementsByTagName("TD")[n];
+                if (dir == "asc") {
+                  if (Number(x.innerHTML.toLowerCase()) > Number(y.innerHTML.toLowerCase())) {
+                    shouldSwitch = true;
+                    break;
+                  }
+                } else if (dir == "desc") {
+                  if (Number(x.innerHTML.toLowerCase()) < Number(y.innerHTML.toLowerCase())) {
+                    shouldSwitch = true;
+                    break;
+                  }
+                }
+              }
+              if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                switchcount ++;
+              } else {
+                if (switchcount == 0 && dir == "asc") {
+                  dir = "desc";
+                  switching = true;
+                }
+              }
+            }
+          };
+    </script>
+    
+    <script>
+        function sortTableByNumber(n) {
+            var table, rows, switching, i, x, y, shouldSwitch;
+            table = document.getElementById("monthHours");
+            switching = true;
+            while (switching) {
+              switching = false;
+              rows = table.rows;
+              for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("TD")[0];
+                y = rows[i + 1].getElementsByTagName("TD")[0];
+                if (Number(x.innerHTML) > Number(y.innerHTML)) {
+                  shouldSwitch = true;
+                  break;
+                }
+              }
+              if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+              }
+            }
+          }
+
+    </script>
+
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="static/vendor/jquery/jquery.min.js"></script>
+    <script src="static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="static/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="static/javascript/sb-admin-2.min.js"></script>
+
+    <!-- Page level plugins -->
+    <script src="static/vendor/chart.js/Chart.min.js"></script>
+
+    <!-- Page level custom scripts -->
+    <script src="static/javascript/demo/chart-area-demo.js"></script>
+    <script src="static/javascript/demo/chart-pie-demo.js"></script>
+
+
+{% endblock %}

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <title>Game Start Page</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #007BFF;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            position: relative;
+        }
+        #startButton {
+            padding: 20px 40px;
+            font-size: 24px;
+            cursor: pointer;
+            border: none;
+            background-color: #FFC107;
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+            z-index: 10;
+        }
+        #startButton:hover {
+            background-color: #FFA000;
+        }
+        .floating {
+            position: absolute;
+            font-size: 24px;
+            opacity: 0.7;
+            bottom: -50px;
+            animation: float 10s linear infinite;
+        }
+        @keyframes float {
+            0% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh);
+                opacity: 0.7;
+            }
+        }
+        #timer {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            z-index: 10;
+            color: white;
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            z-index: 10;
+            color: white;
+        }
+        #questionContainer {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+        #question {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        .answerButton {
+            padding: 10px 20px;
+            font-size: 24px;
+            cursor: pointer;
+            border: none;
+            background-color: #FFC107;
+            color: white;
+            border-radius: 5px;
+            margin: 10px;
+            transition: background-color 0.3s ease;
+        }
+        .answerButton:hover {
+            background-color: #FFA000;
+        }
+        #finalScore {
+            display: none;
+            font-size: 36px;
+            color: #007BFF;
+        }
+        #cameraContainer {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+        #cameraContainer video {
+            width: 100%;
+            height: auto;
+        }
+        #snapshot {
+            margin-top: 20px;
+        }
+        #userForm {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+        #userForm input {
+            margin: 10px;
+            padding: 10px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 80%;
+        }
+        #submitButton {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            background-color: #28A745;
+            color: white;
+            border-radius: 5px;
+            margin: 10px;
+            transition: background-color 0.3s ease;
+        }
+        #submitButton:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="startButton">Begin Game</button>
+    <div id="timer">Time: 30</div>
+    <div id="score">Score: 0</div>
+    <div id="questionContainer">
+        <div id="question"></div>
+        <div id="answers"></div>
+        <div id="finalScore"></div>
+    </div>
+    <div id="cameraContainer">
+        <video id="camera" autoplay></video>
+        <canvas id="snapshot" width="640" height="480"></canvas>
+    </div>
+    <div id="userForm">
+        <p> Enter your name and email to be entered into our giveaway! <p>
+        <input type="text" id="userName" placeholder="Enter your name">
+        <input type="email" id="userEmail" placeholder="Enter your email">
+        <button id="submitButton">Submit</button>
+    </div>
+
+    <script>
+        const questions = {{ questions | tojson | safe }};
+
+        const symbols = ["+", "-", "×", "÷", "=", "≠", ">", "<", "≤", "≥", "★"];
+        const words = [
+        "Prose", "Grammar", "Syntax", "Narrative", "Metaphor", "Simile",
+        "Organism", "Biology", "Evolution", "Ecology", "Genetics", "Species",
+        "Element", "Compound", "Chemical", "Reaction", "Bond", "Acid", "Base",
+        "Motion", "Gravity", "Velocity", "Acceleration", "Momentum", "Electromagnetism"
+        ];
+        const ATeamSymbols = ['😄', '😎', "☺", 'A*','Grade 9']
+        const ATeamWords = ['Home-Schooling', 'Tuition', 'Trial-Lesson', 'Ilford', 'Soho Road', 'Coventry Road']
+        const elements = ATeamSymbols.concat(ATeamWords);
+        //const elements = symbols.concat(words);
+
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timerInterval;
+        let timeRemaining = 30;
+        let imageDataUrl = '';
+
+        function createFloatingElement(text) {
+           
+            const el = document.createElement("div");
+            el.textContent = text;
+            el.className = "floating";
+            el.style.left = Math.random() * 100 + "vw";
+            el.style.fontSize = (Math.random() * 10 + 30) + "px"; // Random size between 10px and 40px
+            el.style.animationDuration = (Math.random() * 2 + 8) + "s";
+            el.style.animationDelay = Math.random() * 5 + "s";
+            document.body.appendChild(el);
+        }
+
+        function initFloatingElements() {
+            elements.forEach(element => createFloatingElement(element));
+            setInterval(() => {
+                elements.forEach(element => createFoatingElement(element));
+            }, 10000); // Recreate elements every 10 seconds
+        }
+
+        function startGame() {
+            document.getElementById('startButton').style.display = 'none';
+            document.getElementById('questionContainer').style.display = 'flex';
+            startTimer();
+            showQuestion();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                document.getElementById('timer').textContent = `Time: ${timeRemaining}`;
+                if (timeRemaining === 0) {
+                    clearInterval(timerInterval);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function showQuestion() {
+            const questionData = questions[currentQuestionIndex];
+            document.getElementById('question').textContent = questionData.question;
+
+            const answers = [
+                questionData.correctAnswer,
+                questionData.answer2,
+                questionData.answer3,
+                questionData.answer4
+            ];
+
+            // Shuffle answers
+            answers.sort(() => Math.random() - 0.5);
+
+            const answersContainer = document.getElementById('answers');
+            answersContainer.innerHTML = '';
+            answers.forEach(answer => {
+                const button = document.createElement('button');
+                button.textContent = answer;
+                button.className = 'answerButton';
+                button.onclick = () => checkAnswer(answer);
+                answersContainer.appendChild(button);
+            });
+        }
+
+        function checkAnswer(answer) {
+            const questionData = questions[currentQuestionIndex];
+            if (answer === questionData.correctAnswer) {
+                score++;
+                document.getElementById('score').textContent = `Score: ${score}`;
+            }
+
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+            } else {
+                currentQuestionIndex = 0;
+                showQuestion();
+            }
+        }
+
+        // Function to end the game and handle submitting the score with AJAX
+        function endGame() {
+            document.getElementById('question').style.display = 'none';
+            document.getElementById('answers').style.display = 'none';
+            document.getElementById('finalScore').style.display = 'block';
+            document.getElementById('finalScore').textContent = `Final Score: ${score}`;
+            activateCamera();
+        }
+
+        // Function to activate the camera and take a picture
+        function activateCamera() {
+            const video = document.getElementById('camera');
+            const canvas = document.getElementById('snapshot');
+            const cameraContainer = document.getElementById('cameraContainer');
+            cameraContainer.style.display = 'flex';
+
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+                    video.srcObject = stream;
+                    video.play();
+
+                    // Take a snapshot after a delay to allow the user to position themselves
+                    setTimeout(() => {
+                        const context = canvas.getContext('2d');
+                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        stream.getTracks().forEach(track => track.stop()); // Stop the camera
+                        imageDataUrl = canvas.toDataURL(); // Get image data URL
+                        showUserForm();
+                    }, 3000); // 3 seconds delay
+                });
+            } else {
+                alert("Camera not supported or permission denied.");
+            }
+        }
+
+        // Function to show the user form for entering name and email
+        function showUserForm() {
+            document.getElementById('cameraContainer').style.display = 'none';
+            document.getElementById('userForm').style.display = 'flex';
+        }
+
+        // Function to submit the score data using jQuery AJAX
+        function submitScore() {
+            const name = $('#userName').val();
+            const email = $('#userEmail').val();
+        
+            if (!name || !email) {
+                alert("Please enter both your name and email.");
+                return;
+            }
+        
+            const data = {
+                name: name,
+                email: email,
+                score: score,
+                image: imageDataUrl
+            };
+        
+            // AJAX request using jQuery
+            $.ajax({
+                url: '/addGameScore',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(response) {
+                    alert("Score submitted successfully!");
+                    location.reload();
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error:", error);
+                    alert("Error submitting score.");
+                }
+            });
+        }
+
+        document.getElementById('startButton').addEventListener('click', startGame);
+        document.getElementById('submitButton').addEventListener('click', submitScore);
+
+        initFloatingElements();
+    </script>
+
+</body>
+</html>

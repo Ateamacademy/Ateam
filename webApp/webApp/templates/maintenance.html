@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Under Maintenance</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: black;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3em;
+            color: white;
+        }
+
+        p {
+            font-size: 1.5em;
+            color: white;
+        }
+
+        .loader {
+            border: 16px solid #f3f3f3;
+            border-top: 16px solid #3498db;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <div class="slideshow-container">
+
+            <div class="mySlides fade">
+#              <Img src="/static/images/logo_glowing.jpg" height = "600px" width = "600px">
+            </div>
+            
+            <div class="mySlides fade">
+              <img src="/static/images/logo-street.png" height = "600px" width = "600px">
+            </div>
+            
+            <div class="mySlides fade">
+              <Img src="/static/images/logo-winter.png" height = "600px" width = "600px">
+            </div>
+
+            <div class="mySlides fade">
+                <Img src="/static/images/logo-hut.png" height = "600px" width = "600px">
+            </div>
+
+              <div class="mySlides fade">
+                <Img src="/static/images/logo-classroom.png" height = "600px" width = "600px">
+            </div>
+            
+        </div>
+        <br>
+        
+        <div style="text-align:center">
+            <span class="dot"></span> 
+            <span class="dot"></span> 
+            <span class="dot"></span> 
+            <span class="dot"></span> 
+            <span class="dot"></span> 
+
+        </div>
+        
+        <script>
+        let slideIndex = 0;
+        showSlides();
+        
+        function showSlides() {
+            let i;
+            let slides = document.getElementsByClassName("mySlides");
+            let dots = document.getElementsByClassName("dot");
+            for (i = 0; i < slides.length; i++) {
+            slides[i].style.display = "none";  
+            }
+            slideIndex++;
+            if (slideIndex > slides.length) {slideIndex = 1}    
+            for (i = 0; i < dots.length; i++) {
+            dots[i].className = dots[i].className.replace(" active", "");
+            }
+            slides[slideIndex-1].style.display = "block";  
+            dots[slideIndex-1].className += " active";
+            setTimeout(showSlides, 2000); // Change image every 2 seconds
+        }
+        </script>
+
+        <h1>Under Maintenance</h1>
+        <p>We apologize for the inconvenience but ateamacad.co.uk is currently undergoing maintenance. </p>
+        <p>We are building lots of new features that we think you'll really like! </p>
+        <p>For any urgent issues or if you still need site access, please contact Safwaan (safwaan@ateamacademy.co.uk) </p>
+
+    </div>
+</body>
+</html>

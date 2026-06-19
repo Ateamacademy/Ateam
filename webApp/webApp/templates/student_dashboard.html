@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+
+    <!-- Custom fonts for this template-->
+    <link href="static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+
+    <!-- Custom styles for this template-->
+    <link href="static/css/sb-admin-2.min.css" rel="stylesheet">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+
+</head>
+
+<body id="page-top">
+
+
+{% extends 'base_page.html' %}
+
+{% block middleContent %}
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 mt-4">
+    <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+</div>
+
+<!-- Content Row -->
+<div class="row">
+
+    <!-- Earnings (Monthly) Card Example -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Attendance </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"> {{ percentageAttendanceOverall }}% </div> 
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Earnings (Monthly) Card Example -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1"> Next Lesson in </div>
+                        {% if time_until_lesson == '-1' %}
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">No upcoming lessons </div>
+                        {% else %}
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"> {{ time_until_lesson }} </div>
+                        {% endif %}
+                    </div>
+                        
+                    <div class="col-auto"> <i class="fas fa-dollar-sign fa-2x text-gray-300"></i> </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Earnings (Monthly) Card Example -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Lessons completed (Weekly)
+                        </div>
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{ lessonCompletionPercentage }}%</div>
+                            </div>
+                            <div class="col">
+                                <div class="progress progress-sm mr-2">
+                                    <div class="progress-bar bg-info" role="progressbar"
+                                        style="width: {{ lessonCompletionPercentage }}%" aria-valuenow="{{ lessonCompletionPercentage }}" aria-valuemin="0"
+                                        aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Requests Card Example -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Pending Requests</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-comments fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Row -->
+
+<div class="row">
+
+    <!-- Area Chart -->
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow mb-4">
+            <!-- Card Header - Dropdown -->
+            <div
+                class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary"> Test Scores </h6>
+            </div>
+            <!-- Card Body -->
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="test-scores-chart"></canvas> <!-- this is being changed by the chart demo-->
+                </div>
+                <div class="mt-4 text-center small">
+                    <span class="mr-2">
+                        <i class="fas fa-circle" style ="color: rgba(78, 115, 223, 1)"></i> GCSE Maths
+                        <i class="fas fa-circle" style ="color: rgba(201, 127, 127, 1)"></i> GCSE Chemistry
+                        <i class="fas fa-circle" style ="color: rgba(155, 225, 152, 1)"></i> GCSE Physics
+                        <i class="fas fa-circle" style ="color: rgba(246, 194, 62, 1)"></i> GCSE Biology
+                    </span>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <!-- Card Header - Dropdown -->
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary"> Class Comments </h6>
+            </div>
+            <!-- Card Body -->
+            <div class="card-body">
+                {% if class_comments %}
+                    {% for comment in class_comments %}
+                    <div class="message my-message">                   
+                        <div class="message-body">
+                            <div class="message-body-inner">
+                                <div class="message-info">
+                                    <h4>{{ comment.tutor_name }}</h4>
+                                    <h5> <i class="fa fa-clock-o"></i>{{ comment.subject }} {{ comment.day }} {{ comment.lesson_start_time }} ( week {{ comment.weekNo }} ) </h5>
+                                </div>
+                                <hr>
+                                <div class="message-text">
+                                    {{ comment.description }}
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No class comments available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    
+</div>
+
+<!-- Content Row -->
+<div class="row">
+            
+    <!-- Content Column -->
+    <div class="col-lg-4 mb-4">
+
+        <!-- Project Card Example -->
+        <!-- <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Lesson Attendance (Individual)</h6>
+            </div>
+            <div class="card-body">
+                {% for lesson in percentageAttendance %}
+                <h4 class="small font-weight-bold"> {{ lesson.name }} <span
+                        class="float-right">{{ lesson.attendance }}%</span></h4>
+                <div class="progress mb-4">
+                    {% if lesson.attendance|int > 70 %} <div class="progress-bar bg-success" role="progressbar" style="width: {{ lesson.attendance|int }}%" aria-valuenow="{{ lesson.attendance|int }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    {% elif lesson.attendance|int > 40 %} <div class="progress-bar bg-warning" role="progressbar" style="width: {{ lesson.attendance|int }}%" aria-valuenow="{{ lesson.attendance|int }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    {% else %} <div class="progress-bar bg-danger" role="progressbar" style="width: {{ lesson.attendance|int }}%" aria-valuenow="{{ lesson.attendance|int }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    {% endif %}
+
+                </div>
+                {% endfor %}
+                
+            </div>
+        </div> -->
+
+        <!-- Color System -->
+        <!-- <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="card bg-primary text-white shadow">
+                    <div class="card-body">
+                        Primary
+                        <div class="text-white-50 small">#4e73df</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="card bg-success text-white shadow">
+                    <div class="card-body">
+                        Success
+                        <div class="text-white-50 small">#1cc88a</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="card bg-info text-white shadow">
+                    <div class="card-body">
+                        Info
+                        <div class="text-white-50 small">#36b9cc</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="card bg-warning text-white shadow">
+                    <div class="card-body">
+                        Warning
+                        <div class="text-white-50 small">#f6c23e</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="card bg-danger text-white shadow">
+                    <div class="card-body">
+                        Danger
+                        <div class="text-white-50 small">#e74a3b</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="card bg-secondary text-white shadow">
+                    <div class="card-body">
+                        Secondary
+                        <div class="text-white-50 small">#858796</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="card bg-light text-black shadow">
+                    <div class="card-body">
+                        Light
+                        <div class="text-black-50 small">#f8f9fc</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="card bg-dark text-white shadow">
+                    <div class="card-body">
+                        Dark
+                        <div class="text-white-50 small">#5a5c69</div>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+
+    </div>
+</div>
+
+
+
+    <script>
+        // Data passed from Flask to JavaScript
+        const gradesData = {{ test_scores | tojson }};
+        const months = {{ months | tojson }};
+
+        // Define an array of color schemes
+        const colors = [
+            { backgroundColor: "rgba(78, 115, 223, 0.05)", borderColor: "rgba(78, 115, 223, 1)", pointBackgroundColor: "rgba(78, 115, 223, 1)", pointBorderColor: "rgba(78, 115, 223, 1)", pointHoverBackgroundColor: "rgba(78, 115, 223, 1)", pointHoverBorderColor: "rgba(78, 115, 223, 1)" },
+            { backgroundColor: "rgba(54, 185, 204, 0.05)", borderColor: "rgba(54, 185, 204, 1)", pointBackgroundColor: "rgba(54, 185, 204, 1)", pointBorderColor: "rgba(54, 185, 204, 1)", pointHoverBackgroundColor: "rgba(54, 185, 204, 1)", pointHoverBorderColor: "rgba(54, 185, 204, 1)" },
+            { backgroundColor: "rgba(28, 200, 138, 0.05)", borderColor: "rgba(28, 200, 138, 1)", pointBackgroundColor: "rgba(28, 200, 138, 1)", pointBorderColor: "rgba(28, 200, 138, 1)", pointHoverBackgroundColor: "rgba(28, 200, 138, 1)", pointHoverBorderColor: "rgba(28, 200, 138, 1)" },
+            { backgroundColor: "rgba(246, 194, 62, 0.05)", borderColor: "rgba(246, 194, 62, 1)", pointBackgroundColor: "rgba(246, 194, 62, 1)", pointBorderColor: "rgba(246, 194, 62, 1)", pointHoverBackgroundColor: "rgba(246, 194, 62, 1)", pointHoverBorderColor: "rgba(246, 194, 62, 1)" },
+            { backgroundColor: "rgba(231, 74, 59, 0.05)", borderColor: "rgba(231, 74, 59, 1)", pointBackgroundColor: "rgba(231, 74, 59, 1)", pointBorderColor: "rgba(231, 74, 59, 1)", pointHoverBackgroundColor: "rgba(231, 74, 59, 1)", pointHoverBorderColor: "rgba(231, 74, 59, 1)" }
+        ];
+
+        // Ensure there are enough colors for the datasets
+        const defaultColor = { backgroundColor: "rgba(78, 115, 223, 0.05)", borderColor: "rgba(78, 115, 223, 1)", pointBackgroundColor: "rgba(78, 115, 223, 1)", pointBorderColor: "rgba(78, 115, 223, 1)", pointHoverBackgroundColor: "rgba(78, 115, 223, 1)", pointHoverBorderColor: "rgba(78, 115, 223, 1)" };
+
+        const datasets = gradesData.map((subjectData, index) => {
+            const subjectName = subjectData[0];
+            const marks = subjectData.slice(1).map(monthData => {
+                const month = Object.keys(monthData)[0];
+                return monthData[month];
+            });
+
+            const color = colors[index % colors.length] || defaultColor;
+
+            return {
+                label: subjectName,
+                lineTension: 0.3,
+                backgroundColor: color.backgroundColor,
+                borderColor: color.borderColor,
+                pointRadius: 3,
+                pointBackgroundColor: color.pointBackgroundColor,
+                pointBorderColor: color.pointBorderColor,
+                pointHoverRadius: 3,
+                pointHoverBackgroundColor: color.pointHoverBackgroundColor,
+                pointHoverBorderColor: color.pointHoverBorderColor,
+                pointHitRadius: 10,
+                pointBorderWidth: 2,
+                data: marks,
+            };
+        });
+
+        const ctx = document.getElementById('test-scores-chart').getContext('2d');
+        const myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: datasets,
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}
+
+
+</body>
+
+

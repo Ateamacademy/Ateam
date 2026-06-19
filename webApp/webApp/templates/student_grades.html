@@ -1,0 +1,151 @@
+<head>
+    <title> Grades </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="static\css\tutor_overview.css" />
+
+</head>
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+<div class="col">
+
+    
+    {% if session['role'] == "admin" %} 
+
+    <a href = "/admin_student_info?studentid={{request.args['studentID']}}"> Back to Profile </a>
+
+
+        <div class="card text-center mb-4" style="width:100%;">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col"> <a href = "studentGrades?studentID={{ previous }}"> <button class="btn btn-secondary" id="backWeek"> < </button> </a> </div>
+                    <div class="col"> <h2 class = "title"> {{ name }} </h2> </div>
+                    <div class="col"> <a href = "studentGrades?studentID={{ following }}"> <button class="btn btn-secondary" id="forwardWeek"> > </button> </a> </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    {% if session['role'] == "admin" %}
+        <script>
+            function changeToInput(id, key, gradeID) {
+                value = document.getElementById(id).innerHTML;
+
+                newtd = document.createElement("td");
+                input = document.createElement("input");
+                input.id = key + "-" + gradeID;
+                input.style.width = "40px";
+
+                button = document.createElement("button"); button.classList.add("btn", "btn-success");
+                button.setAttribute("onclick", "updateGrade('" + gradeID + "', '" + key + "')");
+                button.setAttribute("id", id + "button");
+                button.innerHTML = "Save";                
+                
+                newtd.append(input);
+                newtd.append(button);
+
+                document.getElementById(id).replaceWith(newtd);
+            }
+
+            function updateGrade(gradeID, key) {
+                value = document.getElementById(key + "-" + gradeID).value;
+                $.ajax({
+                    url: '/updateGrade',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({"key" : key, "value" : value, "gradeID" : gradeID}),
+                    success: function(response) {
+                       location.reload();
+                    },
+                    error: function(error) {
+                        alert(error);
+                    }
+                })
+            }
+        </script>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        {% if session['role'] == "admin" %} <th scope="col"> Send? </th> {% endif %}
+                        <th scope="col">Subject</th>
+                        <th scope="col">Date</th>                        
+                        <th scope="col">Test Name</th>
+                        <th scope="col">Mark / Total</th>
+                        <th scope="col">Grade</th>
+                        {% if session['role'] == "admin" %} <th> - </th> {% endif %}
+
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr id = "{{result[1].gradeID}}">
+                        {% if session['role'] == "admin" %} <td> <input class="gradeCheck" id="{{result[1].gradeID}}" type = "checkbox"> </td> {% endif %}
+                        <td>{{ result[0] }}</td>
+                        <td>{{ result[1].date }}</td>
+                        <td>{{ result[1].testName }}</td>
+                        <td id="mark-{{result[1].gradeID}}" ondblclick="changeToInput(this.id, 'mark', '{{result[1].gradeID}}')"> {{ result[1].mark }} / {{ result[1].total }}</td>
+                        <td id = "grade-{{result[1].gradeID}}" ondblclick="changeToInput(this.id, 'grade', '{{result[1].gradeID}}')">{% if result[1].grade != "" %} {{ result[1].grade }} {% else %} - </td> {% endif %}
+                        {% if session['role'] == "admin" %} <td> <button onclick="deleteGrade('{{result[1].gradeID}}')" class="btn btn-danger"> Delete Entry </button> </td> {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            
+            {% if session['role'] == "admin" %}
+            <button class="btn btn-success" onclick = sendEmail()> Email Selected Grades </button>
+            
+            <script>
+                function sendEmail() {
+                    selected = document.getElementsByClassName("gradeCheck");
+                    grades = []
+                    
+                    for(i in selected) {
+                        if( selected[i].checked == true) {
+                            grades.push(selected[i].id)
+                        }
+                    }
+                    
+                    $.ajax({
+                        url: '/send_grades',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(grades),
+                        success: function(response) {
+                            setTimeout(function() {alert("the email has been sent"); location.reload();}, 1000);
+                        },
+                        error: function(error) {
+                            console.log(error);
+                        }
+                    })
+                }
+            </script>
+
+            <script> 
+                function deleteGrade(gradeID) {
+                    $.ajax({
+                        url: '/deleteGrade/'.concat(gradeID),
+                        type: 'POST',
+                        contentType: 'application/json',
+                        success: function(response) {
+                            setTimeout(function() {document.getElementById(gradeID).style.display = "none"});
+                        },
+                        error: function(error) {
+                            alert("the test could not be deleted");
+                            console.log(error);
+                        }
+                    })
+                }
+            </script>
+            {% endif %}
+        </div>    
+    </div>
+</div>
+
+{% endblock %}

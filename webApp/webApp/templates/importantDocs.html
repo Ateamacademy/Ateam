@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> Important Docs </title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <link rel="stylesheet" href="static\css\admin_tutor_view.css" />
+
+</head>
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+<div class="container-fluid">
+    <div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Filename</th>
+                <th>View</th>
+                <th>Download</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doc in documentList %}
+            <tr>
+                <td><img src="static/images/{{ doc.type }}_icon.png" onerror="this.onerror=null;this.src='static/images/file_icon.svg.png;'" style="height: 30px;"></td>
+                <td>{{ doc.displayName }}</td>
+                <td><a href="/files/IMPORTANT_DOCS/{{doc.name}}" target="_blank" class="btn btn-success">View</a></td>
+                <td><a href="/download/IMPORTANT_DOCS/{{doc.name}}" class="btn btn-primary">Download</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+
+
+{% endblock  %}

@@ -1,0 +1,76 @@
+<head> 
+    <title> Unregistered Students </title>
+
+</head>
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+<div class="col-12"> 
+    {% for i in unregistered %}
+    <div class="row-12" id="div-{{ i.studentName }}{{ i.testID }}"> 
+        <div class="card mr-4 mb-4"> 
+            <div class="card-body">  
+                <div class="row">
+                    <div class = "col-lg-2"> <p class="card-text"> {{ i.studentName }} </p> </div>
+                    <div class = "col-lg-5"> <p class="card-text"> {{ i.test }} </p> </div>
+                    <div class = "col-lg-3"> 
+                        <select id = "{{ i.studentName }}{{ i.testID }}" class="form-select">
+                            <option selected> Select an Option... </option> 
+                        {% for student in registered %}
+                            <option value = "{{ student.id }}" {% if i.studentName in student.name %} selected {% endif %}> {{ student.name }} </option> 
+                        {% endfor %}
+                        </select>
+                    </div>
+                    <div class = "col-lg-2"> 
+                        <button onClick="makePerm('{{ i.studentName }}','{{ i.testID }}')" class="btn btn-primary"> Make Perm </button> 
+                        <button onclick="deleteGrade('{{i.gradeID}}')" class="btn btn-danger"> delete </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <script> 
+        function makePerm(name, testID) {
+            newID = document.getElementById(name.concat(testID)).value;
+            
+            $.ajax({
+                url: '/makeGradePerm',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({"name" : name, "testID" : testID, "newID" : newID}),
+                success: function(response) { 
+                    document.getElementById("div-".concat(name.concat(testID))).style.display = "None";
+                },
+                error: function(error) {
+                    alert("could not be made permanent because of" + error)
+                    console.log(error);
+                }
+            })
+        }
+
+    </script>
+
+    {% if session['role'] == "admin" %}
+    <script>
+        function deleteGrade(id) {
+            $.ajax({
+                url: '/deleteGrade/' + id,
+                type: 'POST',
+                contentType: 'application/json',
+                success: function(response) {
+                location.reload();
+                },
+                error: function(error) {
+                }
+            })
+        }
+    </script>
+    {% endif %}
+
+</div>
+
+
+{% endblock %}

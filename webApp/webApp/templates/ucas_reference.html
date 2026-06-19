@@ -1,0 +1,181 @@
+<link href="static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+
+<link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+
+<link href="static/css/sb-admin-2.min.css" rel="stylesheet">
+
+
+
+<div class="ucas-form-container">
+    <h2 class="ucas-form-title">UCAS Reference Form</h2>
+    <form id="ucasForm" method="POST">
+        <div class="form-group">
+            <label for="name">Your Name:</label>
+            <input type="text" id="name" name="name" class="form-control" placeholder="Enter your name" required>
+        </div>
+
+        <div class="form-group">
+            <label>Subjects You're Studying:</label>
+            <input type="text" id="subject1" name="subject1" class="form-control subject-input" placeholder="Subject 1" required>
+            <input type="text" id="subject2" name="subject2" class="form-control subject-input" placeholder="Subject 2" required>
+            <input type="text" id="subject3" name="subject3" class="form-control subject-input" placeholder="Subject 3" required>
+            <input type="text" id="subject4" name="subject4" class="form-control subject-input" placeholder="Subject 4 (Optional)" style="display:none;">
+            <button type="button" id="addSubjectBtn" class="btn btn-secondary" style="margin-top:10px;">+ Add another subject</button>
+        </div>
+
+        <div class="form-group">
+            <label for="qualifications">Additional Qualifications:</label>
+            <textarea id="qualifications" name="qualifications" class="form-control" placeholder="Enter any additional qualifications" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="workExperience">Work Experience:</label>
+            <textarea id="workExperience" name="work_experience" class="form-control" placeholder="Enter your work experience" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="course">Course You're Applying For:</label>
+            <input type="text" id="course" name="course" class="form-control" placeholder="Enter the course" required>
+        </div>
+
+        <div class="form-group">
+            <label for="reason">Why Are You Applying for This Course?</label>
+            <textarea id="reason" name="reason" class="form-control" placeholder="Explain your reason" rows="4" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="hobbies">Hobbies / Extra Interests:</label>
+            <textarea id="hobbies" name="hobbies" class="form-control" placeholder="Enter your hobbies or extra interests" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="extraInfo">Additional Information:</label>
+            <textarea id="extraInfo" name="extra_info" class="form-control" placeholder="Anything else you want to include?" rows="3"></textarea>
+        </div>
+
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary ucas-submit-btn">Submit Reference</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Functionality to show the fourth subject field
+    document.getElementById('addSubjectBtn').addEventListener('click', function() {
+        document.getElementById('subject4').style.display = 'block';
+        this.style.display = 'none'; // Hide the "Add another subject" button
+    });
+
+    // Handling form submission
+    document.getElementById('ucasForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // Collect subjects into a single string
+        const subjects = [
+            document.getElementById('subject1').value,
+            document.getElementById('subject2').value,
+            document.getElementById('subject3').value,
+            document.getElementById('subject4').value
+        ].filter(Boolean).join(', ');
+
+        // Create form data to send to Flask
+        const formData = {
+            name: document.getElementById('name').value,
+            subjects: subjects,
+            qualifications: document.getElementById('qualifications').value,
+            work_experience: document.getElementById('workExperience').value,
+            course: document.getElementById('course').value,
+            reason: document.getElementById('reason').value,
+            hobbies: document.getElementById('hobbies').value,
+            extra_info: document.getElementById('extraInfo').value
+        };
+
+        // Send the form data to Flask using Fetch API
+        fetch("{{ url_for('submit_ucas_reference') }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Your UCAS reference has been submitted successfully!');
+                // Optionally clear the form fields
+                document.getElementById('ucasForm').reset();
+            } else {
+                alert('There was an error submitting your reference.');
+            }
+            console.log(data);
+        })
+        .catch(error => {
+            alert('An error occurred. Please try again.');
+            console.error('Error:', error);
+        });
+    });
+</script>
+
+<style>
+    /* Same styling as before */
+    .ucas-form-container {
+        background: #f9f9f9;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        max-width: 600px;
+        margin: 0 auto;
+        animation: fadeIn 1s ease-in-out;
+    }
+
+    .ucas-form-title {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+        font-family: 'Jost', sans-serif;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #555;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        box-sizing: border-box;
+    }
+
+    .ucas-submit-btn {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .ucas-submit-btn:hover {
+        background-color: #0056b3;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>

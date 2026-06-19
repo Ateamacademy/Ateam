@@ -1,0 +1,75 @@
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+<div class = "col-12"> 
+{% for file in files %}
+    <div class = "row" id="div-{{ file[0] }}">
+        <div class = "card mb-4" style = "width:100%"> 
+            <div class="card-body">
+                <div class = "col-8">
+                    {% for item in file %} 
+                    <div class = "row">
+                        {{ item }}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class = "col-4">
+                        <select id="{{file[0]}}subject" name = "subject">
+                        {% for subject in subjects %}
+                            {% if file[-1][0] == subject.id %}
+                            <option value = "{{ subject.id }}" selected> {{ subject.name }} </option>
+                            {% else %}
+                            <option value = "{{ subject.id }}"> {{ subject.name }} </option>
+                            {% endif %}
+
+                        {% endfor  %}       
+                        </select>         
+
+                        <select id = "{{file[0]}}classtype" name = "classtype"> 
+                        {% for item in ["week", "weekend", "all"] %}
+                            <option value = {{ item }}> {{ item }} </option>
+                        {% endfor %}
+                        </select>
+
+                        <input id="{{file[0]}}weekNo" name = "{{file[0]}}weekNo" value="{{ file[-1][1] }}"> 
+
+                        <input type = "checkbox" id = "{{file[0]}}studentView" name = "studentView"> Block Students?
+
+                        <button type="submit" class = "btn btn-success" onclick="submit('{{file[0]}}')"> Submit </button> 
+                        
+                        <script>
+                            function submit(filename) {
+
+                                var subjectID = document.getElementById(filename.concat("subject")).value;
+                                var blockStudents = document.getElementById(filename.concat("studentView")).checked;
+                                var classtype = document.getElementById(filename.concat("classtype")).value;
+                                var weekNo = document.getElementById(filename.concat("weekNo")).value;
+                                
+                                $.ajax({
+                                    url: '/fixFiles',
+                                    type: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify({"filename" : filename, "subjectID" : subjectID, "studentView" : blockStudents, "classtype" : classtype, "weekNo" : weekNo}),
+                                    success: function(response) {
+                                        document.getElementById("div-".concat(filename)).style.display = "none";
+                                        console.log("success")
+                                    },
+                                    error: function(error) {
+                                      alert("The students could not be removed")
+                                    }
+                                });
+                            }
+
+                        </script>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% endfor %}
+</div>
+
+{% endblock %}

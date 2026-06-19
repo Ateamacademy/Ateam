@@ -1,0 +1,42 @@
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+<div class="container mt-5">
+    <h2 class="text-center">Files to Print</h2>
+
+    {% set days_order = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'] %}
+    {% for day in days_order %}
+        {% set day_lessons = lessons | selectattr('day', 'equalto', day) | list %}
+        {% if day_lessons %}
+            <h3>{{ day }}</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Centre</th>
+                        <th>Tutor</th>
+                        <th>Lesson</th>
+                        <th>Attendance</th>
+                        <th>Files</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lesson in day_lessons %}
+                    <tr>
+                        <td>{{ lesson.centre }}</td>
+                        <td>{{ lesson.tutor }}</td>
+                        <td>{{ lesson.name }}</td>
+                        <td>{{ lesson.attendance }}</td>
+                        <td>
+                            {% for file in lesson.files %}
+                            <a href="{{ file[0] }}" target="_blank">{{ file[1] }} </a> {% if file[2] %} <p> PRINT </p> {% endif %} 
+                            <br>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+<div class="container mt-5">
+    <h2 class="text-center">User Points</h2>
+    
+    <table class="table table-bordered mt-4">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Points</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.email }}</td>
+                <td>{{ user.role }}</td>
+                <td id="points-{{ user.id }}">{{ user.points }}</td>
+                <td>
+                    <!-- Add Points Button -->
+                    <button class="btn btn-success" data-toggle="modal" data-target="#pointsModal-{{ user.id }}" data-userid="{{ user.id }}" data-action="add">Update Points</button>
+                                    </td>
+            </tr>
+
+            <!-- Points Modal for each user -->
+            <div class="modal fade" id="pointsModal-{{ user.id }}" tabindex="-1" aria-labelledby="pointsModalLabel-{{ user.id }}" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="pointsModalLabel-{{ user.id }}">Update Points for {{ user.email }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <form id="pointsForm-{{ user.id }}">
+                      <div class="form-group">
+                        <label for="pointsAmount-{{ user.id }}">Amount</label>
+                        <input type="number" class="form-control" id="pointsAmount-{{ user.id }}" required>
+                      </div>
+                      <div class="form-group">
+                        <label for="pointsReason-{{ user.id }}">Reason</label>
+                        <textarea class="form-control" id="pointsReason-{{ user.id }}" required></textarea>
+                      </div>
+                      <input type="hidden" id="userId-{{ user.id }}" value="{{ user.id }}">
+                      <input type="hidden" id="pointsAction-{{ user.id }}">
+                    </form>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="submitPoints('{{ user.id }}')">Save changes</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+  // Triggering the modal with dynamic data
+  $('button[data-toggle="modal"]').on('click', function (event) {
+    var button = $(event.relatedTarget);
+    var userId = button.data('userid');
+    var action = button.data('action');
+    
+    // Open the corresponding modal
+    var modal = $('#pointsModal-' + userId);
+    modal.find('#pointsAction-' + userId).val(action);
+    modal.find('.modal-title').text(action.charAt(0).toUpperCase() + action.slice(1) + ' Points');
+  });
+
+  // Submit points function for each user
+  function submitPoints(userId) {
+    var action = $('#pointsAction-' + userId).val();
+    var amount = $('#pointsAmount-' + userId).val();
+    var reason = $('#pointsReason-' + userId).val();
+    
+    $.ajax({
+      url: '/update_points',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({ userId: userId, action: action, amount: amount, reason: reason }),
+      success: function(response) {
+        // Update the points display dynamically
+        $('#points-' + userId).text(response.new_points);
+        alert('Points updated: ' + response.message);
+        $('#pointsModal-' + userId).modal('hide');
+      },
+      error: function(error) {
+        alert('Failed to update points');
+      }
+    });
+  }
+</script>
+{% endblock %}

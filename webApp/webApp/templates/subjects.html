@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> Subjects </title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+</head>
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+<div class="col">
+    <div class="row">
+        <div class="card mb-4 ml-3">
+            <div class="card-body">
+                <div class = "row ml-2"> 
+                    <div class="col mr-4">
+                        <div class="row">
+                            <p class="card-text"> Tier: </p>
+                        </div>
+                        <div class="row">
+                            <select id="tier" required> 
+                                <option value = "GCSE"> GCSE </option>
+                                <option value = "IGCSE"> IGCSE </option>
+                                <option value = "BTEC"> BTEC </option>
+                                <option value = "A-LEVEL"> A-LEVEL </option>
+                                <option value = "AS"> AS </option>
+                                <option value = "A-LEVEL"> O-LEVEL </option>
+                                <option value = "KS3"> KS3 </option>
+                                <option value = "KS2"> KS2 </option>
+                                <option value = "Homeschool Year 7"> Homeschool Year 7 </option>
+                                <option value = "Homeschool Year 8"> Homeschool Year 8 </option>
+                                <option value = "Homeschool Year 9"> Homeschool Year 9 </option>
+                                <option value = "Homeschool Year 10"> Homeschool Year 10 </option>
+                                <option value = "Homeschool Year 11"> Homeschool Year 11 </option>
+                                <option value = "Year 11"> Year 11 </option>
+                                <option value = "Year 10"> Year 10 </option>
+                                <option value = "Year 9"> Year 9 </option>
+
+
+
+                                <option value = "Year 2"> Year 2 </option>
+                                <option value = "Year 5/6"> Year 5/6 </option>
+
+
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col mr-4">
+                        <div class="row">
+                            <p class="card-text"> Title: </p>
+                        </div>
+                        <div class="row">
+                            <input id = "title" required value="">
+                        </div>
+                        <div class="row">
+                            <p id = "errorMsg" class="card-text small" style="color:red; display:none;"> This is required </p>
+                        </div>
+                    </div>
+
+                    <div class="col mr-4">
+                        <div class="row">
+                            <p class="card-text"> Exam Board: </p>
+                        </div>
+                        <select id="examBoard" required> 
+                            <option value = "AQA"> AQA </option>
+                            <option value = "CCEA"> CCEA </option>
+                            <option value = "Pearson Edexcel"> Pearson Edexcel</option>
+                            <option value = "OCR"> OCR </option>
+                            <option value = "WJEC"> WJEC </option>
+                            <option value = "Cambridge International"> Cambridge International </option>
+                        </select>
+                    </div>
+                    
+
+                    <div class="col mr-4">
+                        <div class="row"> <p> </p> </div>
+                        <div class="row"> <button class="btn btn-success" onclick="addSubject()"> Add Subject </button> </div>
+                    </div>
+
+                </div>
+            </div>
+        </div> 
+    </div> 
+
+    <script> 
+        function addSubject() {
+            var tier = document.getElementById("tier").value;
+            var title = document.getElementById("title").value;
+            var examBoard = document.getElementById("examBoard").value;
+
+            if(title == "") {
+                document.getElementById("errorMsg").style.display = "inline";
+            }
+            else {
+                document.getElementById("errorMsg").style.display = "None";
+            }
+
+            $.ajax({
+                url: '/addSubject',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({"tier" : tier, "title" : title, "examBoard": examBoard}),
+                success: function(response) { alert("the subject was successfuly added") },
+                error: function(error) { alert("the subject could not be added or already exists") }
+            });
+        }
+
+    </script>
+    
+
+    <div class="row">
+        
+        
+        {% for subject in subjects %}
+        
+        <div class="card mb-4 ml-3 ">
+            <div class="card-body" id = {{ subject[0] }}>
+                <div class="row">
+                    <div class="col-8 my-auto"> <p class = "card-text"> {{ subject[1] }} </p> </div>
+                    <div class="col-4"> <button class="btn btn-danger trashcan" style="background-color: white; border-color: white; display: inline;" onclick="removeItem({{ subject[0] }})"> 
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="red" class="bi bi-trash" viewBox="0 0 16 16">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"></path>
+                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"></path>
+                        </svg> 
+                    </button> </div>
+                </div>
+            </div>
+        </div>
+        
+        {% endfor %}
+
+        <script>
+            function removeItem(id) {
+                div = document.getElementById(id);
+
+                div.style.display = "none";
+
+                $.ajax({
+                    url: '/removeSubject',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({"id" : id,}),
+                    success: function(response) { alert("the subject was successfuly removed") },
+                    error: function(error) { alert("the subject could not be removed") }
+                });
+            }
+        </script>
+    </div>
+
+</div>
+
+{% endblock %}

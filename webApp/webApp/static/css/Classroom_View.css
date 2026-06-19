@@ -1,0 +1,150 @@
+﻿/* Three columns side by side */
+.column {
+    float: left;
+    margin-bottom: 16px;
+    padding: 0 20px;
+}
+
+/* Display the columns below each other instead of side by side on small screens */
+@media screen and (max-width: 650px) {
+    .column {
+        width: 100%;
+        display: block;
+    }
+}
+
+
+
+#column1 {
+    width: 15%;
+}
+
+#column2 {
+    width: 70%;
+}
+
+
+.menuButton {
+    height: 40px;
+    width: 100%;
+
+    justify-content: left;
+    
+    color: #fff;
+    background: #ff1500;
+    font-size: 1em;
+    font-weight: bold;
+    margin-bottom: 20px;
+    outline: none;
+    border: none;
+    border-radius: 5px;
+
+
+    transition: .2s ease-in;
+    cursor: pointer;
+}
+
+    .menuButton:hover {
+        background: #ff685b;
+    }
+
+.registerButton {
+    display:flex;
+    justify-content: space-around;
+
+}
+
+#register {
+    width: 60%;
+    margin-right:5%
+}
+
+#print {
+    width: 30%;
+}
+
+.card {
+    box-shadow: 5px 20px 50px #7d7d7d;
+    border-radius: 10px;
+    margin-bottom: 5%;
+    padding:5px;
+
+    width: 100%;
+    color: black;
+}
+
+.message {
+    color:black;
+    text-align: center;
+}
+
+.messageHeading {
+    color: black;
+    font-size: large;
+    font-weight: bold; 
+    text-align: center;
+}
+
+input[type=checkbox]
+{
+  /* Double-sized Checkboxes */
+  -ms-transform: scale(2); /* IE */
+  -moz-transform: scale(2); /* FF */
+  -webkit-transform: scale(2); /* Safari and Chrome */
+  -o-transform: scale(2); /* Opera */
+  transform: scale(2);
+  padding: 10px;
+}
+
+th, td {
+    color: black;
+}
+
+th {
+    font-size: larger;
+}
+
+.form-check-input {
+    accent-color: green;
+}
+
+#file-download {
+    transition: background-color 500ms ease-out 100ms
+}
+
+#file-download:hover {
+    background: #A0A0A0;
+}
+
+
+
+#file-upload {
+    transition: background-color 500ms ease-out 100ms
+}
+
+#file-upload:hover {
+    background: rgb(78, 179, 78);
+}
+
+
+#uploadButton {
+    background-color: indigo;
+    color: white;
+    padding: 0.5rem;
+    font-family: sans-serif;
+    border-radius: 0.3rem;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.custom-file {
+    margin-bottom: 10px;
+}
+
+.fileUpload {
+    border-radius: 10px;
+    background-color: white;
+    padding: 2%;
+}
+
+

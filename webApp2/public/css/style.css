@@ -1,0 +1,206 @@
+@charset "UTF-8";
+body {
+  font-family: "calibri", sans-serif;
+  background-color: #fbfbfb;
+  color: #2d2d2d;
+}
+
+.fade-in {
+  opacity: 0;
+  transition: opacity 1s ease-in;
+}
+
+.fade-in.appear {
+  opacity: 1;
+}
+
+.from-left {
+  transform: translateX(-50%);
+}
+
+.from-right {
+  transform: translateX(50%);
+}
+
+.from-top {
+  transform: translateY(-50%);
+}
+
+.from-top,
+.from-left,
+.from-right {
+  transition: opacity 0.5s ease-in, transform 1s ease-in;
+  opacity: 0;
+}
+
+.from-top.appear,
+.from-left.appear,
+.from-right.appear {
+  transform: translateX(0);
+  transform: translateY(0);
+  opacity: 1;
+}
+
+[type=text]:focus,
+[type=email]:focus,
+[type=url]:focus,
+[type=password]:focus,
+[type=number]:focus,
+[type=date]:focus,
+[type=datetime-local]:focus,
+[type=month]:focus,
+[type=search]:focus,
+[type=tel]:focus,
+[type=time]:focus,
+[type=week]:focus,
+[multiple]:focus,
+textarea:focus,
+select:focus {
+  border-color: #1269a3;
+  --tw-ring-color: $ateam_blue;
+}
+
+.btn-cta {
+  background-color: #d8494f;
+  color: white;
+}
+
+.top-banner {
+  grid-template-rows: auto 330px;
+}
+.top-banner .second-row {
+  grid-template-columns: none;
+  position: relative;
+}
+.top-banner .second-row .award-pic {
+  max-width: 370px;
+  position: absolute;
+  width: 130%;
+  left: -10px;
+  bottom: 5px;
+}
+
+.proof {
+  background-image: url("/img/bg_proof.jpg");
+  background-size: cover;
+  background-position: center;
+  color: white;
+}
+
+.how-it-works .step-image {
+  min-height: 320px;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+
+.why {
+  background-image: url("/img/bg_why3.jpg");
+  background-size: cover;
+  background-position: center;
+  color: white;
+}
+
+.price-table tr {
+  border-bottom: 1px solid #cbcbcb;
+}
+.price-table tr th {
+  padding: 16px 0;
+  font-size: 20px;
+}
+.price-table tr td {
+  padding: 30px 0;
+}
+
+.action ul {
+  list-style: none;
+  /* Remove default bullets */
+}
+.action ul li {
+  margin: 2.5rem 0;
+}
+.action ul li::before {
+  content: "•";
+  /* Add content: \2022 is the CSS Code/unicode for a bullet */
+  color: #1269a3;
+  /* Change the color */
+  font-weight: bold;
+  /* If you want it to be bold */
+  display: inline-block;
+  /* Needed to add space between the bullet and the text */
+  width: 1em;
+  /* Also needed for space (tweak if needed) */
+}
+.action .img-app {
+  width: 150%;
+  max-width: none;
+}
+
+.plans .secondary ul {
+  list-style: none;
+  /* Remove default bullets */
+}
+.plans .secondary ul li {
+  margin: 0.5rem 0;
+}
+.plans .secondary ul li::before {
+  content: url(/img/icons/checked_gray.svg);
+  /* Add content: \2022 is the CSS Code/unicode for a bullet */
+  color: #1269a3;
+  /* Change the color */
+  font-weight: bold;
+  /* If you want it to be bold */
+  display: inline-block;
+  /* Needed to add space between the bullet and the text */
+  width: 1.2em;
+  /* Also needed for space (tweak if needed) */
+  vertical-align: -17%;
+  margin-right: 10px;
+}
+.plans .primary ul {
+  list-style: none;
+  /* Remove default bullets */
+}
+.plans .primary ul li {
+  margin: 0.5rem 0;
+}
+.plans .primary ul li::before {
+  content: url(/img/icons/checked_white.svg);
+  /* Add content: \2022 is the CSS Code/unicode for a bullet */
+  color: #1269a3;
+  /* Change the color */
+  font-weight: bold;
+  /* If you want it to be bold */
+  display: inline-block;
+  /* Needed to add space between the bullet and the text */
+  width: 1.2em;
+  /* Also needed for space (tweak if needed) */
+  vertical-align: -17%;
+  margin-right: 10px;
+}
+
+.sign-up-form {
+  background-color: #e1eef7;
+}
+
+.copyright {
+  background-color: #798b96;
+}
+
+@media (min-width: 1280px) {
+  .top-banner .second-row {
+    grid-template-columns: 2fr 500px 1fr;
+  }
+
+  .how-it-works .step-image {
+    min-height: 740px;
+  }
+}
+@media (min-width: 1536px) {
+  .top-banner .second-row .award-pic {
+    max-width: 370px;
+    position: absolute;
+    width: 130%;
+    left: 10px;
+    bottom: -30px;
+  }
+}

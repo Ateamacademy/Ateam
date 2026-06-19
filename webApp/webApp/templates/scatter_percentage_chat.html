@@ -1,0 +1,171 @@
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+<head>
+	<script src='https://cdn.plot.ly/plotly-2.35.2.min.js'></script>
+
+</head>
+<div class="container mt-5">
+    <h1 class="text-center">Grade Presentation</h1>
+
+    <!-- Scatter Plot -->
+    <div>
+        <h3 class="text-center">Scatter Plot of Grades</h3>
+        <canvas id="scatterPlot"></canvas>
+    </div>
+
+    <hr>
+
+    <!-- Boxplot -->
+    <div style="width: 100%">
+        <div id="boxplotChart" style="width: 1000px;"></div> <!-- Set a wider width for the canvas -->
+    </div>
+
+    <hr>
+
+    <!-- Mean/Median Plot -->
+    <div>
+        <h3 class="text-center">Mean and Median of Grades</h3>
+        <canvas id="meanMedianChart"></canvas>
+    </div>
+
+
+    <div>
+        <h3 class="text-center">Scatter Plot of Grades</h3>
+        <canvas id="scatterDiv2"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot@3"></script>
+<script>
+    // Register the boxplot controller and elements
+    const result = {{ result|tojson|safe }};
+
+    // Extract subject names and grades
+    const subjectNames = Object.values(result).map(subject => subject.name);
+
+    // Scatter Plot Data
+    const scatterPlotData = {
+        datasets: [
+            {
+                label: 'Grades',
+                data: Object.values(result).flatMap(subject =>
+                    subject.data.map(value => ({ x: subject.name, y: value }))
+                ),
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                pointRadius: 5,
+            }
+        ]
+    };
+
+    new Chart(document.getElementById('scatterPlot'), {
+        type: 'scatter',
+        data: scatterPlotData,
+        options: {
+            responsive: true,
+            plugins: { legend: { display: true } },
+            scales: {
+                x: { 
+                    type: 'category',
+                    labels: subjectNames,
+                    title: { display: true, text: 'Subjects' } 
+                },
+                y: { 
+                    title: { display: true, text: 'Percentage (%)' }, 
+                    beginAtZero: true 
+                }
+            }
+        }
+    });
+
+    // Boxplot Data
+    // Prepare data for the boxplot
+    const boxplotData = Object.values(result).map(subject => ({
+        y: subject.data, // Grades for the subject
+        name: subject.name, // Subject name
+        type: 'box' // Define it as a boxplot
+    }));
+
+    // Layout for the plot
+    const layout = {
+        title: 'Boxplot of Grades by Subject',
+        xaxis: { title: 'Subjects' },
+        yaxis: { title: 'Percentage (%)', range: [0, 100] },
+        boxmode: 'group', // Group boxplots by subject
+    };
+
+    // Render the plot
+    Plotly.newPlot('boxplotChart', boxplotData, layout);
+
+    // Mean and Median Data
+    const meanMedianData = {
+        labels: subjectNames,
+        datasets: [
+            {
+                label: 'Mean',
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                data: Object.values(result).map(subject => subject.mean),
+            },
+            {
+                label: 'Median',
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                data: Object.values(result).map(subject => subject.median),
+            }
+        ]
+    };
+
+    new Chart(document.getElementById('meanMedianChart'), {
+        type: 'bar',
+        data: meanMedianData,
+        options: {
+            responsive: true,
+            plugins: { legend: { display: true } },
+            scales: {
+                x: { 
+                    title: { display: true, text: 'Subjects' } 
+                },
+                y: { 
+                    title: { display: true, text: 'Percentage (%)' }, 
+                    beginAtZero: true 
+                }
+            }
+        }
+    });
+
+    const result2 = {{ result2|tojson|safe }};
+    const tutorColors = {{ tutors_colors|tojson|safe }};
+
+    // Prepare data for the scatter plot
+    const scatterPlotData2 = [];
+    Object.values(result).forEach(subject => {
+        const subjectName = subject.name;
+
+        Object.entries(subject.data).forEach(([tutorID, grades]) => {
+            scatterPlotData2.push({
+                x: Array(grades.length).fill(subjectName), // Subject name on x-axis
+                y: grades, // Grades on y-axis
+                mode: 'markers', // Scatter plot
+                marker: { color: tutorColors[tutorID] }, // Color by tutor
+                name: `Tutor ${tutorID}` // Legend entry for the tutor
+            });
+        });
+    });
+
+    // Layout for the scatter plot
+    const layout2 = {
+        title: 'Scatter Plot of Grades by Tutor and Subject',
+        xaxis: { title: 'Subjects' },
+        yaxis: { title: 'Percentage (%)', range: [0, 100] },
+        showlegend: true
+    };
+
+    // Render the scatter plot
+    Plotly.newPlot('scatterDiv2', scatterPlotData2, layout2);
+</script>
+
+{% endblock %}

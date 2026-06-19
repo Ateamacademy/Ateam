@@ -1,0 +1,29 @@
+<head>
+    <title> Student Overview  </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="static\css\tutor_overview.css" />
+
+</head>
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+<div class="col">
+    
+    <h1 style="color:black"> {{ name }} </h1>
+
+    {% for lesson in lessons %}
+        <div class="card mb-2"> 
+            <div class="card-body">
+                <div class="row">
+                    <div class="col col-sm-2 text-center"> <p> week {{ lesson.week }}  </p> </div>
+                    <div class="col col-sm-10 text-center"> <p> {{ lesson.lesson }} </p> </div>
+
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

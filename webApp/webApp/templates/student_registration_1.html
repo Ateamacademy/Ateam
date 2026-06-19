@@ -1,0 +1,532 @@
+<html lang="en">
+    <head>
+    <title>New Student Registration</title>
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    
+    </head>
+
+    <style>
+      body {
+        background: linear-gradient(-45deg, #00ffff, #0066ff, #3700ff, #ff00ea);
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+      }
+      
+      @keyframes gradient {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+      
+
+    .card { 
+        background: none;
+        border: none;
+        padding: 10%;
+        height: 80%;
+    }
+
+
+    .underline-input {
+        border: none;
+        border-bottom: 2px solid white; /* Underline */
+        background: none;
+        outline: none; /* Remove default outline */
+        padding: 5px 0; /* Space for underline visibility */
+        transition: border-bottom-color 0.3s ease; /* Smooth transition */
+        color:white;
+        font-size: 24px; /* Larger font size */
+        width: 100%; /* Full width input */
+    }
+    
+      .underline-input:focus {
+        border-bottom: 2px solid blue; /* Change underline color on focus */
+        outline: none; /* Remove default outline */
+      }
+
+        /* Specific styling for the select dropdown */
+    .underline-select {
+        border: none;
+        border-bottom: 2px solid white;
+        background: none;
+        outline: none;
+        padding: 10px 0;
+        transition: border-bottom-color 0.3s ease;
+        color: white;
+        font-size: 18px;
+        width: 100%;
+        -webkit-appearance: none; /* Remove default arrow in webkit browsers */
+        -moz-appearance: none; /* Remove default arrow in firefox */
+        appearance: none; /* Remove default arrow in all browsers */
+    }
+
+    .underline-select:focus {
+        border-bottom: 2px solid blue;
+        outline: none;
+    }
+
+    .transparent-button {
+      background: none;
+      border: 2px solid white; /* White outline */
+      color: white;
+      padding: 15px 30px; /* Large button size */
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Smooth transitions */
+    }
+    
+    .transparent-button:hover {
+      background-color: white;
+      color: #333; /* Dark background color on hover */
+      border-color: white;
+    }
+    
+    .transparent-button.selected {
+      background-color: white;
+      color: #333; /* Dark text color when selected */
+      border-color: white;
+    }
+
+
+    .underline-select option {
+        background: #333; /* Same background as body for options */
+        color: white;
+    }
+
+    h1, h2, h3, h4, p, label {
+        color: white;
+    }
+    
+
+    </style>
+
+    <body>
+<div id="bg">
+  <canvas></canvas>
+  <canvas></canvas>
+  <canvas></canvas>
+</div>
+        <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel" data-interval=false>
+            <ol class="carousel-indicators">
+                <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+                <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+                <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+                <li data-target="#carouselExampleIndicators" data-slide-to="3"></li>
+                <li data-target="#carouselExampleIndicators" data-slide-to="4"></li>
+                <li data-target="#carouselExampleIndicators" data-slide-to="5"></li>
+            </ol>
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+
+                        <div class="card">
+                                <div class="row-sm mb-4"> <input id="student_firstname" placeholder="First name... *" class="underline-input" required> </div>
+                                <div class="row-sm mb-4"> <input id="student_middlename" placeholder="Middle name..." class="underline-input">  </div>
+                                <div class="row-sm mb-4"> <input id="student_lastname" placeholder="Last name... *" class="underline-input" required> </div>
+                                <div class="row-sm mb-4"> <input id="student_known_as" placeholder="Known as..." class="underline-input">  </div>
+                            
+                                <div class="row even-distribute">
+                                <div class="col-sm">  <p><input id="student_email" placeholder="Student Email... *"  type="email" onchange="oneEmail()" class="underline-input" required></p> </div>
+                                <div class="col-sm">  <p><input id="parent_email" placeholder="Parent Email... *"  type="email" onchange="oneEmail()"  class="underline-input" required></p> </div>
+                              </div>
+                              <div class="row" id = "differentEmails" style="display:none;"> <p style="color:red;"> The students email and the parents email should be different! </p> </div>
+                  
+                              <script>
+                                var email = false;
+                                student = document.getElementById('student_email');
+                                parent = document.getElementById('parent_email');
+                                differentEmails = document.getElementById('differentEmails');
+                  
+                                function oneEmail() {
+                                  //if(student.value != "") {
+                                  //  parent.required = false;
+                                  //  student.required = true;
+                                  // }
+                                  //else if(parent.value != "") {
+                                  //  parent.required = true;
+                                  //  student.required = false;
+                                  // }
+                  
+                                  if(student.value == parent.value) {
+                                    differentEmails.style.display = "block"; 
+                                  }
+                                  else {
+                                    differentEmails.style.display = "none"; 
+                                  }
+                  
+                                }
+                  
+                              </script>
+                  
+                              <div class="row ">
+                                <div class="col-sm"> 
+                                  <p> What Year group is your child in? *</p>
+                                  <select aria-placeholder="Year Group" class="underline-select" id="student_year_group" required>
+                                    {% for i in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] %} 
+                                      <option value="{{i}}"> {{ i }} </option>
+                                    {% endfor %}
+                                      <option value="Group Not Known"> N/A </option>
+                                  </select>
+                                </div>
+                  
+                          
+                                <div class="col-sm "> 
+                                  <p> Date of Birth: *</p>
+                                  <p> </p>
+                                  <p><input id = "student_dob" placeholder="dd" type="date" class="underline-input" required></p> 
+                                </div>
+                              </div>
+                  
+                        </div>
+
+                    <!-- </div> -->
+                </div>
+    
+                <div class="carousel-item">
+                    <div class = "card">
+                        <div class="row-sm mb-4"> <input id="student_house_no" placeholder="House Number..."  class="underline-input" required> </div>
+                        <div class="row-sm mb-4"> <input id="student_street" placeholder="Street Name..."  class="underline-input" required> </div>
+                        <div class="row-sm mb-4"> <input id="student_postcode" placeholder="Postcode..."  class="underline-input" required> </div>
+                        <div class="row-sm mb-4"> <input id="student_city" placeholder="City / County..."  class="underline-input" required> </div>
+                         <p> Mode of Transport <i class="bi bi-chevron-down"></i></p>
+                         <select id="student_transport" class="underline-select" placeholder="Method of transport..."  > 
+                          <option value = "" selected> Choose an option </option>
+                          <option value="Car"> Car </option>
+                          <option value="Bus"> Bus </option> 
+                          <option value="Train">Train </option> 
+                          <option value="Walking">Walking </option> 
+                          <option value="Other"> Other </option> 
+                        </select>
+                    </div>
+                </div>
+
+                <div class="carousel-item">
+                    <div class = "card">
+                        <p> Where does the student currently go to School </p>
+                        <div class="row-sm mb-4"> <p><input id="school_1_name" placeholder="School Name..." class="underline-input"></p> </div>
+
+                        <p> Do you wish to register multiple children in one go? </p>
+                        <table class="table"> 
+                            <thead>
+                                <th scope = "col-sm">  </th> 
+                                <th scope = "col-sm"> <p> First Name </p> </th> 
+                                <th scope = "col-sm"> <p> Second Name </p> </th>
+                                <th scope = "col-sm"> <p> Birthday </p> </th> 
+                                <th scope = "col-sm"> <p> Year Group </p> </th> 
+                                <th scope = "col-sm"> <p> Gender </p> </th> 
+                                <th scope = "col-sm"> <p> Email Address </p> </th>
+              
+                            </thead>
+                            <tbody>
+                            {% for i in [1, 2, 3, 4] %}
+                            <tr>
+                                <td scope = "row"> <p> Sibling {{ i }}  </p> </td>
+                                <td> <div class="col-sm"> <p><input id="sibling_{{ i }}_first_name" placeholder="First Name..." ></p> </div> </td>
+                                <td> <div class="col-sm"> <p><input id="sibling_{{ i }}_second_name" placeholder="Second Name..."  ></p> </div> </td>
+                                <td> <p><input id="sibling_{{ i }}_dob" placeholder="dd"  type="date"></p> </td>
+                                <td> <div class="col-sm"> <p><input  id="sibling_{{ i }}_year"  placeholder="Year Group..."  ></p> </div> </td>
+                                <td> 
+                                  <select id="sibling_{{ i }}_gender" placeholder="Gender..." class="custom-select">
+                                    <option value = "" selected> Choose an option </option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                  </select>
+                                </td>
+                                <td> <div class="col-sm"> <p><input id="sibling_{{ i }}_email" placeholder="Email..." ></p> </div> </td>
+          
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="carousel-item">
+                    <div class = "card">
+                        <script>
+                            function toggleAllergies() {
+                              if(document.getElementById('allergies').checked == true) {
+                                document.getElementById('allergyInfoDiv').style.display="Inline"
+                              }
+                              else {
+                                document.getElementById("allergyInfoDiv").style.display="None"
+                              }
+                            };
+                    
+                            function toggleExtraInfo() {
+                              if(document.getElementById('speech_or_hearing_difficulties').checked == false && document.getElementById('mobility_difficulties').checked == false && document.getElementById('other_difficulties').checked == false) {
+                                document.getElementById('extra_info_div').style.display="None"
+                              }
+                              else {
+                                document.getElementById("extra_info_div").style.display="Inline"
+                              }
+                            }
+
+                            function toggleBehaviour() {
+                              if(document.getElementById('behaviour_difficulties').checked == true) {
+                                document.getElementById('behaviourInfo_div').style.display="Inline"
+                              }
+                              else {
+                                document.getElementById("behaviourInfo_div").style.display="None"
+                              }
+                            };
+              
+                            function toggleSEN() {
+                              if(document.getElementById('SEN').checked == true) {
+                                document.getElementById('SEN_extra_info_div').style.display="Inline"
+                              }
+                              else {
+                                document.getElementById("SEN_extra_info_div").style.display="None"
+                              }
+                            };
+
+                            function selectButton(button) {
+                              // Get all buttons with the class 'transparent-button'
+                              var buttons = document.querySelectorAll('.normally-healthy');
+                              
+                              // Remove the 'selected' class from all buttons
+                              buttons.forEach(function(btn) {
+                                btn.classList.remove('selected');
+                              });
+                              
+                              // Add the 'selected' class to the clicked button
+                              button.classList.add('selected');
+                            }
+                          </script>
+
+                          <div class="form-row">
+                              <p> Is your child normally healthy? </p>
+                              <!-- <input id="normally_healthy" class="form-check-input checkbox" type="checkbox" value="" id="" class="underline-input"> -->
+                          </div>
+                          <div class="row">
+                            <button class="transparent-button normally-healthy mr-3" onclick="selectButton(this)">Yes</button>
+                            <button class="transparent-button normally-healthy" onclick="selectButton(this)">No</button>
+                          </div>
+            
+                          <p> Has your child had any of the following? </p>
+                          
+                          <div class="row">
+                          <div class="col">
+                            <div class="form-row">  
+                              <input id="asthma" class="form-check-input checkbox" type="checkbox" value="" id="" class="underline-input">
+                              <label class="form-check-label" for="flexCheckChecked"> Asthma </label>
+                            </div>
+                            <div class="form-row">  
+                              <input id="epilespy" class="form-check-input checkbox" type="checkbox" value="" id="" class="underline-input">
+                              <label class="form-check-label" for="flexCheckChecked"> Epilepsy / Fits </label>
+                            </div>
+                            <div class="form-row">  
+                              <input id="heart_problems" class="form-check-input checkbox" type="checkbox" value="" id="" class="underline-input">
+                              <label class="form-check-label" for="flexCheckChecked"> Heart Problems </label>
+                            </div>
+                            <div class="form-row">  
+                              <input id="allergies" class="form-check-input checkbox" type="checkbox" value="" id="allergies" onclick='toggleAllergies()' class="underline-input">
+                              <label class="form-check-label" for="flexCheckChecked"> Allergies </label>
+                            </div>
+                            <div id="allergyInfoDiv" style="display:none;"> <p><input id="allergyInfo" placeholder="please provide more information on the allergies..." ></p> </div>
+                          </div>
+                            
+                          
+                          <div class="col">  
+                            <div class="form-row">  
+                              <input id="nose_bleeds" class="form-check-input checkbox" type="checkbox" value=""  class="underline-input">
+                              <label class="form-check-label" for="flexCheckChecked"> Nose Bleeds </label>   
+                            </div>
+                            <div class="form-row">  
+                              <input id="speech_or_hearing_difficulties" class="form-check-input checkbox" type="checkbox" value="" onclick = "toggleExtraInfo()" class="underline-input">
+                              <label class="form-check-label" for="flexCheckChecked"> Speech / Hearing dificulties </label>   
+                            </div>
+                            <div class="form-row">  
+                              <input id="mobility_difficulties" class="form-check-input checkbox" type="checkbox" value="" onclick = "toggleExtraInfo()" class="underline-input">
+                              <label class="form-check-label" for="flexCheckChecked"> Mobility Difficulties </label>   
+                            </div>
+                            <div class="form-row">  
+                              <input id="other_difficulties" class="form-check-input checkbox" type="checkbox" value="" onclick = "toggleExtraInfo()" class="underline-input">
+                              <label class="form-check-label" for="flexCheckChecked"> Other </label>   
+                            </div>
+                  
+                            <div id="extra_info_div" style = "display: none;"> <p><input id="extra_info" placeholder="Extra Info..." class="underline-input"></p></div>
+                          </div>
+                          </div>
+
+                            <div> <p><input id="serious_illness_or_accidents" placeholder="Serious Ilnesses or Accidents..." class="underline-input"></p></div>
+            
+                            <div> <p><input id="condition_affective_school_life" placeholder="Conditions Affecting School Life..." class="underline-input"></p></div>
+
+                            <div class="form-row">
+                              <div class="col"> <label class="form-check-label" for="flexCheckChecked"> Does your child have any Special Educational Needs <br> about which you are aware? </label> </div>
+                              <div class="col"> <input id="SEN" class="form-check-input checkbox" type="checkbox" value="" id="" onclick="toggleSEN()"> </div>
+                            </div>
+                
+                            <div id="SEN_extra_info_div" style = "display: none;"> <p><input id="SEN_extra_info" placeholder="SEN Extra Info..." ></p></div>
+                
+                
+                            <div class="form-row">
+                              <div class="col"> <label class="form-check-label" for="flexCheckChecked"> Does your child require support with behaviour difficulties? </label> </div>
+                              <div class="col"> <input id="behaviour_difficulties" class="form-check-input checkbox" type="checkbox" value="" id="behaviour_support" onclick="toggleBehaviour()"> </div>
+                            </div>
+                
+                            <div id="behaviourInfo_div" style="display:none;"> <p><input id="behaviourInfo" placeholder="Behavioural Support Info..." ></p> </div>
+                            
+            
+                    </div>
+                </div>
+
+                <div class="carousel-item">
+                    <div class = "card">
+                                
+                      <h2> Priority Contact 1... </h2>                      
+                      <div class="row"> 
+                        <div class="col-sm" > <input id = "contact_1_firstname" placeholder="First Name..."  class="underline-input" required > </div>
+                        <div class="col-sm" > <input id = "contact_1_secondname" placeholder="Second Name..."  class="underline-input" required > </div>
+                        <div class="col-sm"> <input id = "contact_1_relationship" placeholder="Relationship to child..."  class="underline-input" required > </div> 
+                      </div>
+                      <div class="row">
+                        <div class="col-sm"> <input id="contact_1_mob_tel" placeholder="Mobile Telephone..."  class="underline-input" required > </div>
+                        <div class="col-sm"> <input id="contact_1_email" placeholder="Email..."  class="underline-input" required > </div>
+                      </div>
+
+                      <input id="contact_1_extra_info" placeholder="Extra Info..." class="underline-input">
+
+                      <div class="row mt-3">
+                        <div class="col ml-4">
+                          <input id = "contact_1_parental_responsibility" class="form-check-input checkbox" type="checkbox" value="" >
+                          <label class="form-check-label" for="flexCheckChecked"> Parental Responsibility? </label>
+                        </div>
+                      </div>
+                      
+                      <hr>
+
+                      <h2> Priority Contact 2 </h2>
+                  
+                      <div class="row"> 
+                        <div class="col-sm" > <input id = "contact_2_firstname" placeholder="First Name..."  class="underline-input" required > </div>
+                        <div class="col-sm" > <input id = "contact_2_secondname" placeholder="Second Name..."  class="underline-input" required > </div>
+                        <div class="col-sm"> <input id = "contact_2_relationship" placeholder="Relationship to child..."  class="underline-input" required > </div> 
+                      </div>
+                      <div class="row">
+                        <div class="col-sm"> <input id="contact_2_mob_tel" placeholder="Mobile Telephone..."  class="underline-input" required > </div>
+                        <div class="col-sm"> <input id="contact_2_email" placeholder="Email..."  class="underline-input" required > </div>
+                      </div>
+
+                      <input id="contact_2_extra_info" placeholder="Extra Info..." class="underline-input">
+
+                      <div class="row mt-3">
+                        <div class="col ml-4">
+                          <input id = "contact_2_parental_responsibility" class="form-check-input checkbox" type="checkbox" value="" >
+                          <label class="form-check-label" for="flexCheckChecked"> Parental Responsibility? </label>
+                        </div>
+                      </div>
+                      
+                    </div>
+                </div>
+
+                <div class="carousel-item">
+                  <div class = "card">
+                    <script>
+                      
+                      function selectButton2(button) {
+                        // Get all buttons with the class 'transparent-button'
+                        var buttons = document.querySelectorAll('.local_visit');
+                        
+                        // Remove the 'selected' class from all buttons
+                        buttons.forEach(function(btn) {
+                          btn.classList.remove('selected');
+                        });
+                        
+                        // Add the 'selected' class to the clicked button
+                        button.classList.add('selected');
+                        console.log(document.getElementById('permissionTrue').classList.contains('selected'))
+                      }
+
+                      function selectButton3(button) {
+                        // Get all buttons with the class 'transparent-button'
+                        var buttons = document.querySelectorAll('.media');
+                        
+                        // Remove the 'selected' class from all buttons
+                        buttons.forEach(function(btn) {
+                          btn.classList.remove('selected');
+                        });
+                        
+                        // Add the 'selected' class to the clicked button
+                        button.classList.add('selected');
+                      }
+                    </script>
+
+                    <p> Local Visits - Local visits may be occasionally organised by the Academy such as planned trips, local parks and the surrounding neighbourhood. Parents are
+                      requested to give blanket permission to such events for the duration of the pupil’s time at the Academy. The Academy undertakes risk assessments before all
+                      visits. Do you hereby give permission for your child as named above in this registration form to be taken out on educational visits by the academy. </p>
+                    <!-- <div class="form-row">
+                      <input id="local_visits_permission" class="form-check-input checkbox" type="checkbox" value="" >
+                      <label class="form-check-label" for="flexCheckChecked"> I give permission </label>
+                    </div> -->
+                    <div class="row">
+                      <div class="col"> <button id = "permissionTrue" class="transparent-button mr-3 local_visit" onclick="selectButton2(this)">I give Permission</button> </div>
+                      <div class="col"> <button class="transparent-button local_visit" onclick="selectButton2(this)">I Do Not Give Permision</button> </div>
+                    </div>
+        
+                    <p> - </p> 
+        
+                    <p> During your child’s time at the Academy, we may use digital media including photography and video. We have a 100% safe use of images and
+                      digital media policy and follow national guidelines. Such media may be used in newsletters, in pupil profiles given to you as a parent, on the
+                      website or local authority. Please see Section 5 of our Safeguarding Policy for further information. Having read the above do you give consent for digital media including photographs to be used by the Academy? </p>
+                    <!-- <div class="form-row">
+                      <input id="digital_media_permission" class="form-check-input checkbox" type="checkbox" value="">
+                      <label class="form-check-label" for="flexCheckChecked"> I give permission </label>
+                    </div> -->
+                    <div class="row">
+                      <div class="col"> <button class="transparent-button mr-3 media" onclick="selectButton3(this)">I give Permission</button> </div>
+                      <div class="col"> <button class="transparent-button media" onclick="selectButton3(this)">I Do Not Give Permision</button> </div>
+                    </div>
+        
+                    <hr>
+        
+                    <h2> Declaration </h2>
+                    <!-- https://codepen.io/yguo/pen/OyYGxQ -->
+                    <p> By signing your name you hereby confirm that the information contained in this registration
+                      form is true to the best of your knowledge and belief. </p>
+        
+                      <p class="text-danger"> Please ensure that you only press the submit button once to avoid multiple registrations! </p>
+                    
+                      <<input id="declaration_name" placeholder="Name..." class="underline-input" required>
+        
+                    <p> How did you hear About Us? *</p>
+        
+                      <select id="additional_info" placeholder="source..." class="underline-select"  required>
+                        <option value="Google / Online Search"> Google / Online Search</option>
+                        <option value="Leaflet Through the Door"> Leaflet Through the Door</option>
+                        <option value="Open / Career Event"> Open / Career Event</option>
+                        <option value="Word of Mouth / Friends and Family"> Word of Mouth / Friends and Family</option>
+                        <option value="Other"> Other</option>
+                      </select>
+        
+                      <div class="alert alert-success" id="statusmessagediv" style="display:None; ">
+                        <strong id="statusmessage">Success!</strong> {{ message }}
+                      </div>
+                  </div>
+                </div>
+            </div>
+            <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+            </a>
+        </div>
+    </body>
+
+</html>

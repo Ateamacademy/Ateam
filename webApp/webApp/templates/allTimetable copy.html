@@ -1,0 +1,456 @@
+<head>
+    <title>Timetable</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <script src="static/javascript/js/timetable.js-master/dist/scripts/timetable.js"></script>
+    <link rel="stylesheet" href="static/javascript/js/timetable.js-master/dist/styles/timetablejs.css">
+    <link rel="stylesheet" href="static/css/timetable.css"/>
+</head>
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+<style>
+    .time-entry .approved { 
+        background-color:green;
+        transition:background-color .2s;
+        height:45px;
+        display:block;
+        position:absolute;
+        z-index:2;
+        padding:0 10px;
+        white-space:normal;
+        overflow:hidden;
+        color:#fff;
+        border:1px solid green;
+        transform-style:preserve-3d
+        }
+            
+    .time-entry .register { 
+        background-color:orange;
+        transition:background-color .2s;
+        height:45px;
+        display:block;
+        position:absolute;
+        z-index:2;
+        padding:0 10px;
+        white-space:normal;
+        overflow:hidden;
+        color:#fff;
+        border:1px solid orange;
+        transform-style:preserve-3d
+        }
+</style>
+
+    <script>
+    function changeOffset(changeBy) {
+        var currentUrl = window.location.href;
+        var url = new URL(currentUrl);
+        var offsetParam = parseInt(url.searchParams.get("offset")) || 0; // Get the offset parameter from the URL, default to 0 if not present
+        var newOffset = offsetParam + changeBy;
+        url.searchParams.set("offset", newOffset);
+        window.location.href = url.toString(); // Redirect to the updated URL
+    }
+    </script>
+
+
+    <div class="row row-12 mb-4 ml-3 mr-3" style="width:100%;">
+        <div class="card text-center" style="width:100%;">
+            <div class="card-body">
+                <div class="row">
+                    {% if role == "admin" %} 
+                    
+                    <div class="col"> <button onclick="changeOffset(-7)" class="btn btn-secondary" id="backWeek"> Back a Week </button> </div>
+                    <div class="col"> <button onclick="changeOffset(-1)" class="btn btn-secondary" id="backDay"> Back a Day </button> </div>
+                    <div class="col"> <h2 class = "title"> {{ day }} ({{ weekNo }}) </h2> </div>
+                    <div class="col"> <button onclick="changeOffset(1)" class="btn btn-secondary" id="forwardDay"> Forward a Day </button> </div>
+                    <div class="col"> <button onclick="changeOffset(7)" class="btn btn-secondary" id="forwardWeek"> Forward a Week </button> </div>
+
+                    {% elif role == "tutor" or role == "student" %} 
+                    <div class="col"> <button onclick="changeOffset(-7)" class="btn btn-secondary" id="backWeek"> Back a Week </button> </div>
+                    <div class="col"> <h2 class = "title"> Week:  {{ weekNo }} </h2> </div>
+                    <div class="col"> <button onclick="changeOffset(7)" class="btn btn-secondary" id="forwardWeek"> Forward a Week </button> </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if session['role'] == 'admin' %}
+    <div class="row row-12 mb-4 ml-3 mr-3" style="width:100%;">
+    {% else  %}
+    <div class="row row-12 mb-4 ml-3 mr-3" style="width:100%; display:none;">
+    {% endif %}
+        <div class="card text-center" style="width:100%;">
+            <div class="card-body">
+                <p class="card-text"> <h2> Filter by </h2> </p> 
+                <div class="row">
+                    <div class="col"> <p> Tutor </p> 
+                        <select class="custom-select" id="filterTutor" onchange="generateTimetable()">
+                            <option value="-1"> All </option>
+                            {% for tutor in tutors %}
+                                <option value="{{tutor.id}}"> {{ tutor.name }} </option>
+                            {% endfor %}
+                        </select>  
+                    </div>
+                    <div class="col"> <p> Subject </p>
+                        <select class="custom-select" id="filterSubject" onchange="generateTimetable()">
+                            <option value="-1"> All </option>  
+                            {% for subject in subjects %}
+                                <option value="{{ subject.id }}"> {{ subject.name }} </option>
+                            {% endfor %}
+                        </select>  
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col mb-4"> 
+
+        <div class="row"> 
+            <div class = "card col ml-4 mr-4 center" style="max-width:1600px;">
+                <div class="card-body">
+                    <div class="timetable row" id="schedule">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+<script>
+    var errorItems = []
+    var maxRows = {{maxRows|tojson}}; 
+    var items = {};
+    var todaysMax = {};
+    for(i in maxRows){
+        for(j=1 ; j<=parseInt(maxRows[i]['max']) ; j++){
+            console.log("Doing stuff")
+            items[maxRows[i]['name'].concat("-").concat(parseInt(j))] = []
+        }
+        todaysMax[i] = 0
+    }
+    
+    function assignRoom(centreName, start, end, num, lesson) {
+        //if(centreName == "Coventry Road")
+        //{
+            if(num > maxRows[centreName]['max']) {
+                errorItems.push("Too many Lessons between " + start + " to " + end + " at " + centreName)
+                alert(errorItems)
+            }
+
+            var list = items[maxRows[centreName]['name'].concat("-").concat(String(num))]
+            for(i in list) 
+            {
+                var current = list[i];
+                var currentStart = parseFloat(parseInt(current.startHour) + (parseInt(current.startMinute))/100);
+                var currentEnd = parseFloat(parseInt(current.endHour) + (parseInt(current.endMinute))/100);
+                //console.log("COV-".concat(String(num)));
+                //console.log(items["COV-".concat(String(num))])
+                //console.log("currentStartHour: ".concat(current.startHour))
+                //console.log("currentEndHour: ".concat(current.endHour))
+                //console.log("Current Start:".concat(currentStart).concat("-").concat(currentEnd));
+                //console.log("New start: ".concat(start).concat(" New End: ".concat(end)));
+
+                if( ((parseFloat(start) >= currentStart && parseFloat(start) < currentEnd) 
+                || (parseFloat(end) > currentStart && parseFloat(end) <= currentEnd) ) 
+                || (parseFloat(start) == currentStart && parseFloat(end) == currentEnd) 
+                || (parseFloat(start) <= currentStart && parseFloat(end) >= currentEnd) )
+                    {
+                        return assignRoom(centreName, start, end, num+1, lesson);
+                    }
+            }
+            //console.log("adding".concat(lesson.lessonID).concat( "to the array COV-").concat(num));
+
+            items[maxRows[centreName]['name'].concat("-").concat(String(num))].push(lesson);
+            todaysMax[centreName] = Math.max(num, todaysMax[centreName]);
+            return maxRows[centreName]['name'].concat(String(num))
+        //}
+
+        /*
+        else if(centreName == "Soho Road") 
+        {
+            if(num > 5) {
+                errorItems.push("Too many Lessons between " + start + " to " + end + " at " + centreName)
+                alert(errorItems)
+            }
+            var list = items["SOHO-".concat(String(num))]
+            for(i in list) 
+            {
+                var current = list[i];
+                var currentStart = parseFloat(parseInt(current.startHour) + (parseInt(current.startMinute))/100);
+                var currentEnd = parseFloat(parseInt(current.endHour) + (parseInt(current.endMinute))/100);
+                if( ((parseFloat(start) >= currentStart && parseFloat(start) < currentEnd) ||  (parseFloat(end) > currentStart && parseFloat(end) <= currentEnd) ) || (parseFloat(start) == currentStart && parseFloat(end) == currentEnd))
+                    {
+                        return assignRoom(centreName, start, end, num+1, lesson);
+                    }
+
+            }
+            //console.log("adding".concat(lesson).concat( "to the array SOHO").concat(num));
+            items["SOHO-".concat(String(num))].push(lesson);
+            return "SOHO-".concat(String(num))
+        }
+        else if(centreName == "Online") 
+        {
+            if(num > 7) {
+                errorItems.push("Too many Lessons between " + start + " to " + end + " at " + centreName)
+                alert(errorItems)
+            }
+
+            var list = items["ONLINE-".concat(String(num))]
+            for(i in list) 
+            {
+                var current = list[i];
+                var currentStart = parseFloat(parseInt(current.startHour) + (parseInt(current.startMinute))/100);
+                var currentEnd = parseFloat(parseInt(current.endHour) + (parseInt(current.endMinute))/100);
+                if( ((parseFloat(start) >= currentStart && parseFloat(start) < currentEnd) ||  (parseFloat(end) > currentStart && parseFloat(end) <= currentEnd) ) || (parseFloat(start) == currentStart && parseFloat(end) == currentEnd))
+                    {
+                        return assignRoom(centreName, start, end, num+1, lesson);
+                    }
+            }
+            console.log(num)
+            console.log("adding".concat(lesson).concat( "to the array ONLINE").concat(num));
+            items["ONLINE-".concat(String(num))].push(lesson);
+            return "ONLINE-".concat(String(num))
+        }
+        */
+
+    };
+
+
+    window.onload = function() {generateTimetable();};
+    
+    function generateTimetable() {
+        
+        var d = new Date()
+        hour = d.getHours()
+
+        var alerts = {{ alerts|tojson  }};
+
+        for(i in alerts) {
+            $('#alert-'.concat(alerts[i].alertID)).modal('show');
+        }
+
+        //if((hour < 6 || hour >= 22) && ( "{{ session['role'] }}" == "tutor")) {
+        //    $('#removeModalCenter').modal('show');
+        //}
+
+        
+        var role = {{ role|tojson }}
+        var timetable = new Timetable();
+        var rows;
+        var lessons = {{ lesson2|tojson }};
+        //console.log(lessons);
+
+        var filterSubject = document.getElementById("filterSubject").value;
+        var filterTutor = document.getElementById("filterTutor").value;
+        //console.log(filterTutor);
+
+        if(mobile()) {
+            document.getElementById("backWeek").innerHTML = ("<<");
+            document.getElementById("forwardWeek").innerHTML = (">>");
+
+            try{
+                document.getElementById("backDay").innerHTML = ("<");
+                document.getElementById("forwardDay").innerHTML = (">");
+            }
+            catch(e) {
+            }
+
+            minTime = 23
+            maxTime = 0
+            for(i in lessons) {
+                if(parseInt(lessons[i].startHour) < minTime) {
+                    minTime = parseInt(lessons[i].startHour);
+                }
+                if(parseInt(lessons[i].endHour) > maxTime) {
+                    maxTime = parseInt(lessons[i].endHour) + 1;
+                }
+            }
+        }
+        else {
+            minTime = 7;
+            maxTime = 22;
+        }
+            
+
+        timetable.setScope(minTime, maxTime + 1); // optional, only whole hours between 0 and 23
+
+        if(role == "admin") {
+
+            if(errorItems.length > 0) {
+                alert(errorItems)
+            }
+        
+            for(i in lessons) {
+                var start = parseFloat( parseInt(lessons[i].startHour) + parseFloat((lessons[i].startMinute / 100)) );
+                var end = parseFloat( parseInt(lessons[i].endHour) + parseFloat((lessons[i].endMinute / 100))) ;
+
+                assignRoom(lessons[i].centre, start, end, 1, lessons[i])
+            }
+
+            Object.entries(items).forEach(([key, value]) => {
+                // Check if the value is an empty array
+                if (Array.isArray(value) && value.length === 0) {
+                  // Remove the entry from the dictionary
+                  delete items[key];
+                }
+              });
+
+            rows = Object.keys(items);
+            timetable.addLocations(rows);
+
+            for(const property in items) {
+                for(i in items[property] ) {
+                    classes = ""
+                    if(items[property][i].register == '1' && items[property][i].approved == false) {
+                        classes = classes + " register"
+                    }
+                    else { 
+                        if(items[property][i].approved == true){
+                            classes = classes + " approved"
+                        }
+
+                    }
+
+                    var options = {
+                        url: '/Classroom_View_Home?lessonid='.concat( items[property][i].lessonID).concat("&year=").concat( items[property][i].year).concat("&weekNo=").concat( {{ weekNo|tojson }} ), // makes the event clickable
+                        class: classes, // additional css class
+                        onClick: function(event, timetable, clickEvent) {} // custom click handler, which is passed the event object and full timetable as context  
+                        }
+
+                    if(items[property][i].subjectID == filterSubject || filterSubject == "-1") {
+                        console.log("so adding")
+                        subject = true; 
+                    }
+
+                    if(items[property][i].tutorid == filterTutor || filterTutor == "-1") {
+                        tutor = true; 
+                    }
+
+                    if(tutor==true && subject==true) {
+                        timetable.addEvent(items[property][i].title.concat(" - ").concat(items[property][i].tutor), 
+                                            property, 
+                                            new Date(2015,7,17,parseInt(items[property][i].startHour),parseInt(items[property][i].startMinute)), 
+                                            new Date(2015,7,17,parseInt(items[property][i].endHour), parseInt(items[property][i].endMinute)), 
+                                            options );
+                        console.log("just added");
+                        console.log(items[property][i]);
+                    }
+
+        
+                };
+
+            };
+        };
+
+        if(role == "tutor" || role == "student")  {
+            rows = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+            timetable.addLocations(rows);
+            
+            for(i in lessons ) {
+                classes = ""
+                if(lessons[i].register == '1') {
+                    classes = classes + " register"
+                }
+                
+                if(lessons[i].approved == true){
+                    classes = classes + " approved"
+                }
+
+
+                var options = {
+                    url: '/Classroom_View_Home?lessonid='.concat( lessons[i].lessonID).concat("&year=").concat( lessons[i].year).concat("&weekNo=").concat( {{ weekNo|tojson }} ), // makes the event clickable
+                    class: classes, // additional css class
+
+                    onClick: function(event, timetable, clickEvent) {} // custom click handler, which is passed the event object and full timetable as context  
+                }
+
+
+                timetable.addEvent(lessons[i].title.concat(" - ").concat(lessons[i].centre), 
+                                    lessons[i].day, 
+                                    new Date(2015,7,17,parseInt(lessons[i].startHour),parseInt(lessons[i].startMinute)), 
+                                    new Date(2015,7,17,parseInt(lessons[i].endHour), parseInt(lessons[i].endMinute)), 
+                                    options );
+                //console.log("just added");
+                //  console.log(lessons[i]);
+        
+                };
+
+
+
+        }
+        
+        
+        var renderer = new Timetable.Renderer(timetable);
+        timetable.rows
+        renderer.draw('.timetable'); // any css selector
+
+        //register check
+
+        registerList = document.getElementsByClassName('register');
+
+        approvedList = document.getElementsByClassName("approved");
+        //registerList = document.getElementById("schedule").getElementsByClassName('time-entry');
+
+        for(i=0 ; i<registerList.length; i++) {
+            registerList[i].style.backgroundColor = "#FFBF00";
+            registerList[i].style.borderColor = "#ff8503";
+        }
+        
+        for(i=0 ; i<approvedList.length; i++) {
+            approvedList[i].style.backgroundColor = "#5ac227";
+            approvedList[i].style.borderColor = "#50ad23";
+        }
+
+    };
+
+</script>
+
+
+{% for alert in alerts %}
+<div class="modal fade" id="alert-{{ alert.alertID }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLongTitle"> {{ alert.title|safe }} </h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+            {{ alert.message|safe }}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-success" data-dismiss="modal" onclick="viewAlert('{{ alert.alertID }}')"> I have read and acknowledged this </button>
+        </div>
+
+      </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+    function viewAlert(id) {
+        $.ajax({
+            url: '/view_alert',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({"alertID": id}),
+            success: function(response) {
+                location.reload();
+
+            },
+            error: function(error) {
+              console.log("error")
+              alert("the alert could not be dismissed right now")
+            }
+        });
+    }
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'base_page.html' %}
+
+{% block middleContent %}
+<div class="container mt-5">
+    <h2 class="text-center">Submit Staff Review</h2>
+    
+    <form id="reviewForm" class="form-horizontal mt-4">
+        <!-- Select Staff Member -->
+        <div class="form-group row">
+            <label for="staffID" class="col-sm-3 col-form-label">Select Staff Member:</label>
+            <div class="col-sm-9">
+                <select class="form-control" id="staffID" required>
+                    <option value="">-- Select Staff --</option>
+                    {% for staff in staffList %}
+                        <option value="{{ staff.id }}">{{ staff.firstName }} {{ staff.secondName }} ({{ staff.role }}) </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Scores and Comments -->
+        {% set fields = ['Punctuality', 'Lesson Quality', 'Lesson Preparedness', 'Professionalism', 'Test Scores', "Extra"] %}
+        {% for field in fields %}
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <h6 class="m-0">{{ field }}</h6>
+            </div>
+            <div class="card-body">
+                <div class="form-group row align-items-center">
+                    <label for="{{ field }} Score" class="col-sm-3 col-form-label text-right">Score (1-5):</label>
+                    <div class="col-sm-3">
+                        <input type="number" class="form-control" id="{{ field }} Score" name="{{ field }} Score" min="1" max="5" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="{{ field }} Comments" class="form-label">Comments:</label>
+                    <textarea class="form-control" id="{{ field }} Comments" name="{{ field }} Comments" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <!-- Submit Button -->
+        <div class="text-center">
+            <button type="button" class="btn btn-primary mt-3" onclick="submitReview()">Submit Review</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function submitReview() {
+        const reviewData = {
+            staffID: document.getElementById("staffID").value,
+            PunctualityScore: document.getElementById("Punctuality Score").value,
+            PunctualityComments: document.getElementById("Punctuality Comments").value,
+            LessonQualityScore: document.getElementById("Lesson Quality Score").value,
+            LessonQualityComments: document.getElementById("Lesson Quality Comments").value,
+            LessonPreparednessScore: document.getElementById("Lesson Preparedness Score").value,
+            LessonPreparednessComments: document.getElementById("Lesson Preparedness Comments").value,
+            ProfessionalismScore: document.getElementById("Professionalism Score").value,
+            ProfessionalismComments: document.getElementById("Professionalism Comments").value,
+            TestScoresAverage: document.getElementById("Test Scores Score").value,
+            TestScoresComments: document.getElementById("Test Scores Comments").value,
+            extraComments: document.getElementById("Extra Comments").value,
+
+        };
+
+        // Send data via AJAX
+        $.ajax({
+            url: "/submit_staff_review",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(reviewData),
+            success: function(response) {
+                alert("Review submitted successfully!");
+                document.getElementById("reviewForm").reset();
+            },
+            error: function(error) {
+                alert("An error occurred while submitting the review.");
+            }
+        });
+    }
+</script>
+{% endblock %}

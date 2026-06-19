@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <link id = "mainTheme" href="static/css/sb-admin-2.min.css" rel="stylesheet" type="text/css">
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="apple-touch-icon-precomposed" sizes="57x57" href="static/images/favicomatic/apple-touch-icon-57x57.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="static/images/favicomatic/apple-touch-icon-114x114.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="static/images/favicomatic/apple-touch-icon-72x72.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="static/images/favicomatic/apple-touch-icon-144x144.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="60x60" href="static/images/favicomatic/apple-touch-icon-60x60.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="120x120" href="static/images/favicomatic/apple-touch-icon-120x120.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="76x76" href="static/images/favicomatic/apple-touch-icon-76x76.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="static/images/favicomatic/apple-touch-icon-152x152.png" />
+    <link rel="icon" type="image/png" href="static/images/favicomatic/favicon-196x196.png" sizes="196x196" />
+    <link rel="icon" type="image/png" href="static/images/favicomatic/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/png" href="static/images/favicomatic/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="static/images/favicomatic/favicon-16x16.png" sizes="16x16" />
+    <link rel="icon" type="image/png" href="static/images/favicomatic/favicon-128.png" sizes="128x128" />
+    <meta name="application-name" content="&nbsp;"/>
+    <meta name="msapplication-TileColor" content="#FFFFFF" />
+    <meta name="msapplication-TileImage" content="mstile-144x144.png" />
+    <meta name="msapplication-square70x70logo" content="mstile-70x70.png" />
+    <meta name="msapplication-square150x150logo" content="mstile-150x150.png" />
+    <meta name="msapplication-wide310x150logo" content="mstile-310x150.png" />
+    <meta name="msapplication-square310x310logo" content="mstile-310x310.png" />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="/static/javascript/mobile.js" type = "text/javascript"> </script>
+
+    <!-- Custom fonts for this template-->
+    <link href="static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+
+    <!-- Page level plugins -->
+    <script src="static/vendor/chart.js/Chart.min.js"></script>
+
+    <!-- Custom styles for this template-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.1/min/dropzone.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.1/min/dropzone.min.css">
+
+    <script> 
+        function toggleTheme(value) { 
+            // Use the id to target the correct <link> element
+            document.getElementById("mainTheme").href = value += '?rnd=' + (new Date().valueOf());;
+            console.log("changed to " + value);
+        } 
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Fetch the user's theme from the Flask route
+            fetch('/get_user_theme')
+                .then(response => {
+                    if (response.ok) {
+                        return response.text()
+                    } else {
+                        console.error('Failed to fetch user theme');
+                        return null;
+                    }
+                })
+                .then(theme => {
+                    if (theme) {
+                        // Construct the path to the CSS file based on the theme
+                        var themePath = 'static/css/modified_' + theme + '_theme.css';
+                        document.getElementById("mainTheme").href = themePath += '?rnd=' + (new Date().valueOf());;
+
+                    } else {
+                        console.warn('No theme returned, keeping the default.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching user theme:', error);
+                });
+        });
+    </script>
+
+</head>
+
+<style>
+    a {
+        font-weight:bold;
+    }
+
+    .collapse {
+        z-index: 10;
+    }
+
+    
+</style>
+
+
+
+<script>
+    // List of permissions to check
+    const permissions = [
+        'view_all_lessons',
+        'view_lessons_at_centre',
+        'change_lesson_time',
+        'change_lesson_day',
+        'change_lesson_tutor',
+        'change_lesson_subject',
+        'change_lesson_centre',
+        'change_lesson_students',
+        'add_a_new_lesson',
+        'delete_a_lesson',
+        'make_individual_test',
+        'make_a_test_for_a_subject',
+        'add_a_new_subject',
+        'upload_work_to_lesson',
+        'upload_to_subject_resources',
+        'upload_to_subject',
+        'change_lesson_plan',
+        'view_all_tutor_information',
+        'view_below_payslips',
+        'upload_payslips',
+        'edit_tutor_information',
+        'create_below_roles',
+        'view_all_student_information',
+        'view_student_payment_information',
+        'edit_student_information',
+        'delete_a_student',
+        'view_all_logs',
+        'view_centre_logs',
+        'approve_hours',
+        'send_emails_to_parents',
+        'send_emails_to_students',
+        'delete_messages',
+        'create_alerts',
+        'dismiss_alerts', 
+        'create_marketplace_products', 
+        'create_events', 
+        'allow_maintenance', 
+        'view_staff', 
+        'view_staff_info', 
+        'allow_maintenance', 
+        'view_enquiries', 
+        'reset_below_password' 
+    ];
+
+    // Object to store permission results
+    const userPermissions = {};
+    var roleLevel = -1;
+
+    async function fetchLittleAlerts() {
+        try {
+            const response = await fetch('/view_little_alert');
+            const alerts = await response.json();
+
+            const alertsContainer = document.getElementById('alertsContainer');
+            const alertsCount = document.getElementById('alertsCount');
+            alertsContainer.innerHTML = ''; // Clear existing alerts
+
+            if (alerts.error) {
+                alertsContainer.innerHTML = `<p>${alerts.error}</p>`;
+                alertsCount.innerText = '0'; // No alerts to show
+            } else {
+                alerts.forEach(alert => {
+                    const alertItem = document.createElement('a');
+                    alertItem.className = 'dropdown-item d-flex align-items-center';
+                    alertItem.href = '#';
+
+                    alertItem.innerHTML = `
+                        <div class="mr-3">
+                            <div class="icon-circle bg-primary">
+                                <i class="fas fa-file-alt text-white"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="small text-gray-500">${alert.date_time}</div>
+                            <span class="font-weight-bold">${alert.message}</span>
+                        </div>
+                    `;
+                    alertsContainer.appendChild(alertItem);
+                });
+                
+                // Update the alerts count badge
+                alertsCount.innerText = alerts.length;
+
+                // Mark alerts as viewed only when the dropdown is shown
+                document.getElementById('alertsDropdown').addEventListener('shown.bs.dropdown', async () => {
+                    await markAlertsAsViewed();
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching alerts:', error);
+        }
+    }
+
+    async function markAlertsAsViewed() {
+        try {
+            const response = await fetch('/view_little_alert', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+            if (result.status === 'success') {
+                console.log('Alerts marked as viewed.');
+            } else {
+                console.error('Failed to mark alerts as viewed:', result.error);
+            }
+        } catch (error) {
+            console.error('Error marking alerts as viewed:', error);
+        }
+    }
+
+
+    // Function to fetch permission status
+    async function fetchPermission(permission) {
+        //initialisebuttons()
+        try {
+            const response = await fetch(`/getPermission?permission=${permission}`);
+            const data = await response.json();
+            userPermissions[permission] = data.permission;
+        } catch (error) {
+            console.error(`Error fetching permission ${permission}:`, error);
+        }
+    }
+
+    // Fetch all permissions and assign to userPermissions object
+    async function fetchAllPermissions() {
+        const fetchPromises = permissions.map(permission => fetchPermission(permission));
+        await Promise.all(fetchPromises);
+        <!-- console.log('User Permissions:', userPermissions); -->
+
+        try {
+            const response2 = await fetch('/getRoleLevel');
+            const data2 = await response2.json();
+            roleLevel = parseInt(data2.roleLevel)
+        } catch(error) {
+            console.error(`Error fetching role Level`, error);
+        }
+
+        updateUI();
+    }
+
+    async function updateUI() {
+
+        function disableElement(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.style.display = "none";
+                element.style.color = 'grey';
+                element.style.pointerEvents = 'none';
+                element.style.textDecoration = 'none';
+                element.removeAttribute('href');
+            }
+        }
+    
+        // Display permissions status
+        /*for (const [permission, hasPermission] of Object.entries(userPermissions)) {
+            const permissionStatus = document.createElement('p');
+            permissionStatus.textContent = `${permission}: ${hasPermission}`;
+        }*/
+
+        // Enable or disable buttons based on permissions
+        if (userPermissions['add_a_new_lesson'] && userPermissions['view_all_lessons']) {
+            document.getElementById('generate_Timetable').disabled = false;
+        } else {
+            disableElement('generate_Timetable');
+        }
+    
+        if (userPermissions['view_all_lessons']) {
+            document.getElementById('view_lessons').disabled = false;
+        } else {
+            disableElement('view_lessons');
+        }
+    
+        if (userPermissions['make_a_test_for_a_subject']) {
+            document.getElementById('make_all_tests').disabled = false;
+        } else {
+            disableElement('make_all_tests');
+        }
+        
+
+        try {
+            // if the user is more than a tutor
+            const relativeRole = await fetch('getRelativeRoleLevel?role=tutor&inc=false');
+            const relativeData = await relativeRole.json(); 
+            const result = relativeData.roleLevel;
+            console.log(result);
+            if (result) {
+                document.getElementById('weekly_report').disabled = false;
+                document.getElementById('tutorHours').disabled = false;
+                document.getElementById('approveHours').disabled = false;
+                document.getElementById('documents-link').disabled = false;
+                document.getElementById('Alerts-link').disabled = false;
+            } else {
+                disableElement('weekly_report');
+                disableElement('tutorHours');
+                disableElement('approveHours');
+                disableElement('document-link'); 
+                disableElement('Alerts-link');
+            }
+        } catch (error) {
+            console.error('Error fetching relative role Level', error);
+        }
+    
+        if (userPermissions['view_all_tutor_information']) {
+            document.getElementById('admin_tutor_view').disabled = false;
+            document.getElementById('tutor_performance').disabled = false;
+        } else {
+            disableElement('admin_tutor_view');
+            disableElement('tutor_performance');
+        }
+    
+        if (userPermissions['edit_tutor_information']) {
+            document.getElementById('tutor_reg').disabled = false;
+            document.getElementById('tutorAccessRights').disabled = false;
+        } else {
+            disableElement('tutor_reg');
+            disableElement('tutorAccessRights');
+        }
+    
+        if (userPermissions['view_all_student_information']) {
+            document.getElementById('admin_student_view').disabled = false;
+            document.getElementById('student_performance').disabled = false;
+            document.getElementById('exam_students').disabled = false;
+        } else {
+            disableElement('admin_student_view');
+            disableElement('student_performance');
+            disableElement('exam_students');
+        }
+    
+        if (userPermissions['edit_student_information']) {
+            document.getElementById('admin_student_view').disabled = false;
+            document.getElementById('student_performance').disabled = false;
+            document.getElementById('studentAccessRights').disabled = false;
+            document.getElementById('unregisteredStudents').disabled = false;
+            document.getElementById('unregisteredGrades').disabled = false;
+        } else {
+            disableElement('admin_student_view');
+            disableElement('student_performance');
+            disableElement('studentAccessRights');
+            disableElement('unregisteredStudents');
+            disableElement('unregisteredGrades');
+        }
+
+        if(userPermissions['send_emails_to_parents'] || userPermissions['send_emails_to_student']) {
+            document.getElementById('email_templates').disabled = false;
+        } else {
+            disableElement('email_templates');
+        }
+    
+        try {
+            // if the user is more than or equal to an examsofficer
+            const relativeRole = await fetch('getRelativeRoleLevel?role=exams%20officer&inc=true');
+            const relativeData = await relativeRole.json(); 
+            const result = relativeData.roleLevel;
+            console.log(result);
+            if (result) {
+                document.getElementById('make_new_exam_student').disabled = false;
+                document.getElementById('exam_students').disabled = false;
+                document.getElementById('make_exams').disabled = false;
+                document.getElementById('view_exams').disabled = false;
+                document.getElementById('exam_students').disabled = false;
+                document.getElementById('exam_room_allocation').disabled = false;
+                document.getElementById('examsButton').disabled = false;
+                document.getElementById('ucas_references').disabled = false;
+                document.getElementById('exam_rooms').disabled = false;
+
+
+            } else {
+                disableElement('make_new_exam_student');
+                disableElement('exam_students');
+                disableElement('make_exams');
+                disableElement('view_exams');
+                disableElement('exam_room_allocation');
+                disableElement('examsButton');
+                disableElement('exam_students');
+                disableElement('ucas_references');
+                disableElement('exam_rooms');
+
+
+            }
+        } catch (error) {
+            console.error('Error fetching relative role Level', error);
+        }
+    
+        if (userPermissions['create_alerts']) {
+            document.getElementById('admin_create_alerts').disabled = false;
+            document.getElementById('alert_status').disabled = false;
+        } else {
+            disableElement('admin_create_alerts');
+            disableElement('alert_status');
+        }
+
+        if (userPermissions['view_enquiries']) {
+            document.getElementById('Enquiries-link').disabled = false;
+        } else {
+            disableElement('Enquiries-link');
+        }
+
+        try {
+            // if the user is more than or equal to an admin
+            const relativeRole2 = await fetch('getRelativeRoleLevel?role=admin&inc=true');
+            const relativeData2 = await relativeRole2.json(); 
+            const result = relativeData2.roleLevel;
+            console.log(result);
+            if (result) {
+                document.getElementById('roleAccessRights').disabled = false;
+                document.getElementById('report_cards').disabled = false;
+
+
+            } else {
+                disableElement('roleAccessRights');
+                disableElement('report_cards');
+
+            }
+        } catch (error) {
+            console.error('Error fetching relative role Level', error);
+        }
+        try {
+            // if the user is more than or equal to a tutor
+            const relativeRole2 = await fetch('getRelativeRoleLevel?role=tutor&inc=true');
+            const relativeData2 = await relativeRole2.json(); 
+            const result = relativeData2.roleLevel;
+            console.log(result);
+            if (result) {
+                document.getElementById('importantDocs').disabled = false;
+            } else {
+                disableElement('importantDocs');
+            }
+        } catch (error) {
+            console.error('Error fetching relative role Level', error);
+        }
+
+        try {
+            // if the user is more than or equal to a tutor
+            const relativeRole3 = await fetch('getRelativeRoleLevel?role=financial%20clerk&inc=true');
+            const relativeData3 = await relativeRole3.json(); 
+            const result = relativeData3.roleLevel;
+            console.log(result)
+            if (result) {
+                document.getElementById('finance_dashboard_link').disabled = false;
+            } else {
+                disableElement('finance_dashboard_link');
+            }
+        } catch (error) {
+            console.error('Error fetching relative role Level', error);
+        }
+
+        // Add more conditions as needed
+    }
+
+    function initialisebuttons() {
+        console.log("doing this")
+        const collapseItemButtons = document.querySelectorAll('.collapse-item');
+
+        // Iterate over the selected elements and disable each button
+        collapseItemButtons.forEach(button => {
+            button.disabled = true;
+        });
+    }
+    // Fetch permissions on page load
+  window.onload = () => {
+        fetchAllPermissions();
+        fetchLittleAlerts();  // Fetch the little alerts on page load
+    };</script>
+
+{% if session['role'] == 'tutor' %}
+<script>
+    $( document ).ready(function() {
+
+    fetch('/getTutorHours?offset={{ request.args["offset"] }}')
+        .then(response => response.json())
+        .then(data => { if(!mobile()) {document.getElementById("hourLog").innerHTML = "Weekly Hours: " + data; } })
+        .catch(error => console.error('Error:', error));
+
+        
+    fetch('/getTutorMonthHours?offset={{ request.args["offset"] }}')
+    .then(response => response.json())
+    .then(data => { if(!mobile()) {document.getElementById("monthLog").innerHTML = "Monthly Hours: " + data; } })
+    .catch(error => console.error('Error:', error));
+
+    });
+
+</script>
+{% else %}
+<script>
+    $( document ).ready(function() {
+        document.getElementById("hourLog").style.display = "none";
+        document.getElementById("monthLog").style.display = "none";
+    });
+</script>
+{% endif %}
+
+<body id="page-top">
+
+        <!-- Loading Spinner -->
+        <!-- <div id="loadingSpinner">
+            <div class="spinner"></div>
+        </div> -->
+
+        <div class="bubbles">
+            <!-- Create multiple bubbles -->
+            <div class="bubble" style="--bubble-dir: 0.1;"></div>
+            <div class="bubble" style="--bubble-dir: 0.2;"></div>
+            <div class="bubble" style="--bubble-dir: 0.3;"></div>
+            <div class="bubble" style="--bubble-dir: 0.4;"></div>
+            <div class="bubble" style="--bubble-dir: 0.5;"></div>
+            <div class="bubble" style="--bubble-dir: 0.6;"></div>
+            <div class="bubble" style="--bubble-dir: 0.7;"></div>
+            <div class="bubble" style="--bubble-dir: 0.8;"></div>
+          </div>    
+        
+
+        <!-- Page Wrapper -->
+        <div id="wrapper">
+
+            <!-- Sidebar -->
+            <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+    
+                <!-- Sidebar - Brand -->
+                <a class="sidebar-brand d-flex align-items-center justify-content-center" href="https://ateamacademy.co.uk">
+                    <div class="sidebar-brand-icon ">
+                        <img src="/static/images/logo.png" width="32">
+                    </div>
+                    <div class="sidebar-brand-text mx-3">A-Team </div>
+                </a>
+    
+                <!-- Divider -->
+                <hr class="sidebar-divider my-0">
+    
+                <!-- Nav Item - Dashboard -->
+                <li class="nav-item" id="dashboard-link">
+                    <a class="nav-link" href="/{{ session['role'] }}_dashboard">
+                        <i class="fas fa-fw fa-tachometer-alt"></i>
+                        <span>Dashboard</span></a>
+        
+                </li>
+
+                <li class="nav-item" id="finance_dashboard_link">
+                    <a class="nav-link" href="/finance_dashboard">
+                        <i class="fas fa-fw fa-tachometer-alt"></i>
+                        <span>Finance Dashboard </span></a>
+        
+                </li>
+
+                {% if session['role'] != 'student' and session['role'] != 'parent' %}
+                <li class="nav-item" id="marketplace-link">
+                    <a class="nav-link" href="/marketplace">
+                        <i class="fa-solid fa-shop"></i>
+                        <span>Marketplace</span></a>        
+                </li>
+                {% endif %}
+    
+                <li class="nav-item" id="calendar-link">
+                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCalendar"
+                        aria-expanded="true" aria-controls="collapseCalendar">
+                        <i class="fa fa-calendar" aria-hidden="true"></i>
+                        <span> Calendar </span>
+                    </a>
+                    <div id="collapseCalendar" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                        <div class="bg-white py-2 collapse-inner rounded">
+                            <h6 class="collapse-header">Calendar</h6>
+                            <a id="calendar" class="collapse-item" href="/calendar"> Events </a>
+                            <a id="allTimetable" class="collapse-item" href="/allTimetable?offset=0"> View Weekly Timetable  </a>
+                            <a id="generate_Timetable" class="collapse-item" href="/generate_Timetable"> Generate Timetable  </a>
+                        </div>
+                    </div>
+                </li>
+    
+                <li class="nav-item" id="lesson-link">
+                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseLessons"
+                        aria-expanded="true" aria-controls="collapseLessons">
+                        <i class="fa fa-book" aria-hidden="true"></i>
+                        <span> Lessons </span>
+                    </a>
+                    <div id="collapseLessons" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                        <div class="bg-white py-2 collapse-inner rounded">
+                            <h6 class="collapse-header"> Lessons </h6>
+                            <a id="view_lessons" class="collapse-item" href="/view_lessons">View All Lessons</a>
+                            <a id="lesson_plan" class="collapse-item" href="/lesson_plan"> View Lesson Plan  </a>
+                            {% if session['role'] != 'student' %} <a id="lesson_files" class="collapse-item" href="/lesson_files"> View All Files </a> {% endif %}
+                            <a id="make_all_tests" class="collapse-item" href="/make_all_tests"> Make Tests </a>
+                            {% if session['role'] == 'admin' %} <a id="subjects" class="collapse-item" href="/subjects"> View Subjects </a> {% endif %}
+                            <a id="weekly_report" class="dropdown-item" href="/weekly_report?offset=0">View Weekly Attendance</a>
+    
+    
+                        </div>
+                    </div>
+                </li>
+    
+                <!-- Divider -->
+                <hr class="sidebar-divider">
+    
+                <!-- Heading -->
+                <div class="sidebar-heading">
+                    Users
+                </div>
+        
+                <!-- Nav Item - Pages Collapse Menu -->
+                <li class="nav-item" id="tutor-link">
+                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
+                        aria-expanded="true" aria-controls="collapseTwo">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <span> Tutors </span>
+                    </a>
+                    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                        <div class="bg-white py-2 collapse-inner rounded">
+                            <h6 class="collapse-header">Tutors</h6>
+                            <a id="admin_tutor_view" class="collapse-item" href="/admin_tutor_view"> View Tutors</a>
+                            <a id="tutor_reg" class="collapse-item" href="/tutor_reg"> Add A New Tutor </a>
+                            <a id="tutor_performance" class="collapse-item" href="/tutor_performance"> Tutors Perfomance </a>
+                            <a id="tutorAccessRights" class="collapse-item" href="/tutorAccessRights"> Tutor Access Rights </a>
+                            <a id="tutorHours" class="collapse-item" href="/tutorHours"> Tutor Hours </a>
+                            <a id="approveHours" class="collapse-item" href="/approveHours"> Approve Hours </a>
+                        </div>
+                    </div>
+        
+                </li>
+
+                {% if session['role'] == 'admin' %}
+                <!-- Nav Item - Pages Collapse Menu -->
+                <li class="nav-item" id="staff-link">
+                    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseStaff"
+                        aria-expanded="true" aria-controls="collapseStaff">
+                        <i class="fas fa-user-graduate"></i>                    
+                        <span> Staff  </span>
+                    </a>
+                    <div id="collapseStaff" class="collapse" aria-labelledby="headingThree" data-parent="#accordionSidebar">
+                        <div class="bg-white py-2 collapse-inner rounded">
+                            <h6 class="collapse-header">Students</h6>
+                            <a id="staff_members_view" class="collapse-item" href="/staff_members_view"> View Staff Members </a>
+                            <a id="add_staff" class="collapse-item" href="/add_staff"> Add Staff Member </a>
+                            <a id="staff_access_rights" class="collapse-item" href="/staffAccessRights"> Staff Access Rights </a>
+
+                        </div>
+                    </div>
+                </li>
+                {% endif %}
+    
+            <!-- Nav Item - Pages Collapse Menu -->
+            <li class="nav-item" id="student-link">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseThree"
+                    aria-expanded="true" aria-controls="collapseThree">
+                    <i class="fas fa-user-graduate"></i>                    
+                    <span> Students  </span>
+                </a>
+                <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Students</h6>
+                        <a id="admin_student_view" class="collapse-item" href="/admin_student_view"> View Students</a>
+                        <a id="student_reg" class="collapse-item" href="/student_reg"> Add A New Student  </a>
+                        <a id="student_performance" class="collapse-item" href="/student_performance"> Student Perfomance </a>
+                        <a id="studentAccessRights" class="collapse-item" href="/studentAccessRights"> Student Access Rights </a>
+                        <a id="unregisteredStudents" class="collapse-item" href="/unregisteredStudents"> Fix Unregistered Students </a>
+                        <a id="unregisteredGrades" class="collapse-item" href="/unregisteredGrades"> Fix Unregistered Students Grades </a>
+                        <a id="view_feedback" class="collapse-item" href="/view_feedback"> View Feedback </a>
+                    </div>
+                </div>
+    
+            </li>
+    
+            <!-- Nav Item - Utilities Collapse Menu -->
+            <li class="nav-item" id = "exam-link">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities"
+                    aria-expanded="true" aria-controls="collapseUtilities" id="examsButton">
+                    <i class="fas fa-fw fa-wrench"></i>
+                    <span>Exams</span>
+                </a>
+                <div id="collapseUtilities" class="collapse" aria-labelledby="headingUtilities"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header"> Students </h6>
+                        <a id="make_new_exam_student" class="collapse-item" href="/make_new_exam_student"> Add a new Student </a>
+                        <a id="exam_students" class="collapse-item" href="/exam_students"> View all Exam Students </a>
+                        <a id="ucas_references" class="collapse-item" href="/view_ucas_references"> View all UCAS References </a>
+
+                        <a  class="collapse-item" href="#" disabled> View marks </a>
+                        <a  class="collapse-item" href="#">  </a>
+                    </div>
+    
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header"> Exams </h6>
+                        <a id="make_exams" class="collapse-item" href="make_exams"> Add a new Exam </a>
+                        <a id="view_exams" class="collapse-item" href="view_exams"> View all Exams </a>
+                        <a id="exam_rooms" class="collapse-item" href="exam_rooms"> Exams rooms </a>
+
+                        <a id="exam_room_allocation" class="collapse-item" href="exam_room_allocation "> Room allocation </a>
+                    </div>
+                </div>
+            </li>
+    
+            <li class="nav-item" id="role-link">
+                <a class="nav-link collapsed" aria-expanded="true" aria-controls="collapseTwo" id="roleAccessRights" href="/roleAccessRights">
+                    <i class="fas fa-users"></i>
+                    <span> Roles </span>
+                </a>
+    
+            </li>
+    
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+    
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Admin Actions
+            </div>
+    
+            <li class="nav-item" id="Alerts-link">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseAlerts"
+                    aria-expanded="true" aria-controls="collapseTwo">
+                    <i class="fas fa-fw fa-cog"></i>
+                    <span> Alerts </span>
+                </a>
+                <div id="collapseAlerts" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Alerts</h6>
+                        <a id="admin_create_alerts" class="collapse-item" href="/admin_create_alerts"> Create an Alert </a>
+                        <a id="alert_status" class="collapse-item" href="/alert_status"> View Alerts </a>
+    
+                    </div>
+                </div>
+    
+            </li>
+    
+            <li class="nav-item" id="email-link">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseEmail"
+                aria-expanded="true" aria-controls="collapseTwo">
+                <i class="fa-solid fa-envelope"></i>
+                <span> Send Emails </span>
+                </a>
+    
+                <div id="collapseEmail" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header"> Emails </h6>
+                        <a id="report_cards" class="collapse-item" href="/report_cards" disabled> Send Report Cards </a>
+                        <a id="email_templates" class="collapse-item" href="/email_templates" disabled> Email Templates </a>
+
+    
+                    </div>
+                </div>
+    
+            </li>
+    
+            <li class="nav-item" id="centre-link">
+                <a class="nav-link collapsed" aria-expanded="true" aria-controls="collapseTwo" href="/centre_overview">
+                    <i class="fa-solid fa-building"></i>
+                    <span> Centres </span>
+                </a>
+            </li>
+            
+            <li class="nav-item" id="centre-link">
+                <a class="nav-link collapsed" aria-expanded="true" aria-controls="collapseTwo" id="importantDocs" href="/importantDocs">
+                    <i class="fa-solid fa-file"></i>              
+                    <span> Important Files </span>
+                </a>
+            </li>
+
+            <li class="nav-item" id="Enquiries-link">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseEnquiries"
+                    aria-expanded="true" aria-controls="collapseTwo">
+                    <i class="fas fa-fw fa-cog"></i>
+                    <span> Enquiries </span>
+                </a>
+                <div id="collapseEnquiries" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Alerts</h6>
+                        <a id="enquiry" class="collapse-item" href="/enquiry"> New Enquiry </a>
+                        <a id="enquiries" class="collapse-item" href="/enquiries"> View Enquiry </a>
+                        <a id="enquiries" class="collapse-item" href="/trial_registration"> Book Trial Lesson </a>
+                    </div>
+                </div>
+    
+            </li>
+    
+            <li class="nav-item" id="centre-link">
+                <a class="nav-link collapsed" aria-expanded="true" aria-controls="collapseTwo" href="/release_notes">
+                    <i class="bi bi-envelope-fill"></i>              
+                    <span> Release Notes </span>
+                </a>
+            </li>
+
+            <li class="nav-item" id="documents-link">
+                <a class="nav-link collapsed" aria-expanded="true" aria-controls="collapseTwo" href="/document">
+                    <i class="bi bi-envelope-fill"></i>              
+                    <span> Documents </span>
+                </a>
+            </li>
+    
+                <!-- Divider -->
+                <hr class="sidebar-divider d-none d-md-block">
+    
+                <!-- Sidebar Toggler (Sidebar) -->
+                <div class="text-center d-none d-md-inline">
+                    <button class="rounded-circle border-0" id="sidebarToggle"></button>
+                </div>
+    
+    
+            </ul>
+            <!-- End of Sidebar -->
+    
+            <!-- Content Wrapper -->
+            <div id="content-wrapper" class="d-flex flex-column">
+    
+                <!-- Main Content -->
+                <div id="content">
+    
+                    <!-- Topbar -->
+                    <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow"  >
+    
+                        <!-- Sidebar Toggle (Topbar) -->
+                        <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                            <i class="fa fa-bars"></i>
+                        </button>
+    
+                        <!-- Topbar Search -->
+                        <form
+                            class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                            <div class="input-group">
+                                <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..."
+                                    aria-label="Search" aria-describedby="basic-addon2" id="searchInput">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="button">
+                                        <i class="fas fa-search fa-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" id="searchDropdownMenu">
+                            <h6 class="dropdown-header">
+                                Search Results
+                            </h6>
+                            <div id="searchResultsContainer">
+                                <!-- Search results will be dynamically inserted here -->
+                            </div>
+                            <a class="dropdown-item text-center small text-gray-500" href="#" id="noResultsMessage" style="display: none;">No Results Found</a>
+                        </div>
+
+                        <style>
+                            #searchDropdownMenu {
+                                position: absolute;
+                                top: 100%;
+                                left: 0;
+                                right: 0;
+                                z-index: 1050; /* Ensure it appears above other elements */
+                                border-radius: 0.35rem;
+                                border: 1px solid #e3e6f0;
+                                margin-top: 0.25rem;
+                                background-color: #fff;
+                            }
+                            
+                            #searchResultsContainer {
+                                max-height: 500px;
+                                overflow-y: auto;
+                            }
+                            
+                            .dropdown-header {
+                                font-size: 0.85rem;
+                                font-weight: bold;
+                                color: #4e73df;
+                            }
+                            
+                        </style>
+
+                        
+                        <script>
+                            const searchInput = document.getElementById('searchInput');
+                            const searchResults = document.getElementById('searchResults');
+                            let searchData = [];
+                            let timeout;
+                        
+                            // Fetch all the search data when the page loads
+                            fetch('/get_search_results')
+                                .then(response => response.json())
+                                .then(data => {
+                                    searchData = data;
+                                })
+                                .catch(error => console.error('Error fetching search data:', error));
+                        
+                            // Handle user input
+                            searchInput.addEventListener('input', () => {
+                                clearTimeout(timeout);
+                                const query = searchInput.value.trim().toLowerCase();
+                        
+                                if (query.length > 0) {
+                                    timeout = setTimeout(() => {
+                                        const filteredResults = searchData.filter(item =>
+                                            item.keywords.some(keyword => keyword.toLowerCase().includes(query))
+                                        );
+                        
+                                        displaySearchResults(filteredResults);
+                                    }, 300); // Debounce interval
+                                } else {
+                                    searchResults.innerHTML = '';
+                                }
+                            });
+                        
+                            // Display the filtered results
+                            function displaySearchResults(results) {
+                                const searchResultsContainer = document.getElementById('searchResultsContainer');
+                                const noResultsMessage = document.getElementById('noResultsMessage');
+                            
+                                searchResultsContainer.innerHTML = '';
+                            
+                                if (results.length > 0) {
+                                    noResultsMessage.style.display = 'none';
+                            
+                                    results.forEach(result => {
+                                        const resultItem = document.createElement('a');
+                                        resultItem.className = 'dropdown-item d-flex align-items-center';
+                                        resultItem.href = result.link;
+                            
+                                        resultItem.innerHTML = `
+                                        <div class="mr-3">
+                                            <div class="icon-circle ${
+                                                result.type === 'student' ? 'bg-success' :
+                                                result.type === 'staff' ? 'bg-info' :
+                                                result.type === 'otherType' ? 'bg-warning' : 'bg-secondary'
+                                            }">
+                                                <i class="fas ${
+                                                    result.type === 'student' ? 'fa-user-graduate' :
+                                                    result.type === 'staff' ? 'fa-chalkboard-teacher' :
+                                                    result.type === 'otherType' ? 'fa-folder-open' : 'fa-question-circle'
+                                                } text-white"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="small text-gray-500">${result.type.toUpperCase()}</div>
+                                            <span class="font-weight-bold">${result.display}</span>
+                                        </div>
+                                    `;
+                                    
+                            
+                                        searchResultsContainer.appendChild(resultItem);
+                                    });
+                                } else {
+                                    noResultsMessage.style.display = 'block';
+                                }
+                            }
+                            
+                            // Trigger dropdown visibility when typing
+                            document.getElementById('searchInput').addEventListener('input', function () {
+                                const dropdownMenu = document.getElementById('searchDropdownMenu');
+                                const query = this.value.trim().toLowerCase();
+                            
+                                if (query) {
+                                    dropdownMenu.style.display = 'block';
+                                } else {
+                                    dropdownMenu.style.display = 'none';
+                                }
+                            });
+                        </script>
+    
+                        <!-- Topbar Navbar -->
+                        <ul class="navbar-nav ml-auto">
+    
+                            <!-- Nav Item - Search Dropdown (Visible Only XS) -->
+                            <li class="nav-item dropdown no-arrow d-sm-none">
+                                <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-search fa-fw"></i>
+                                </a>
+                                <!-- Dropdown - Messages -->
+                                <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
+                                    aria-labelledby="searchDropdown">
+                                    <form class="form-inline mr-auto w-100 navbar-search">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control bg-light border-0 small"
+                                                placeholder="Search for..." aria-label="Search"
+                                                aria-describedby="basic-addon2">
+                                            <div class="input-group-append">
+                                                <button class="btn btn-primary" type="button">
+                                                    <i class="fas fa-search fa-sm"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </li>
+
+
+
+                            <p class="tooltip-bottom" data-tooltip="Hours are logged through completing the register and setting work. If there are any issues preventing you from doing these things please contact Safwaan" id="hourLog" ></p>
+                            <p> | </p>
+                            <p class="tooltip-bottom" data-tooltip="Hours are logged through completing the register and setting work. If there are any issues preventing you from doing these things please contact Safwaan" id="monthLog" ></p>                
+    
+        
+                            <!-- Nav Item - Alerts -->
+                            <li class="nav-item dropdown no-arrow mx-1">
+                                <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" onclick="markAlertsAsViewed()">
+                                    <i class="fas fa-bell fa-fw"></i>
+                                    <!-- Counter - Alerts -->
+                                    <span class="badge badge-danger badge-counter" id="alertsCount" ></span>
+                                </a>
+                                <!-- Dropdown - Alerts -->
+                                <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="alertsDropdown" id="alertsDropdownMenu">
+                                    <h6 class="dropdown-header">
+                                        Alerts Center
+                                    </h6>
+                                    <div id="alertsContainer">
+                                        <!-- Alerts will be dynamically inserted here -->
+                                    </div>
+                                    <a class="dropdown-item text-center small text-gray-500" href="#">Show All Alerts</a>
+                                </div>
+                            </li>
+    
+                            <!-- Nav Item - Messages
+                            <li class="nav-item dropdown no-arrow mx-1">
+                                <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-envelope fa-fw"></i>
+                                    <span class="badge badge-danger badge-counter">7</span>
+                                </a>
+                                <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                    aria-labelledby="messagesDropdown">
+                                    <h6 class="dropdown-header">
+                                        Message Center
+                                    </h6>
+                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <div class="dropdown-list-image mr-3">
+                                            <img class="rounded-circle" src="static/images/undraw_profile_1.svg"
+                                                alt="...">
+                                            <div class="status-indicator bg-success"></div>
+                                        </div>
+                                        <div class="font-weight-bold">
+                                            <div class="text-truncate">Hi there! I am wondering if you can help me with a
+                                                problem I've been having.</div>
+                                            <div class="small text-gray-500">Emily Fowler · 58m</div>
+                                        </div>
+                                    </a>
+                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <div class="dropdown-list-image mr-3">
+                                            <img class="rounded-circle" src="static/images/undraw_profile_2.svg"
+                                                alt="...">
+                                            <div class="status-indicator"></div>
+                                        </div>
+                                        <div>
+                                            <div class="text-truncate">I have the photos that you ordered last month, how
+                                                would you like them sent to you?</div>
+                                            <div class="small text-gray-500">Jae Chun · 1d</div>
+                                        </div>
+                                    </a>
+                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <div class="dropdown-list-image mr-3">
+                                            <img class="rounded-circle" src="static/images/undraw_profile_3.svg"
+                                                alt="...">
+                                            <div class="status-indicator bg-warning"></div>
+                                        </div>
+                                        <div>
+                                            <div class="text-truncate">Last month's report looks great, I am very happy with
+                                                the progress so far, keep up the good work!</div>
+                                            <div class="small text-gray-500">Morgan Alvarez · 2d</div>
+                                        </div>
+                                    </a>
+                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <div class="dropdown-list-image mr-3">
+                                            <img class="rounded-circle" src="https://source.unsplash.com/Mv9hjnEUHR4/60x60"
+                                                alt="...">
+                                            <div class="status-indicator bg-success"></div>
+                                        </div>
+                                        <div>
+                                            <div class="text-truncate">Am I a good boy? The reason I ask is because someone
+                                                told me that people say this to all dogs, even if they aren't good...</div>
+                                            <div class="small text-gray-500">Chicken the Dog · 2w</div>
+                                        </div>
+                                    </a>
+                                    <a class="dropdown-item text-center small text-gray-500" href="#">Read More Messages</a>
+                                </div>
+                            </li>
+     -->
+                            <div class="topbar-divider d-none d-sm-block"></div>
+    
+                            <!-- Nav Item - User Information -->
+                            <li class="nav-item dropdown no-arrow">
+                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <span class="mr-2 d-none d-lg-inline text-gray-600 small"> {{ session['name'] }}  ({{ session['role'] }}) </span>
+
+                                    <img class="img-profile rounded-circle"
+                                        src="static/images/undraw_profile.svg">
+                                </a>
+                                <!-- Dropdown - User Information -->
+                                <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                    aria-labelledby="userDropdown">
+                                    <a class="dropdown-item" href="/myProfile">
+                                        <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Profile
+                                    </a>
+                                    <a class="dropdown-item" href="/change_password">
+                                        <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Change Password
+                                    </a>
+                                    {% if session['role'] == 'admin' %} 
+                                    <a class="dropdown-item" href="/admin_overview?more=1">
+                                        <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Activity Log
+                                    </a>
+                                        {% if session['name'] == 'Safwaan Ali' %}
+                                        <a class="dropdown-item" href="/oneTime">
+                                            <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
+                                            one-time
+                                        </a>
+
+                                        <a class="dropdown-item" href="/start_breakout_rooms">
+                                            <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
+                                            breakout rooms
+                                        </a>
+
+                                        {% endif %}
+                                    {% endif %}
+                                    {% if session['role'] != 'student' %}
+                                    <a class="dropdown-item" href="/user_preferences">
+                                        <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        User Preferences
+                                    </a>
+                                    {% endif %}
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Logout
+                                    </a>
+                                </div>
+                            </li>
+    
+                        </ul>
+    
+                    </nav>
+                    <!-- End of Topbar -->
+
+                    <!-- Begin Page Content -->
+                    <div class="container-fluid">
+                        {% block middleContent %}
+                    
+                        {% endblock %}
+                    </div>
+                    
+    
+                </div>
+                <!-- End of Main Content -->
+    
+                <!-- Footer -->
+                <footer class="sticky-footer bg-white">
+                    <div class="container my-auto">
+                        <div class="copyright text-center my-auto">
+                            <span>Copyright &copy; ateamacad.co.uk 2024</span>
+                        </div>
+
+                        <div class="copyright text-right my-auto">
+                            <span>V4.11.0.1 </span>
+                        </div>
+                    </div>
+                </footer>
+                <!-- End of Footer -->
+    
+            </div>
+            <!-- End of Content Wrapper -->
+    
+        </div>
+        <!-- End of Page Wrapper -->
+
+
+
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave? <i class="fa-solid fa-face-sad-tear"></i> </h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <a class="btn btn-primary" href="/logout">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="static/vendor/jquery/jquery.min.js"></script>
+    <script src="static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="static/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="static/javascript/sb-admin-2.min.js"></script>
+
+
+</body>
+
+</html>

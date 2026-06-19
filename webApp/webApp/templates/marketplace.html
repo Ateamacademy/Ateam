@@ -1,0 +1,152 @@
+{% extends 'base_page.html' %}
+
+{% block middleContent %}
+<style>
+    .card {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-header {
+        background-color: #f5f5f5;
+        padding: 10px 15px;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .card-title {
+        margin: 0;
+        font-size: 1.25em;
+    }
+    
+    .card-body {
+        padding: 15px;
+    }
+    
+    .description {
+        overflow-wrap: break-word;  /* Ensure long words break to the next line */
+        word-wrap: break-word;      /* Support for older browsers */
+        word-break: break-word;     /* Support for older browsers */
+    }
+    
+    .files a {
+        text-decoration: none;
+        color: #007bff;
+    }
+    
+    .files a:hover {
+        text-decoration: underline;
+    }
+    
+    .card-text {
+        margin-bottom: 15px;
+    }
+    
+</style>
+
+<script>
+    $( document ).ready(function() {
+        document.getElementById("marketplace-link").classList.add("active");
+    });
+</script>
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4 mt-4">
+    <h1 class="h3 mb-0 text-gray-800"> <i class="bi bi-shop-window"></i> Marketplace </h1>
+</div>
+
+{% if create_marketplace_products %}
+    <div class="card mb-4 full-width-card">
+        <div class="card-header">Create New Product</div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="reward">Reward:</label>
+                    <input type="number" class="form-control" id="reward" name="reward" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <textarea class="form-control" id="description" name="description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="files">Upload Files:</label>
+                    <input type="file" class="form-control-file" id="files" name="files" multiple>
+                </div>
+                <button type="submit" class="btn btn-primary">Create Product</button>
+            </form>
+        </div>
+    </div>
+{% endif %}
+
+<h2 class="mt-4">My Tasks </h2>
+<div class="scrollable-row mb-4">
+    {% for product in claimed_products %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">{{ product.name }}</h5>
+            <strong>£{{ product.reward }}</strong>
+        </div>
+        <div class="card-body">
+            <div class="description">
+                <p class="card-text">{{ product.description }}</p>
+            </div>
+            <p class="card-text">Files:
+                <span class="files">
+                    {% for filename in product_files[product.id] %}
+                        <a href="{{ url_for('uploaded_file', product_id=product.id, filename=filename) }}">{{ filename }}</a>{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </span>
+            </p>
+            <p class="card-text">Status: {{ 'Approved' if product.approved else 'Completed' if product.completed else 'Claimed' }}</p>
+        </div>
+    </div>    
+    {% endfor %}
+</div>
+
+<h2>Available Work</h2>
+<div class="scrollable-row mb-4">
+    {% for product, files in products_with_files %}
+        {% if not product.sold %}
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col"> <h5 class="card-title">{{ product.name }}</h5> </div>
+                        <!-- <div class="col text-right"> <strong>£{{ product.reward }}</strong> </div> -->
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="description">
+                        <p class="card-text">{{ product.description }}</p>
+                    </div>
+                    <p class="card-text">Files:
+                        <span class="files">
+                            {% for filename in files %}
+                                {{ filename }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </span>
+                    </p>
+                    <div class="row">
+                        <div class="col"> 
+                            <form method="post" action="{{ url_for('claim_product', product_id=product.id) }}">
+                                <button type="submit" class="btn btn-success">Claim</button>
+                            </form>
+                        </div>
+                        {% if create_marketplace_products %}
+                        <div class="col"> 
+                                <form method="post" action="{{ url_for('delete_product', product_id=product.id) }}" style="margin-top: 10px;">
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endblock %}

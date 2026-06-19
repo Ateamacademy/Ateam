@@ -1,0 +1,223 @@
+
+<head>
+    <title> All Students </title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <link rel="stylesheet" href="static\css\admin_tutor_view.css" />
+
+</head>
+
+{% extends "base_page.html" %}
+
+{% block middleContent %}
+
+    {% if view_all_student_information %}
+    <div class="col">
+        <div class="row-12">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="col">
+                        Show: 
+                    </div>
+
+                    <div class="col"> 
+                        <input type="checkbox" id="parentEmail" onchange="filterParentEmail()">
+                        <label for="parentEmail"> Parents Email </label>
+                    </div>
+
+                    <div class="col"> 
+                        <input type="checkbox" id="priorityEmail" onchange="filterPriorityEmail()">
+                        <label for="priorityEmail"> Priority Contacts Email </label>
+                    </div>
+
+                    <div class="col"> 
+                        <input type="checkbox" id="studentEmail" onchange="filterStudentEmail()">
+                        <label for="phoneNumber"> Student Email </label>
+                    </div>
+
+                    <div class="col"> 
+                        <input type="checkbox" id="phoneNumber" onchange="filterPhoneNumber()">
+                        <label for="phoneNumber"> Phone No </label>
+                    </div>
+
+                    <div class="col"> 
+                        <input type="checkbox" id="address" onchange="filterAddress()">
+                        <label for="phoneNumber"> Address </label>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        
+
+        <script>
+            function filterParentEmail() {
+                allElements = document.getElementsByClassName("parentEmail");
+                var i = 0; 
+                value = document.getElementById("parentEmail").checked;
+                console.log(value)
+
+                if(value==true) {
+                    for(i=0 ; i < allElements.length ; i++ ) {
+                        allElements[i].setAttribute("style", "display:Block;");
+                    }
+                }
+                else {
+                    for(i=0 ; i < allElements.length ; i++ ) {
+                        allElements[i].setAttribute("style", "display:None ;");
+                    }
+                }
+            };
+
+            function filterPriorityEmail() {
+                allElements = document.getElementsByClassName("priorityEmail");
+                var i = 0; 
+                value = document.getElementById("priorityEmail").checked;
+                console.log(value)
+
+                if(value==true) {
+                    for(i=0 ; i < allElements.length ; i++ ) {
+                        allElements[i].setAttribute("style", "display:Block;");
+                    }
+                }
+                else {
+                    for(i=0 ; i < allElements.length ; i++ ) {
+                        allElements[i].setAttribute("style", "display:None ;");
+                    }
+                }
+            };
+
+            function filterPhoneNumber() {
+                allElements = document.getElementsByClassName("phoneNumber");
+                var i = 0; 
+                value = document.getElementById("phoneNumber").checked;
+                console.log(value)
+
+                if(value==true) {
+                    for(i=0 ; i < allElements.length ; i++ ) {
+                        allElements[i].setAttribute("style", "display:Block;");
+                    }
+                }
+                else {
+                    for(i=0 ; i < allElements.length ; i++ ) {
+                        allElements[i].setAttribute("style", "display:None ;");
+                    }
+                }
+            };
+
+            function filterAddress() {
+                allElements = document.getElementsByClassName("address");
+                var i = 0; 
+                value = document.getElementById("address").checked;
+                console.log(value)
+
+                if(value==true) {
+                    for(i=0 ; i < allElements.length ; i++ ) {
+                        allElements[i].setAttribute("style", "display:Block;");
+                    }
+                }
+                else {
+                    for(i=0 ; i < allElements.length ; i++ ) {
+                        allElements[i].setAttribute("style", "display:None ;");
+                    }
+                }
+            };
+
+            function filterStudentEmail() {
+                allElements = document.getElementsByClassName("studentEmail");
+                var i = 0; 
+                value = document.getElementById("studentEmail").checked;
+                console.log(value)
+
+                if(value==true) {
+                    for(i=0 ; i < allElements.length ; i++ ) {
+                        allElements[i].setAttribute("style", "display:Block;");
+                    }
+                }
+                else {
+                    for(i=0 ; i < allElements.length ; i++ ) {
+                        allElements[i].setAttribute("style", "display:None ;");
+                    }
+                }
+            };
+        </script>
+        {% endif %}
+        
+        <div class="row">
+        {% for student in students %}
+            <div class="col mr-2" >
+                <div class="card mb-4" style = "min-width: 150px; min-height: 300px;">
+                    <div class="card-body text-center">
+                        {% if student.gender == 'Male' %} <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp" alt="avatar"  class="rounded-circle img-fluid" style="width: 150px;   border: 2px solid #555;">
+                        {% elif student.gender == 'Female' %} <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava6.webp" alt="avatar"  class="rounded-circle img-fluid" style="width: 150px;   border: 2px solid #555;">
+                        {% else %} <img src="static/images/default-avatar.jpg" alt="avatar"  class="rounded-circle img-fluid" style="width: 150px;">
+                        {% endif %}
+                        <h5 class="my-3"> {{ student.firstName }}  {{ student.secondName }} </h5>
+                        <p class="text-muted mb-1">Year {{ student.year }}</p>
+                        {% if view_all_student_information %}
+                        <p class="text-muted mb-4 parentEmail" style="display:None;"> Parent Email: {{ student.parent_email }}  </p>
+                        <p class="text-muted mb-4 priorityEmail" style="display:None;"> Priority 1 Email: {{ student.priority_1_email }}  </p>
+                        <p class="text-muted mb-4 priorityEmail" style="display:None;"> Priority 2 Email: {{ student.priority_2_email }}  </p>
+                        <p class="text-muted mb-4 studentEmail" style="display:None;"> Student Email: {{ student.studentEmail }}  </p>
+                        <p class="text-muted mb-4 phoneNumber" style="display:None;"> Priority 1 Phone: {{ student.priority_1_phone }}  </p>
+                        <p class="text-muted mb-4 phoneNumber" style="display:None;"> Priority 2 Phone: {{ student.priority_2_phone }}  </p>
+                        <p class="text-muted mb-4 address" style="display:None;"> Address: {{ student.address }}  </p>
+
+                        {% endif %}
+
+                        <div class="d-flex justify-content-center mb-2 mt-4">
+                            {% if view_all_student_information %} 
+                            <div class = "col"> <a href="admin_student_info?studentid={{ student.id }}"> <button type="button" class="btn btn-primary" > View info </button> </a>  </div>
+                            <div class = "col"> <a href = "/allTimetable?offset=0&studentID={{student.id}}"> <button type="button" class="btn btn-outline-primary ms-1"> View timetable </button> </a> </div>
+                            {% endif %}
+                            {% if add_a_new_student %} <div class="col"> <button class= "btn btn-danger" type="button" data-toggle="modal" data-target="#removeModalCenter" onclick="setID( '{{ student.id }}' , '{{ student.firstName + ' ' + student.secondName }}' )"> Remove </button> </div> {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <script> 
+            function setID(id, lesson) {
+                document.getElementById("deleteConfirm").setAttribute('href', '/deleteStudent/'.concat(id))
+                document.getElementById("lessonToRemove").innerText = lesson;
+            };
+        </script>
+        {% endfor %}
+        </div>
+    </div>
+
+{% if add_a_new_student %}
+<div class="modal fade" id="removeModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLongTitle">Are You sure?</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+            <form>
+                <div class="col">
+                    <div class="row mb-3"> 
+                        <p> This action will permanently delete </p> <p class="mb-0" id="lessonToRemove"> </p>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal"> Cancel </button>
+          <a id="deleteConfirm"> <button type="button" class="btn btn-danger" >Yes I'm sure I want to delete </button> </a>
+        </div>
+      </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock  %}
+
+
+
+

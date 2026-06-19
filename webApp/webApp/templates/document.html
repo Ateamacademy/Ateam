@@ -1,0 +1,397 @@
+{% extends "base_page.html" %}
+
+
+
+{% block styles %}
+<style>
+    .subsection-tooltip {
+        cursor: help; /* Change cursor to pointer on hover */
+        border-bottom: 1px dashed #ccc; /* Optional: Add a dashed bottom border */
+    }
+    .sortable-ghost {
+        opacity: 0.4;
+    }
+    .sortable-chosen {
+        background: #f0f0f0;
+    }
+
+    textarea {
+        min-height: 400px !important;
+    }
+</style>
+{% endblock %}
+
+{% block middleContent %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4 mt-4">
+    <h1 class="h3 mb-0 text-gray-800"> Document Editor </h1>
+</div>
+<!-- Create New Document Button -->
+<button class="btn btn-success mb-4" onclick="createDocument()">+ Create New Document</button>
+
+<!-- Saved Documents List -->
+<div id="document-list" class="row mb-4"></div>
+
+<!-- Document Editor (hidden by default) -->
+<div id="document-editor" style="display: none;">
+    <div class="card mt-4">
+        <div class="card-body">
+            <div>
+                <input type="text" id="document-title" class="form-control mb-3" placeholder="Document Title">
+            </div>
+            <div id="editor">
+                <button class="btn btn-primary mb-2" onclick="addSection()">Add Section</button>
+            </div>
+            <div class="actions mt-4">
+                <button class="btn btn-primary" onclick="saveDocument()">Save Document</button>
+                <button class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Document View Modal (hidden by default) -->
+<div id="view-document-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="viewDocumentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewDocumentModalLabel">View Document</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h1 id="view-document-title"></h1>
+                <div id="view-document-content"></div>
+            </div>
+            <div class="modal-footer">
+                {% if session['role'] == 'admin' %} <button type="button" class="btn btn-primary" onclick="editDocument()">Edit Mode</button> {% endif %}
+                <button type="button" class="btn btn-primary" onclick="signDocument()"> Sign </button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@2.3.2/dist/signature_pad.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+
+<script>
+    let documentData = { id: null, title: '', sections: [] };
+    let currentSectionIndex = 0;
+
+    function createDocument() {
+        documentData = { id: null, title: '', sections: [] };
+        currentSectionIndex = 0;
+        toggleView(false); // Hide saved documents list
+        renderEditor();
+        toggleEditor(true); // Show document editor
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        var signatureModal = document.getElementById('signature-modal');
+        var signaturePadCanvas = document.getElementById('signature-pad');
+        var signaturePad = new SignaturePad(signaturePadCanvas);
+
+        // Make sure `documentId` is properly set
+        var documentId = null;
+
+        // Open signature modal and assign document ID when signing
+        document.querySelector("button[onclick='signDocument()']").addEventListener("click", function() {
+            // Ensure documentId is correctly set from your data
+            documentId = documentData.id;
+            if (!documentId) {
+                alert("Document ID is not set.");
+                return;
+            }
+            $('#signature-modal').modal('show');
+        });
+
+        document.getElementById('save-signature').addEventListener('click', function() {
+            if (!signaturePad.isEmpty()) {
+                var signatureData = signaturePad.toDataURL('image/png');
+                
+                fetch(`/save-signature/${documentId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({imageData: signatureData})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Signature saved successfully!');
+                        $('#signature-modal').modal('hide');
+                    } else {
+                        alert('Failed to save signature.');
+                    }
+                });
+            } else {
+                alert('Please provide a signature first.');
+            }
+        });
+    });
+
+    function viewDocument(documentId) {
+        fetch(`/load_document/${documentId}`)
+            .then(response => response.json())
+            .then(data => {
+                documentData = data;
+                documentData.id = documentId;
+                document.getElementById('view-document-title').innerText = documentData.title;
+                let html = '';
+                documentData.sections.forEach((section, sectionIndex) => {
+                    const sectionNumber = sectionIndex + 1;
+                    html += `<h2>${sectionNumber}. ${section.title}</h2>`;
+                    html += `<p>${section.content.replace(/\n/g, '<br>')}</p>`;
+                    section.subsections.forEach((subsection, subsectionIndex) => {
+                        const subsectionNumber = `${sectionNumber}.${subsectionIndex + 1}`;
+                        html += `<h3>${subsectionNumber} ${subsection.title}</h3>`;
+                        html += `<p>${subsection.content.replace(/\n/g, '<br>')}</p>`;
+                    });
+                });
+                document.getElementById('view-document-content').innerHTML = html;
+                $('#view-document-modal').modal('show'); // Show modal
+            });
+    }
+
+    function editDocument() {
+        document.getElementById('document-title').value = documentData.title ;
+        renderEditor();
+        $('#view-document-modal').modal('hide'); // Hide modal
+        toggleEditor(true); // Show document editor
+    }
+
+    function toggleEditor(showEditor) {
+        document.getElementById('document-editor').style.display = showEditor ? 'block' : 'none';
+        document.getElementById('view-document-modal').style.display = 'none';
+        document.getElementById('document-list').style.display = showEditor ? 'none' : 'block'; // Hide/show saved documents list
+    }
+
+    function toggleView(showView) {
+        document.getElementById('view-document-modal').style.display = showView ? 'block' : 'none';
+        document.getElementById('document-editor').style.display = 'none';
+        document.getElementById('document-list').style.display = showView ? 'block' : 'none'; // Hide/show saved documents list
+    }
+
+    function renderEditor() {
+        const editor = document.getElementById('editor');
+        editor.innerHTML = '';
+        const sectionContainer = document.createElement('div');
+        sectionContainer.id = 'sections';
+        documentData.sections.forEach((section, sectionIndex) => {
+            const sectionDiv = document.createElement('div');
+            sectionDiv.className = 'section card mt-4';
+            sectionDiv.dataset.id = sectionIndex;
+            sectionDiv.innerHTML = `
+                <div class="card-body" onmouseover="updateTooltip(this, ${sectionIndex}, null)">
+                    <input type="text" class="form-control mb-2" placeholder="Section Title" value="${section.title}" 
+                        oninput="updateSectionTitle(${sectionIndex}, this.value)">
+                    <textarea style = "height: 400px;" class="form-control mb-2" placeholder="Section Content" 
+                            oninput="updateSectionContent(${sectionIndex}, this.value)" 
+                            id="section-content-${sectionIndex}">${section.content}</textarea>
+                    <div class="subsections" id="subsections-${sectionIndex}">
+                        ${section.subsections.map((subsection, subsectionIndex) => `
+                            <div class="subsection card mt-2" data-id="${subsectionIndex}" onmouseover="updateTooltip(this, ${sectionIndex}, ${subsectionIndex})">
+                                <div class="card-body">
+                                    <input type="text" class="form-control mb-2" placeholder="Subsection Title" value="${subsection.title}" 
+                                        oninput="updateSubsectionTitle(${sectionIndex}, ${subsectionIndex}, this.value)">
+                                    <textarea style = "height: 400px;" class="form-control mb-2" placeholder="Subsection Content" 
+                                            oninput="updateSubsectionContent(${sectionIndex}, ${subsectionIndex}, this.value)" 
+                                            id="subsection-content-${sectionIndex}-${subsectionIndex}">${subsection.content}</textarea>
+                                    <button class="btn btn-danger mb-2" onclick="removeSubsection(${sectionIndex}, ${subsectionIndex})">Remove Subsection</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="btn btn-primary mb-2" onclick="addSubsection(${sectionIndex})">Add Subsection</button>
+                    <button class="btn btn-danger mb-2" onclick="removeSection(${sectionIndex})">Remove Section</button>
+                </div>
+            `;
+            sectionContainer.appendChild(sectionDiv);
+        });
+
+        editor.appendChild(sectionContainer);
+
+        // Add "Add Section" button at the end of the editor
+        const addSectionButton = document.createElement('button');
+        addSectionButton.className = 'btn btn-primary';
+        addSectionButton.textContent = 'Add Section';
+        addSectionButton.onclick = addSection;
+        editor.appendChild(addSectionButton);
+
+        // Initialize Sortable for sections and subsections
+        Sortable.create(sectionContainer, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            onEnd: function (evt) {
+                const oldIndex = evt.oldIndex;
+                const newIndex = evt.newIndex;
+                const movedSection = documentData.sections.splice(oldIndex, 1)[0];
+                documentData.sections.splice(newIndex, 0, movedSection);
+            }
+        });
+
+        documentData.sections.forEach((section, sectionIndex) => {
+            const subsectionContainer = document.getElementById(`subsections-${sectionIndex}`);
+            Sortable.create(subsectionContainer, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-chosen',
+                onEnd: function (evt) {
+                    const oldIndex = evt.oldIndex;
+                    const newIndex = evt.newIndex;
+                    const movedSubsection = documentData.sections[sectionIndex].subsections.splice(oldIndex, 1)[0];
+                    documentData.sections[sectionIndex].subsections.splice(newIndex, 0, movedSubsection);
+                }
+            });
+        });
+
+        // Initialize tooltips using Bootstrap
+        $('[data-toggle="tooltip"]').tooltip();
+    }
+
+    function addSection() {
+        const section = {
+            title: '',
+            content: '',
+            subsections: []
+        };
+        documentData.sections.push(section);
+        renderEditor();
+    }
+
+    function addSubsection(sectionIndex) {
+        const subsection = {
+            title: '',
+            content: ''
+        };
+        documentData.sections[sectionIndex].subsections.push(subsection);
+        renderEditor();
+    }
+
+    function removeSection(sectionIndex) {
+        documentData.sections.splice(sectionIndex, 1);
+        renderEditor();
+    }
+
+    function removeSubsection(sectionIndex, subsectionIndex) {
+        documentData.sections[sectionIndex].subsections.splice(subsectionIndex, 1);
+        renderEditor();
+    }
+
+    function updateSectionTitle(sectionIndex, value) {
+        documentData.sections[sectionIndex].title = value;
+    }
+
+    function updateSectionContent(sectionIndex, value) {
+        documentData.sections[sectionIndex].content = value;
+    }
+
+    function updateSubsectionTitle(sectionIndex, subsectionIndex, value) {
+        documentData.sections[sectionIndex].subsections[subsectionIndex].title = value;
+    }
+
+    function updateSubsectionContent(sectionIndex, subsectionIndex, value) {
+        documentData.sections[sectionIndex].subsections[subsectionIndex].content = value;
+    }
+
+    function saveDocument() {
+        documentData.title = document.getElementById('document-title').value;
+        fetch('/save_document', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(documentData)
+        }).then(response => response.json())
+          .then(data => {
+              alert('Document saved!');
+              documentData.id = data.document_id;
+          });
+    }
+
+    function cancelEdit() {
+        documentData = { id: null, title: '', sections: [] };
+        toggleView(true); // Show saved documents list
+        toggleEditor(false); // Hide document editor
+    }
+
+    function listDocuments() {
+        fetch('/list_documents')
+            .then(response => response.json())
+            .then(documents => {
+                const documentList = document.getElementById('document-list');
+                documentList.innerHTML = '';
+                documents.forEach(doc => {
+                    const listItem = document.createElement('div');
+                    listItem.className = 'col-md-4 mb-3';
+                    listItem.innerHTML = `
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">${doc.title} </h5>
+                                <button class="btn btn-primary mr-2" onclick="viewDocument(${doc.id})">View</button>
+                                {% if session['role'] == 'admin' %} <button class="btn btn-danger" onclick="deleteDocument(${doc.id})">Delete</button> {% endif %}
+                            </div>
+                        </div>
+                    `;
+                    documentList.appendChild(listItem);
+                });
+            });
+    }
+
+    function deleteDocument(documentId) {
+        fetch(`/delete_document/${documentId}`, {
+            method: 'DELETE'
+        })
+        .then(response => {
+            if (response.ok) {
+                listDocuments(); // Refresh the document list after deletion
+                alert('Document deleted successfully.');
+            } else {
+                alert('Failed to delete document.');
+            }
+        });
+    }
+
+    function updateTooltip(element, sectionIndex, subsectionIndex) {
+        const tooltipText = subsectionIndex !== null
+            ? `Section ${sectionIndex + 1}: Subsection ${subsectionIndex + 1}`
+            : `Section ${sectionIndex + 1}`;
+        element.setAttribute('data-original-title', tooltipText);
+        $(element).tooltip('show');
+    }
+
+    window.onload = function() {
+        listDocuments();
+    }
+</script>
+
+<!-- Signature Modal -->
+<div id="signature-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="signatureModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="signatureModalLabel">Sign Document</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <canvas id="signature-pad" class="signature-pad" width=600 height=300></canvas>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="save-signature">Save Signature</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+{% endblock %}

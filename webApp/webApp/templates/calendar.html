@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset='utf-8' />
+    <title>Calendar</title>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .user-list-container, .role-list-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .user-selection-row {
+            display: flex;
+            justify-content: space-between;
+        }
+        .user-selection-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .user-selection-col:last-child {
+            margin-right: 0;
+        }
+
+        .edit-icon {
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        
+        .edit-icon:hover {
+            color: #007bff; /* Bootstrap primary color */
+        }
+        
+        [contenteditable="true"]:focus {
+            border: 1px solid #007bff; /* Bootstrap primary color */
+            outline: none;
+        }
+        
+
+    </style>
+</head>
+
+{% extends 'base_page.html' %}
+
+{% block middleContent %}
+<body>
+    {% if create_alerts %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3>Create Event</h3>
+        </div>
+        <div class="card-body">
+            <form id="createEventForm">
+                <div class="form-group">
+                    <label for="eventTitle">Title:</label>
+                    <input type="text" class="form-control" id="eventTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventDate">Date:</label>
+                    <input type="date" class="form-control" id="eventDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventDescription">Description:</label>
+                    <textarea class="form-control" id="eventDescription" required></textarea>
+                </div>
+                <div class="form-group user-selection-row">
+                    <div class="user-selection-col mr-3">
+                        <label for="includeRoles">Include all:</label>
+                        <div class="form-group role-list-container">
+                            <ul id="roleList" class="list-group">
+                                {% for role in roles %}
+                                <li class="list-group-item">
+                                    <input type="checkbox" class="role-checkbox" id="role{{ loop.index }}" data-role="{{ role }}">
+                                    <label class="form-check-label" for="role{{ loop.index }}">{{ role }}</label>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="user-selection-col">
+                        <label for="userSearch">Search Users:</label>
+                        <input type="text" id="userSearch" class="form-control" placeholder="Search users...">
+                        <div class="form-group user-list-container mt-2">
+                            <label>Available Users:</label>
+                            <ul id="userList" class="list-group">
+                                {% for user in users %}
+                                <li class="list-group-item">
+                                    <input type="checkbox" class="user-checkbox" data-id="{{ user.id }}"> 
+                                    {{ user.name }} ({{ user.role }})
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Create Event</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div id='calendarDiv' class="mt-4"></div>
+
+    <div class="modal fade" id="eventModal" tabindex="-1" role="dialog" aria-labelledby="eventModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="eventModalLabel">Event Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Date:</strong> <span id="eventDateModal"></span></p>
+                    <p><strong>Description:</strong></p>
+                    <p id="eventDescriptionModal"></p>
+                    
+                    <div class="d-flex justify-content-between">
+                        <div class="flex-fill pr-3">
+                            <p><strong>Associated Roles:</strong></p>
+                            <ul id="associatedRolesModal" class="list-group">
+                                <!-- Roles will be dynamically added here -->
+                            </ul>
+                            <button id="addRoleButton" class="btn btn-primary mt-2">Add Role</button>
+                            <div id="newRoleEntry" style="display: none;" class="mt-2">
+                                <select id="roleDropdown" class="form-control">
+                                    {% for role in roles %}
+                                        <option value = '{{ role }}'> {{ role }} </option>
+                                    {% endfor %}
+                                </select>
+                                <button id="confirmRoleButton" class="btn btn-success mt-2">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex-fill pl-3">
+                            <p><strong>Associated Users:</strong></p>
+                            <ul id="associatedUsersModal" class="list-group">
+                                <!-- Users will be dynamically added here -->
+                            </ul>
+                            <button id="addUserButton" class="btn btn-primary mt-2">Add User</button>
+                            <div id="newUserEntry" style="display: none;" class="mt-2">
+                                <select id="userSelectDropdown" class="form-control">
+                                    {% for user in users %}
+                                        <option value = '{{ user.id }}'> {{ user.name }} ({{ user.role }}) </option>
+                                    {% endfor %}                                </select>
+                                <button id="confirmUserButton" class="btn btn-success mt-2">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+
+
+    <script>
+        function addRegistered() {
+            registered = document.getElementById("associatedUsersModal");
+
+            select = document.createElement("select");
+            select.classList.add("row");
+            select.classList.add("mb-3");
+            select.classList.add("newStudent");
+
+            students2 = {{users|tojson}}
+            for(i in students2) {
+                option = document.createElement("option");
+                option.setAttribute("value", students2[i].id);
+                option.innerHTML = students2[i].name + "(" + students2[i].role + ")";
+
+                select.append(option);
+            }
+            
+            registered.append(select);
+
+        };
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendarDiv');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                events: {{ events|tojson|safe }},
+                eventClick: function(info) {
+                    // Update modal with event details
+                    document.getElementById('eventModalLabel').innerText = info.event.title;
+                    document.getElementById('eventDateModal').innerText = info.event.startStr;
+                    document.getElementById('eventDescriptionModal').innerText = info.event.extendedProps.description;
+
+                    console.log(info.event.extendedProps.type)
+                    
+                    if(info.event.extendedProps.type === "event" && "{{ session['role'] }}" != "student" && "{{ session['role'] }}" != "parent" && "{{ session['role'] }}" != "tutor")  {
+
+                        const addRoleButton = document.getElementById('addRoleButton');
+                        const newRoleEntry = document.getElementById('newRoleEntry');
+                        const roleDropdown = document.getElementById('roleDropdown');
+                        const confirmRoleButton = document.getElementById('confirmRoleButton');
+
+                        // Show associated roles
+                        var rolesList = info.event.extendedProps.roles.map(function(role) {
+                            return `
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                ${role}
+                                <button class="btn btn-sm btn-danger" onclick="deleteRole(${info.event.id}, '${role}')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </li>`;
+                        }).join('');
+                        document.getElementById('associatedRolesModal').innerHTML = rolesList;
+                        
+                        // Show associated users
+                        var usersList = info.event.extendedProps.users.map(function(user) {
+                            return `
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                ${user.name} (${user.role})
+                                <button class="btn btn-sm btn-danger" onclick="deleteUser(${info.event.id}, ${user.id})">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </li>`;
+                        }).join('');
+                        document.getElementById('associatedUsersModal').innerHTML = usersList;
+
+                        addRoleButton.addEventListener('click', () => {
+                            newRoleEntry.style.display = 'block';
+                            //populateDropdown(roleDropdown, roles.map(role => role.name));
+                        });
+                    
+                        confirmRoleButton.addEventListener('click', () => {
+                            const selectedRole = roleDropdown.value;
+                            const listItem = document.createElement('li');
+                            listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                            listItem.innerHTML = `
+                                <span>${selectedRole}</span>
+                                <button class="btn btn-danger btn-sm" onclick="removeRole('${selectedRole}')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            `;
+                            associatedRolesModal.appendChild(listItem);
+                            newRoleEntry.style.display = 'none';
+
+                            console.log(selectedRole)
+                    
+                            // Send to Flask route
+                            fetch('/add_event_role', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ eventID: info.event.id, role: selectedRole })
+                            });
+                        });
+
+
+                        const addUserButton = document.getElementById('addUserButton');
+                        const newUserEntry = document.getElementById('newUserEntry');
+                        const userSelectDropdown = document.getElementById('userSelectDropdown');
+                        const confirmUserButton = document.getElementById('confirmUserButton');
+                    
+                        addUserButton.addEventListener('click', () => {
+                            newUserEntry.style.display = 'block';
+
+                            //populateDropdown(userSelectDropdown, users.map(user => user.name));
+                        });
+                    
+                        confirmUserButton.addEventListener('click', () => {
+                            const selectedUser = userSelectDropdown.value;
+                            console.log(document.getElementById('userSelectDropdown').value)
+                            const listItem = document.createElement('li');
+                            listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                            listItem.innerHTML = `
+                                <span>${selectedUser}</span>
+                                <button class="btn btn-danger btn-sm" onclick="removeUser('${selectedUser}')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            `;
+                            associatedUsersModal.appendChild(listItem);
+                            newUserEntry.style.display = 'none';
+                    
+                            // Send to Flask route
+                            fetch('/add_event_user', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ 'eventID': info.event.id, 'userID': selectedUser })
+                            });
+                        });
+                        
+                        // Handle save and delete
+                        //document.getElementById('saveEventButton').onclick = function() {
+                        //    saveEventChanges(info.event.id);
+                        //};
+                        //document.getElementById('deleteEventButton').onclick = function() {
+                        //    deleteEvent(info.event.id);
+                        //};
+                        //document.getElementById('addRoleButton').onclick = function() {
+                        //    addRole(info.event.id);
+                        //};
+                        //document.getElementById('deleteSelectedRolesButton').onclick = function() {
+                        //deleteSelectedRoles(info.event.id);
+                        //};
+                    
+                    }       
+                    else if(info.event.extendedProps.type === "bookable") {
+                        var usersList = info.event.extendedProps.bookings.map(function(user) {
+                            return '<li> <b>' + user.name + '</b> (' + user.start + ')' + ' - ' + user.phone +  '-' + user.email + '</li>';
+                        }).join('');
+                        document.getElementById('associatedUsersModal').innerHTML = usersList;
+
+                        // Handle save and delete
+                        //document.getElementById('saveEventButton').onclick = function() {
+                        //    saveEventChanges(info.event.id);
+                        //};
+                        //document.getElementById('deleteEventButton').onclick = function() {
+                        //    deleteEvent(info.event.id);
+                        //};
+                        //document.getElementById('addRoleButton').onclick = function() {
+                        //    addRole(info.event.id);
+                        //};
+                        //document.getElementById('deleteSelectedRolesButton').onclick = function() {
+                        //deleteSelectedRoles(info.event.id);
+                        //};
+                    }
+        
+                    // Show the modal
+                    $('#eventModal').modal('show');
+                }
+            });
+            calendar.render();
+
+            // Event handler for user search and role filter
+            $('#userSearch').on('input', filterUsers);
+
+            function filterUsers() {
+                var searchText = $('#userSearch').val().toLowerCase();
+                var selectedRoles = [];
+
+                $('.role-checkbox:checked').each(function() {
+                    selectedRoles.push($(this).data('role'));
+                });
+
+                $('#userList .list-group-item').each(function() {
+                    var userName = $(this).text().toLowerCase();
+                    var userRole = $(this).text().split('(')[1].split(')')[0].trim();
+                    
+                    var matchesSearch = userName.includes(searchText);
+                    var matchesRole = selectedRoles.length === 0 || selectedRoles.includes(userRole);
+                    
+                    if (matchesSearch && matchesRole) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            }
+
+            function saveEventChanges() {
+                var roles = Array.from(document.querySelectorAll('#associatedRolesModal .list-group-item')).map(item => item.textContent);
+                var users = Array.from(document.querySelectorAll('#associatedUsersModal .list-group-item')).map(item => {
+                    // Assuming each list item has a data attribute with the user ID
+                    return item.getAttribute('data-user-id');
+                });
+        
+                // Assume eventID is stored in a hidden input field
+                var eventId = document.getElementById('eventID').value;
+        
+                $.ajax({
+                    url: '/saveEventChanges',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        roles: roles,
+                        users: users,
+                        event_id: eventId
+                    }),
+                    success: function(response) {
+                        alert("Event changes saved successfully!");
+                        location.reload();
+                    },
+                    error: function(error) {
+                        alert("Error saving event changes.");
+                    }
+                });
+            }
+
+            function deleteEvent(eventId) {
+                $.ajax({
+                    url: '/delete-event/' + eventId,
+                    method: 'DELETE',
+                    success: function(response) {
+                        alert('Event deleted successfully');
+                        location.reload();
+                    },
+                    error: function(error) {
+                        alert('Error deleting event: ' + error.responseText);
+                    }
+                });
+            }
+
+            function populateDropdown(dropdown, items) {
+                dropdown.innerHTML = items.map(item => `<option value="${item}">${item}</option>`).join('');
+            }
+        });
+
+        function deleteRole(eventID, role) {
+            fetch('/deleteRole', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 'eventID': eventID, 'role': role }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Role deleted successfully');
+                        location.reload(); // Refresh the page to show updated roles
+                    } else {
+                        alert('Failed to delete role');
+                    }
+                });
+        }
+        
+        function deleteUser(eventID, userID) {
+            fetch('/delete_event_user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 'eventID': eventID, 'userID': userID }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('User deleted successfully');
+                        location.reload(); // Refresh the page to show updated users
+                    } else {
+                        alert('Failed to delete user');
+                    }
+                });
+        }
+
+        // Show the role dropdown
+        function showRoleDropdown(eventID) {
+            const roleDropdown = document.getElementById('roleDropdown');
+            roles = {{ roles|tojson|safe }}
+            roleDropdown.innerHTML = roles.map(role => `
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>${role}</span>
+                    <button class="btn btn-sm btn-success" onclick="addRoleToEvent(${eventID}, '${role}')">
+                        <i class="fas fa-check"></i>
+                    </button>
+                </div>
+            `).join('');
+            roleDropdown.style.display = 'block';
+        }
+
+        // Show the user dropdown
+        function showuserSelectDropdown(eventID) {
+            const userSelectDropdown = document.getElementById('userSelectDropdown');
+            const users = {{ users|tojson|safe }};
+            userSelectDropdown.innerHTML = users.map(user => `
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>${user.name} (${user.role})</span>
+                    <button class="btn btn-sm btn-success" onclick="addUserToEvent(${eventID}, ${user.id})">
+                        <i class="fas fa-check"></i>
+                    </button>
+                </div>
+            `).join('');
+            userSelectDropdown.style.display = 'block';
+        }
+
+        // Add role to event
+        function addRoleToEvent(role) {
+            const eventID = currentEventID; // Assuming `currentEventID` is set when the modal opens
+
+            fetch('/add_event_role', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ eventID: eventID, role: role })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Role added successfully!');
+                    // Update the modal
+                    const event = calendar.getEventById(eventID);
+                    renderRolesAndUsers(event);
+                } else {
+                    alert(data.message || 'Failed to add role.');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Add user to event
+        function addUserToEvent(userID) {
+            const eventID = currentEventID; // Assuming `currentEventID` is set when the modal opens
+
+            fetch('/add_event_user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ eventID: eventID, userID: userID })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('User added successfully!');
+                    // Update the modal
+                    const event = calendar.getEventById(eventID);
+                    renderRolesAndUsers(event);
+                } else {
+                    alert(data.message || 'Failed to add user.');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+
+
+        // Function to handle event creation
+        document.getElementById('createEventForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            createEvent();
+        });
+
+        function createEvent() {
+            var title = document.getElementById('eventTitle').value;
+            var date = document.getElementById('eventDate').value;
+            var description = document.getElementById('eventDescription').value;
+
+            // Collect selected user IDs
+            var selectedUsers = [];
+            $('.user-checkbox:checked').each(function() {
+                selectedUsers.push($(this).data('id'));
+            });
+
+            // Collect selected role names
+            var selectedRoles = [];
+            $('.role-checkbox:checked').each(function() {
+                selectedRoles.push($(this).data('role'));
+            });
+
+            $.ajax({
+                url: '/create-event',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    title: title,
+                    date: date,
+                    description: description,
+                    user_ids: selectedUsers,
+                    roles: selectedRoles
+                }),
+                success: function(response) {
+                    alert('Event created successfully');
+                    location.reload();
+                },
+                error: function(error) {
+                    alert('Error creating event: ' + error.responseText);
+                }
+            });
+        }
+
+            // Add Role
+            document.getElementById('addRoleButton').addEventListener('click', function() {
+                var roleInput = document.getElementById('newRoleInput').value;
+                if (roleInput) {
+                    var roleItem = document.createElement('li');
+                    roleItem.classList.add('list-group-item');
+                    roleItem.textContent = roleInput;
+                    document.getElementById('associatedRolesModal').appendChild(roleItem);
+                    document.getElementById('newRoleInput').value = '';
+                }
+            });
+        
+            // Add User
+            document.getElementById('addUserButton').addEventListener('click', function() {
+                var userInput = document.getElementById('newUserInput').value;
+                if (userInput) {
+                    var userItem = document.createElement('li');
+                    userItem.classList.add('list-group-item');
+                    userItem.textContent = userInput;
+                    document.getElementById('associatedUsersModal').appendChild(userItem);
+                    document.getElementById('newUserInput').value = '';
+                }
+            });
+        
+            function saveEventChanges() {
+                var roles = Array.from(document.querySelectorAll('#associatedRolesModal .list-group-item')).map(item => item.textContent);
+                var users = Array.from(document.querySelectorAll('#associatedUsersModal .list-group-item')).map(item => item.textContent);
+        
+                $.ajax({
+                    url: '/saveEventChanges',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        roles: roles,
+                        users: users
+                    }),
+                    success: function(response) {
+                        alert("Event changes saved successfully!");
+                        location.reload();
+                    },
+                    error: function(error) {
+                        alert("Error saving event changes.");
+                    }
+                });
+            }
+        </script>
+        
+</body>
+{% endblock %}

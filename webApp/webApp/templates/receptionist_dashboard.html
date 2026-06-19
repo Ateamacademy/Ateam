@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+
+<head>
+
+    <title>Admin Dashboard</title>
+
+</head>
+
+{% extends 'base_page.html' %}
+
+{% block middleContent %}
+    <script>
+        $( document ).ready(function() {
+            document.getElementById("dashboard-link").classList.add("active");
+        });
+    </script>
+    
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 mt-4">
+        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+
+        <!-- Earnings (Monthly) Card Example -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Earnings (Last Week) </div>
+                            {% if session['name'] == "Safwaan Ali" %} <div class="h5 mb-0 font-weight-bold text-gray-800">£{{ lastWeekEarnings }} </div> 
+                            {% else %} <div class="h5 mb-0 font-weight-bold text-gray-800">£ ----.-- </div> 
+                            {% endif %}
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Earnings (Monthly) Card Example -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Earnings (this year)</div>
+                            {% if session['name'] == "Safwaan" %} <div class="h5 mb-0 font-weight-bold text-gray-800">£{{ allTimeEarnings }} </div> 
+                            {% else %} <div class="h5 mb-0 font-weight-bold text-gray-800">£ ----.-- </div> 
+                            {% endif %}
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Earnings (Monthly) Card Example -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Lessons completed (Weekly)
+                            </div>
+                            <div class="row no-gutters align-items-center">
+                                <div class="col-auto">
+                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{ lessonCompletionPercentage }}%</div>
+                                </div>
+                                <div class="col">
+                                    <div class="progress progress-sm mr-2">
+                                        <div class="progress-bar bg-info" role="progressbar"
+                                            style="width: {{ lessonCompletionPercentage }}%" aria-valuenow="{{ lessonCompletionPercentage }}" aria-valuemin="0"
+                                            aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Requests Card Example -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Pending Requests</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Row -->
+
+    <div class="row">
+
+        <!-- Area Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div
+                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary"> Student Enrollment </h6>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="myAreaChart"></canvas> <!-- this is being changed by the chart demo-->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pie Chart -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div
+                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Student Groups</h6>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="myPieChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        {% for i in range(year_group_categories|length) %}
+                        <span class="mr-2">
+                            <i class="fas fa-circle" style ="color: {{colours[i]}}; background-color: {{colours[i]}};"></i> {{ year_group_categories[i] }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+
+        <!-- Content Column -->
+        <div class="col-lg-4 mb-4">
+
+            <!-- Project Card Example -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Lesson Attendance today</h6>
+                </div>
+                <div class="card-body">
+                    {% for lesson in percentageAttendance %}
+                    <h4 class="small font-weight-bold"> {{ lesson[0] }} <span
+                            class="float-right">{{ lesson[1] }}%</span></h4>
+                    <div class="progress mb-4">
+                        {% if lesson[1] > 70 %} <div class="progress-bar bg-success" role="progressbar" style="width: {{ lesson[1] }}%" aria-valuenow="{{ lesson[1] }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        {% elif lesson[1] > 40 %} <div class="progress-bar bg-warning" role="progressbar" style="width: {{ lesson[1] }}%" aria-valuenow="{{ lesson[1] }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        {% else %} <div class="progress-bar bg-danger" role="progressbar" style="width: {{ lesson[1] }}%" aria-valuenow="{{ lesson[1] }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        {% endif %}
+
+
+                    </div>
+                    {% endfor %}
+                    
+                </div>
+            </div>
+
+            <!-- Color System -->
+            <!-- <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card bg-primary text-white shadow">
+                        <div class="card-body">
+                            Primary
+                            <div class="text-white-50 small">#4e73df</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card bg-success text-white shadow">
+                        <div class="card-body">
+                            Success
+                            <div class="text-white-50 small">#1cc88a</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card bg-info text-white shadow">
+                        <div class="card-body">
+                            Info
+                            <div class="text-white-50 small">#36b9cc</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card bg-warning text-white shadow">
+                        <div class="card-body">
+                            Warning
+                            <div class="text-white-50 small">#f6c23e</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card bg-danger text-white shadow">
+                        <div class="card-body">
+                            Danger
+                            <div class="text-white-50 small">#e74a3b</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card bg-secondary text-white shadow">
+                        <div class="card-body">
+                            Secondary
+                            <div class="text-white-50 small">#858796</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card bg-light text-black shadow">
+                        <div class="card-body">
+                            Light
+                            <div class="text-black-50 small">#f8f9fc</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card bg-dark text-white shadow">
+                        <div class="card-body">
+                            Dark
+                            <div class="text-white-50 small">#5a5c69</div>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+
+        </div>
+
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div
+                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary"> Site Usage (Past 5 days) </h6>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="site-usage-chart"></canvas> <!-- this is being changed by the chart demo-->
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="mr-2">
+                            <i class="fas fa-circle" style ="color: rgba(78, 115, 223, 1)"></i> Students
+                            <i class="fas fa-circle" style ="color: rgba(201, 127, 127, 1)"></i> Tutors
+                            <i class="fas fa-circle" style ="color: rgba(155, 225, 152, 1)"></i> Admins
+                            <i class="fas fa-circle" style ="color: rgba(246, 194, 62, 1)"></i> Others
+                        </span>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        * This doesnt include Safwaans Admin Account
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Line Graph -->
+    <script>
+        var ctx = document.getElementById("myAreaChart");
+        var data_json = {{ studentEnrollment|tojson }}
+        var myLineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ["Aug-23", "Sep-23", "Oct-23", "Nov-23", "Dec-23", "Jan-24", "Feb-24", "Mar-24", "Apr-24", "May-24", "Jun-24", "Jul-24", "Aug-24"],
+            datasets: [{
+            label: "Students: ",
+            lineTension: 0.3,
+            backgroundColor: "rgba(78, 115, 223, 0.05)",
+            borderColor: "rgba(78, 115, 223, 1)",
+            pointRadius: 3,
+            pointBackgroundColor: "rgba(78, 115, 223, 1)",
+            pointBorderColor: "rgba(78, 115, 223, 1)",
+            pointHoverRadius: 3,
+            pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+            pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+            pointHitRadius: 10,
+            pointBorderWidth: 2,
+            data: data_json,
+            }],
+        },
+        options: {
+            maintainAspectRatio: false,
+            layout: {
+            padding: {
+                left: 10,
+                right: 25,
+                top: 25,
+                bottom: 0
+            }
+            },
+            scales: {
+            xAxes: [{
+                time: {
+                unit: 'date'
+                },
+                gridLines: {
+                display: false,
+                drawBorder: false
+                },
+                ticks: {
+                maxTicksLimit: 7
+                }
+            }],
+            yAxes: [{
+                ticks: {
+                maxTicksLimit: 5,
+                padding: 10,
+                },
+                gridLines: {
+                color: "rgb(234, 236, 244)",
+                zeroLineColor: "rgb(234, 236, 244)",
+                drawBorder: false,
+                borderDash: [2],
+                zeroLineBorderDash: [2]
+                }
+            }],
+            },
+            legend: {
+            display: false
+            },
+            tooltips: {
+            backgroundColor: "rgb(255,255,255)",
+            bodyFontColor: "#858796",
+            titleMarginBottom: 10,
+            titleFontColor: '#6e707e',
+            titleFontSize: 14,
+            borderColor: '#dddfeb',
+            borderWidth: 1,
+            xPadding: 15,
+            yPadding: 15,
+            displayColors: false,
+            intersect: false,
+            mode: 'index',
+            caretPadding: 10,
+            callbacks: {
+                label: function(tooltipItem, chart) {
+                var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+                return datasetLabel + number_format(tooltipItem.yLabel);
+                }
+            }
+            }
+        }
+        });
+
+    </script>
+
+    <!-- Pie Chart -->
+    <script>
+        var ctx = document.getElementById("myPieChart");
+        var data_pie_json = {{ year_group_counts|tojson }}
+        var labels = {{ year_group_categories|tojson }}
+        var myPieChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+            data: data_pie_json,
+            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#8553a1', '#14a37f' ],
+            hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#8442a7', '#1a7f56'],
+            hoverBorderColor: "rgba(234, 236, 244, 1)",
+            }],
+        },
+        options: {
+            maintainAspectRatio: false,
+            tooltips: {
+            backgroundColor: "rgb(255,255,255)",
+            bodyFontColor: "#858796",
+            borderColor: '#dddfeb',
+            borderWidth: 1,
+            xPadding: 15,
+            yPadding: 15,
+            displayColors: false,
+            caretPadding: 10,
+            },
+            legend: {
+            display: false
+            },
+            cutoutPercentage: 80,
+        },
+        });
+
+    </script>
+
+
+    <script>
+        var ctx = document.getElementById("site-usage-chart");
+        var admin_json = {{ admin_totals|tojson }}
+        var student_json = {{ student_totals|tojson }}
+        var tutor_json = {{ tutor_totals|tojson }}
+        var anon_json = {{ anon_totals|tojson }}
+        var labels_json = {{ site_usage_hour_slots|tojson }}
+        var myLineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels_json,
+
+            datasets: [{
+            label: "Students: ",
+            lineTension: 0.3,
+            backgroundColor: "rgba(78, 115, 223, 0.05)",
+            borderColor: "rgba(78, 115, 223, 1)",
+            pointRadius: 3,
+            pointBackgroundColor: "rgba(78, 115, 223, 1)",
+            pointBorderColor: "rgba(78, 115, 223, 1)",
+            pointHoverRadius: 3,
+            pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+            pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+            pointHitRadius: 10,
+            pointBorderWidth: 2,
+            data: student_json,
+            },
+            {
+            label: "Tutors: ",
+            lineTension: 0.3,
+            backgroundColor: "rgba(201, 127, 127, 0.05)",
+            borderColor: "rgba(201, 127, 127, 1)",
+            pointRadius: 3,
+            pointBackgroundColor: "rgba(201, 127, 127, 1)",
+            pointBorderColor: "rgba(201, 127, 127, 1)",
+            pointHoverRadius: 3,
+            pointHoverBackgroundColor: "rgba(201, 127, 127, 1)",
+            pointHoverBorderColor: "rgba(201, 127, 127, 1)",
+            pointHitRadius: 10,
+            pointBorderWidth: 2,
+            data: tutor_json,
+            }, 
+            { label: "Admins: ",
+            lineTension: 0.3,
+            backgroundColor: "rgba(155, 225, 152, 0.05)",
+            borderColor: "rgba(155, 225, 152, 1)",
+            pointRadius: 3,
+            pointBackgroundColor: "rgba(155, 225, 152, 1)",
+            pointBorderColor: "rgba(155, 225, 152, 1)",
+            pointHoverRadius: 3,
+            pointHoverBackgroundColor: "rgba(155, 225, 152, 1)",
+            pointHoverBorderColor: "rgba(155, 225, 152, 1)",
+            pointHitRadius: 10,
+            pointBorderWidth: 2,
+            data: admin_json,
+            },
+            { label: "Others: ",
+            lineTension: 0.3,
+            backgroundColor: "rgba(246, 194, 62, 0.05)",
+            borderColor: "rgba(246, 194, 62, 1)",
+            pointRadius: 3,
+            pointBackgroundColor: "rgba(246, 194, 62, 1)",
+            pointBorderColor: "rgba(246, 194, 62, 1)",
+            pointHoverRadius: 3,
+            pointHoverBackgroundColor: "rgba(246, 194, 62, 1)",
+            pointHoverBorderColor: "rgba(246, 194, 62, 1)",
+            pointHitRadius: 10,
+            pointBorderWidth: 2,
+            data: anon_json,
+            }
+            ],
+        },
+        options: {
+            maintainAspectRatio: false,
+            layout: {
+            padding: {
+                left: 10,
+                right: 25,
+                top: 25,
+                bottom: 0
+            }
+            },
+            scales: {
+            xAxes: [{
+                time: {
+                unit: 'date'
+                },
+                gridLines: {
+                display: false,
+                drawBorder: false
+                },
+                ticks: {
+                maxTicksLimit: 10
+                }
+            }],
+            yAxes: [{
+                ticks: {
+                    min:0, 
+                    max: Math.min(Math.max(Math.max(...admin_json), Math.max(...student_json), Math.max(...tutor_json), Math.max(...anon_json)), 50),
+                maxTicksLimit: 5,
+                padding: 10,
+                },
+                gridLines: {
+                color: "rgb(234, 236, 244)",
+                zeroLineColor: "rgb(234, 236, 244)",
+                drawBorder: false,
+                borderDash: [2],
+                zeroLineBorderDash: [2]
+                }
+            }],
+            },
+            legend: {
+            display: false
+            },
+            tooltips: {
+            backgroundColor: "rgb(255,255,255)",
+            bodyFontColor: "#858796",
+            titleMarginBottom: 10,
+            titleFontColor: '#6e707e',
+            titleFontSize: 14,
+            borderColor: '#dddfeb',
+            borderWidth: 1,
+            xPadding: 15,
+            yPadding: 15,
+            displayColors: false,
+            intersect: false,
+            mode: 'index',
+            caretPadding: 10,
+            callbacks: {
+                label: function(tooltipItem, chart) {
+                var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+                return datasetLabel + number_format(tooltipItem.yLabel);
+                }
+            }
+            }
+        }
+        });
+
+    </script>
+
+{% endblock %}
+
+
+
