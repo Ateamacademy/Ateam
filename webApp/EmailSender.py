@@ -66,7 +66,7 @@ class EmailSender:
             self.msg.attach(part)
 
 
-    def send(self, email, subject, message, files=[], subtype="html"):
+    def send(self, email, subject, message, files=None, subtype="html"):
         """
         Connects to email server using smtplib and sets appropriate values.
 
@@ -82,7 +82,7 @@ class EmailSender:
             self.setEmail(message, subtype)
             self.setSubject(subject)
             self.setReceipient(email)
-            self.setFiles(files)
+            self.setFiles(files if files is not None else [])
             self.connect()
             
             with app.app_context():

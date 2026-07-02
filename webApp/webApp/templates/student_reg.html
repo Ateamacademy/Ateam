@@ -1175,7 +1175,7 @@
                       document.getElementById('statusmessagediv').style.display="Inline"  ;
                       document.getElementById('statusmessagediv').setAttribute("class", "alert alert-danger");
                       alert("The Student could not be added");
-                      if(firstName = "") {document.getElementById('statusmessage').innerHTML = "The Student could not be added";}
+                      if(firstName == "") {document.getElementById('statusmessage').innerHTML = "The Student could not be added";}
                       else { document.getElementById('statusmessage').innerHTML = firstName + " could not be added";};
                     }
                 });
@@ -1236,7 +1236,6 @@
               x = document.getElementsByClassName("item");
               y = x[currentTab].getElementsByTagName("input");
               z = x[currentTab].getElementsByTagName("select");
-              console.log(z)
               // A loop that checks every input field in the current tab:
               for (i = 0; i < y.length; i++) {
                 // If a field is empty...
@@ -1253,7 +1252,6 @@
                 if (z[i].value == ""  && z[i].required==true) {
                   // add an "invalid" class to the field:
                   z[i].className += " invalid";
-                  console.log(z[i].value)
                   // and set the current valid status to false:
                   valid = false;
                 }
@@ -1262,7 +1260,6 @@
               if (valid) {
                 document.getElementsByClassName("step")[currentTab].className += " finish";
               }
-              console.log(valid);
               return valid; // return the valid status
             }
             

@@ -44,7 +44,9 @@
                                 <td class="text-center  py-4">{{ $visitor['option'] }}</td>
                                 <td class="text-center  py-4">{{ $visitor['subject'] }}</td>
                                 <td class="text-center  py-4">
-                                    {{  \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $visitor['created_at'], 'Europe/London')->format('d M Y H:i:s') }}
+                                    {{-- Convert the stored UTC timestamp to London time (the old code
+                                         re-labelled UTC as London, showing times 1h off during BST). --}}
+                                    {{ $visitor['created_at']->copy()->timezone('Europe/London')->format('d M Y H:i:s') }}
                                 </td>
                                 <td style="word-break: break-word;"
                                     class="hidden xl:table-cell pl-4 text-left  text-xs py-8">

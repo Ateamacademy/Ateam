@@ -96,13 +96,6 @@
             }
         })
         .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                console.log(`Event has been marked as ${data.bookable ? 'bookable' : 'non-bookable'}.`);
-            } else {
-                console.log('Failed to update the event.');
-            }
-        })
         .catch(error => {
             console.error('Error:', error);
             alert('An error occurred while processing your request.');

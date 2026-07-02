@@ -11,13 +11,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, current_user, logout_user, login_required, UserMixin, LoginManager, AnonymousUserMixin
 from datetime import date, datetime
 from os.path import isfile, join, isdir
-from werkzeug.utils import secure_filename
+from werkzeug.utils import secure_filename, safe_join
 from pdfminer.high_level import extract_text
 from os import listdir
 from datetime import date, datetime
 from email.mime.text import MIMEText
-from unknown_string import *
-from EmailSender import * 
+from EmailSender import *
 from PIL import Image
 from flask_apscheduler import APScheduler
 from io import StringIO
@@ -81,11 +80,11 @@ def error403(error):
     return render_template('403.html'), 403
 
 @beta.errorhandler(404)
-def error403(error):
+def error404(error):
     return render_template('404.html'), 404
 
 @beta.errorhandler(503)
-def error403(error):
+def error503(error):
     return render_template('maintenance.html'), 503
 
 @beta.errorhandler(400)
@@ -98,7 +97,7 @@ def error400(error):
 #     return render_template("300.html"), 400
 
 
-MEDIA_FOLDER = 'var/www/webbeta/webbeta/'
+MEDIA_FOLDER = 'var/www/webApp/webApp/'
 @beta.route('/beta/CS310/images/<filename>')
 def download_file(filename):
     return send_from_directory(MEDIA_FOLDER, filename, as_attachment=True)
@@ -124,7 +123,6 @@ def download_file(filename):
 def begin():
     if request.method == 'POST':
         email = request.form['email'].lower().strip()
-        print(email)
         password = request.form['password']
 
         user = User.query.filter_by(email=email).first()
@@ -139,7 +137,6 @@ def begin():
             session['role'] = user.role
             session['name'] = getUserName(user.id)
 
-            print(getUserName(current_user.id) + "( " + session['role'] + ") has just logged in")
             if check_password_hash(generate_password_hash('password'), password):
                 session.pop('_flashes', None)
                 return redirect(url_for('change_password'))
@@ -175,7 +172,7 @@ def admin_dashboard():
     for lesson in Lessons: 
         lesson_info = LessonInfo.query.filter_by(lessonID = lesson.lessonID).filter_by(weekNo = gen_week_no(0)).first()
         if lesson_info: 
-            if lesson_info.betaroved: 
+            if lesson_info.approved: 
                 completedLessons += 1
             else: 
                 continue
@@ -429,7 +426,7 @@ def tutor_dashboard():
         .filter(
             LessonInfoAlias.tutorID == tutorID,
             LessonAlias.AcademicYear == current_academic_year,
-            LessonInfoAlias.betaroved == True
+            LessonInfoAlias.approved == True
         )
         .scalar()
     )
@@ -612,7 +609,6 @@ def receptionist_dashboard():
 
     centreIDList = UserCentre.query.filter_by(userID = current_user.id).all()
     centreIDs = [user.centreID for user in centreIDList ]
-    print(centreIDs)
 
     #lesson completion percentage
     allLessons = len(Lesson.query.filter(or_(Lesson.weekNo == gen_week_no(0), Lesson.weekNo == -1)).filter(Lesson.centreID in centreIDs).all())
@@ -1071,7 +1067,7 @@ def allTimetable():
     
     centreList = getAllCentres()
     centres = {}
-    colours = ['E63946', 'F1FAEE', 'A8DADC', '457B9D', '1D3557']
+    colours = ['#E63946', '#F1FAEE', '#A8DADC', '#457B9D', '#1D3557']
     # Use enumerate to iterate over centreList and match colors
     for i, centre in enumerate(centreList):
         # Ensure we have enough colors or handle the case when there are more centres
@@ -1124,10 +1120,10 @@ def allTimetable():
                     else:
                         registerDone = "0"
 
-                    betaroved = register.betaroved
+                    approved = register.approved
                 else: 
                     registerDone = "0"
-                    betaroved = False
+                    approved = False
                 #Coventry Road
                 #Soho Road
                 #Online
@@ -1137,7 +1133,7 @@ def allTimetable():
                 endMinute = str(lesson.endTime)[3:5]
 
                 if (lesson.weekNo == -1 and lesson.created_week <= int(gen_week_no(int(offset)))) or str(lesson.weekNo) == str(weekNo):
-                    lesson2.append({"lessonID" : lesson.lessonID, "subjectID" : lesson.subjectID, "day" : lesson.day, "startHour" : startHour, "startMinute" : startMinute, "endHour" : endHour, "endMinute" : endMinute, "lessonName" : lesson.lessonName, "title" :  lessonTitle, "tutor" : tutorName, "centre" : centreName, "year":lesson.AcademicYear, "tutorid" : tutorID, "register" : registerDone, "betaroved" : betaroved})        
+                    lesson2.append({"lessonID" : lesson.lessonID, "subjectID" : lesson.subjectID, "day" : lesson.day, "startHour" : startHour, "startMinute" : startMinute, "endHour" : endHour, "endMinute" : endMinute, "lessonName" : lesson.lessonName, "title" :  lessonTitle, "tutor" : tutorName, "centre" : centreName, "year":lesson.AcademicYear, "tutorid" : tutorID, "register" : registerDone, "approved" : approved})        
             
     elif current_user.is_tutor() or (tutorID != -1 and permission_required(current_user.id, 'view_all_lessons')):
         # db.session.add(log(role = getUserRole(current_user.id), message=" (" + getUserName(current_user.id) + "): showing tutor timetable", date=datetime.utcnow()))
@@ -1182,11 +1178,11 @@ def allTimetable():
                     else:
                         registerDone = "0"
                     
-                    betaroved = register.betaroved
+                    approved = register.approved
 
                 else: 
                     registerDone = "0"
-                    betaroved = False
+                    approved = False
                     
                     
                 startHour = str(lesson.startTime)[:2]
@@ -1195,7 +1191,7 @@ def allTimetable():
                 endMinute = str(lesson.endTime)[3:5]
 
                 if (lesson.weekNo == -1 and lesson.created_week <= int(gen_week_no(int(offset)))) or str(lesson.weekNo) == str(int(gen_week_no(int(offset)))):
-                    lesson2.append({"lessonID" : lesson.lessonID, "subjectID" : lesson.subjectID, "day" : lesson.day, "startHour" : startHour, "startMinute" : startMinute, "endHour" : endHour, "endMinute" : endMinute, "lessonName" : lesson.lessonName, "title" :  lessonTitle, "tutor" : tutorName, "centre" : centreName, "year":lesson.AcademicYear, "register" : registerDone,  "betaroved" : betaroved})
+                    lesson2.append({"lessonID" : lesson.lessonID, "subjectID" : lesson.subjectID, "day" : lesson.day, "startHour" : startHour, "startMinute" : startMinute, "endHour" : endHour, "endMinute" : endMinute, "lessonName" : lesson.lessonName, "title" :  lessonTitle, "tutor" : tutorName, "centre" : centreName, "year":lesson.AcademicYear, "register" : registerDone,  "approved" : approved})
     
     elif current_user.is_student() or (studentID != -1 and permission_required(current_user.id, 'view_all_lessons')): 
         
@@ -1252,8 +1248,8 @@ def allTimetable():
     # print(lesson2)
     return render_template('allTimetable.html', maxRows=maxRows, lesson2=sorted(lesson2, key=lambda x:x['tutor']), day=num_to_day((today + int(offset)) % 7),  weekNo = weekNo , role=role, subjects=subjects, tutors=tutors, alerts = alerts, mode = mode, centres = centres)
 
-@beta.route('/beta/allTimetableForbeta')
-def allTimetableForbeta():
+@beta.route('/beta/allTimetableForApp')
+def allTimetableForApp():
     check_maintenance()
     # db.session.add(log(role = getUserRole(current_user.id), message=" (" + getUserName(current_user.id) + "): showing beta timetable", date=datetime.utcnow()))
     db.session.commit()
@@ -1297,7 +1293,7 @@ def allTimetableForbeta():
             lesson2.append({"lessonID" : lesson.lessonID, "subjectID" : lesson.subjectID, "day" : lesson.day, "startHour" : startHour, "startMinute" : startMinute, "endHour" : endHour, "endMinute" : endMinute, "lessonName" : lesson.lessonName, "title" :  lessonTitle, "tutor" : tutorName, "centre" : centreName, "year":lesson.AcademicYear, "tutorid" : tutorID})        
         
     
-    return render_template('allTimetableForbeta.html', rows=rows, lesson2=sorted(lesson2, key=lambda x: x['tutor']), day=num_to_day((today + int(offset)) % 7),  weekNo = gen_week_no(0), role=role, subjects=subjects, tutors=tutors )
+    return render_template('allTimetableForApp.html', rows=rows, lesson2=sorted(lesson2, key=lambda x: x['tutor']), day=num_to_day((today + int(offset)) % 7),  weekNo = gen_week_no(0), role=role, subjects=subjects, tutors=tutors )
 
 @beta.route('/beta/generate_Timetable')
 @login_required
@@ -1333,7 +1329,6 @@ def Classroom_View():
     delete_a_lesson = permission_required(current_user.id, 'delete_a_lesson')
     send_emails_to_students = permission_required(current_user.id, 'send_emails_to_students')
     
-    print(send_emails_to_students)
     updateLessonInfo = change_lesson_time or change_lesson_day or change_lesson_tutor or change_lesson_subject or change_lesson_centre or change_lesson_students or delete_a_lesson
     
         
@@ -1520,8 +1515,7 @@ def Classroom_View_Files():
     subjectID = lesson.subjectID
     subject = Subject.query.filter_by(subjectID=subjectID).first()
     fileFolder = getFileFolder(subjectID)
-    print(getUserName(current_user.id) + " " + fileFolder)
-    
+
     subjectList = lessonPlan.query.filter_by(subjectID=subjectID).all()
     for subject in subjectList:
         subjects.append(subject.topic)
@@ -1551,9 +1545,8 @@ def Classroom_View_Files():
             if file.type == "notes":
                 notesList.append([file.filename, file.associatedTopic])
     
-    print(mainList)
 
-    
+
     #Get all the files at the lesson level
     uniqueFiles = Files.query.filter_by(lessonID = lessonid).filter_by(weekNo=weekNo).all()
     
@@ -1895,7 +1888,6 @@ def admin_view_tutors():
     for tutor in tutorList:           
         tutors.append({"id" : getUserID("tutor", tutor.id), "firstName" : tutor.firstName, "secondName" : tutor.secondName, "gender" : tutor.gender, "email" : tutor.email, "phone" : tutor.phone, "logOn" : getUserPermission(id = tutor.id, action = "log_on", role = "tutor")})
     
-    print(tutors)
     return render_template("admin_tutor_view.html", tutors= sorted(sorted(tutors, key = lambda x : x['firstName']), key=lambda x: x['logOn'], reverse = True))
     # return render_template("admin_tutor_view.html", tutors= tutors)
 
@@ -2380,7 +2372,7 @@ def importantDocs():
     check_maintenance()
     #role_required("tutor", "Important Documents")
 
-    path = '/var/www/webbeta/webbeta/files/IMPORTANT_DOCS'
+    path = '/var/www/webApp/webApp/files/IMPORTANT_DOCS'
     documentList = [{"displayName" : f.replace("_", " "), "name" : f, "type" : getFileType(f)[1:]} for f in listdir(path) if isfile(join(path, f))]
     # print(documentList)
     
@@ -2536,12 +2528,6 @@ def fixFiles():
         
     return render_template('fixFiles.html', files = lessons, subjects = sorted(subjects, key = lambda x:x['name']))
 
-@beta.route('/beta/alerts')
-@login_required
-def alerts():
-    check_maintenance()
-    return render_template("alerts.html")
-            
 @beta.route('/beta/release_notes')
 @login_required
 def release_notes(): 
@@ -2634,11 +2620,10 @@ def exam_students():
         if se.studentID not in student_exam_map:
             student_exam_map[se.studentID] = []
         student_exam_map[se.studentID].append(se.examID)
-        
-    print(student_exam_map)
-    
+
+
     user_files_map = {}
-    user_files_folder = 'var/www/webbeta/webbeta/userFiles'
+    user_files_folder = 'var/www/webApp/webApp/userFiles'
     
     user_id_map = {}
 
@@ -2734,9 +2719,8 @@ def payslips():
 
 
 
-    print(userID)
 
-    path = "/var/www/webbeta/webbeta/payslips"
+    path = "/var/www/webApp/webApp/payslips"
 
     path = os.path.join(path, str(userID))
     payslips = [{"type" : getFileType(f)[1:], "name" : f} for f in listdir(path) if isfile(join(path, f))]
@@ -2760,7 +2744,7 @@ def mathsMarker():
 def view_feedback(): 
     check_maintenance()
     feedback_list = Feedback.query.all()
-    feedback = [{"file" : response.filename.replace("/var/www/webbeta/webbeta/", ""), "student" : getStudent(response.studentID), "feedback" : response.feedback, "student_good" : response.student_good, "tutor_good" : response.tutor_good, "correct" : "Correct" if response.correct else "Incorrect" } for response in feedback_list]
+    feedback = [{"file" : response.filename.replace("/var/www/webApp/webApp/", ""), "student" : getStudent(response.studentID), "feedback" : response.feedback, "student_good" : response.student_good, "tutor_good" : response.tutor_good, "correct" : "Correct" if response.correct else "Incorrect" } for response in feedback_list]
 
     return render_template("view_feedback.html", feedback = sorted(feedback, key = lambda x:x['file'] ,reverse=True))
 
@@ -2801,13 +2785,13 @@ def exam_room_allocation():
 
     return render_template('exam_room_allocation.html', students = students)
 
-@beta.route("/beta/betaroveHours")
+@beta.route("/beta/approveHours")
 @login_required
-def betarove_hours():
+def approve_hours():
     check_maintenance()
-    permission_required(current_user.id, 'betarove_hours', fatal=True)
+    permission_required(current_user.id, 'approve_hours', fatal=True)
     
-    lessons = getLessonsTobetarove()
+    lessons = getLessonsToApprove()
     shifts = []
     for lesson in lessons:
         shifts.append({"tutor" : getTutor(lesson.tutorID), 
@@ -2821,7 +2805,7 @@ def betarove_hours():
                        "id" : lesson.lessonID                       
                        })    
         
-    otherHours = staffHours.query.filter_by(betaroved = False).all()
+    otherHours = staffHours.query.filter_by(approved = False).all()
     
     for log in otherHours: 
         shifts.append({"tutor" : getTutor(log.staffID), 
@@ -2835,7 +2819,7 @@ def betarove_hours():
                        "id" : log.id             
         })
     
-    return render_template('betarove_hours.html', shifts = shifts)
+    return render_template('approve_hours.html', shifts = shifts)
 
 @beta.route("/beta/calendar")
 @login_required
@@ -2902,7 +2886,7 @@ def myProfile():
 @beta.route('/beta/contract/<tutorID>')
 @login_required
 def show_contract(tutorID):
-    pdf_path = "/var/www/webbeta/webbeta/contracts/2_contract.pdf"
+    pdf_path = "/var/www/webApp/webApp/contracts/2_contract.pdf"
     
     if not os.path.exists(pdf_path):
         return f'Contract for tutor ID {tutorID} not found.', 404
@@ -2940,7 +2924,7 @@ def marketplace():
         db.session.commit()
         
         # Create a directory for the new product files
-        product_folder = os.path.join('/var/www/webbeta/webbeta/marketPlaceFiles', str(new_product.id))
+        product_folder = os.path.join('/var/www/webApp/webApp/marketPlaceFiles', str(new_product.id))
         os.makedirs(product_folder, exist_ok=True)
         
         # Save uploaded files
@@ -2958,7 +2942,7 @@ def marketplace():
     # Gather files for each product
     products_with_files = []
     for product in products:
-        product_folder = os.path.join('/var/www/webbeta/webbeta/marketPlaceFiles', str(product.id))
+        product_folder = os.path.join('/var/www/webApp/webApp/marketPlaceFiles', str(product.id))
         if os.path.exists(product_folder):
             files = [filename for filename in os.listdir(product_folder) if allowed_file(filename)]
         else:
@@ -2969,7 +2953,7 @@ def marketplace():
     product_files = {}
     claimed_products = Product.query.filter_by(user_id=current_user.id).all()
     for product in claimed_products:
-        product_folder = os.path.join('/var/www/webbeta/webbeta/marketPlaceFiles', str(product.id))
+        product_folder = os.path.join('/var/www/webApp/webApp/marketPlaceFiles', str(product.id))
         if os.path.exists(product_folder):
             files = [filename for filename in os.listdir(product_folder) if allowed_file(filename)]
         else:
@@ -2981,7 +2965,7 @@ def marketplace():
 @beta.route('/beta/marketplaceFiles/<int:product_id>/<filename>')
 @login_required
 def uploaded_file(product_id, filename):
-    return send_from_directory(os.path.join('/var/www/webbeta/webbeta/marketPlaceFiles', str(product_id)), filename)
+    return send_from_directory(os.path.join('/var/www/webApp/webApp/marketPlaceFiles', str(product_id)), filename)
 
 @beta.route('/beta/create_booking_event', methods=['GET', 'POST'])
 @login_required
@@ -3234,9 +3218,9 @@ def user_points():
 
     return render_template('user_points.html', users=users)
 
-@beta.route('/beta/tutor_betalication', methods = ['POST', 'GET'])
-def tutor_betalication():
-    return render_template('tutor_betalication.html')
+@beta.route('/beta/tutor_application', methods = ['POST', 'GET'])
+def tutor_application():
+    return render_template('tutor_application.html')
 
 '           _____ _______ _____ ____  _   _  _____  '
 '     /\   / ____|__   __|_   _/ __ \| \ | |/ ____| '
@@ -3446,7 +3430,7 @@ def delete_product(product_id):
     product = Product.query.get(product_id)
     if product:
         # Delete the product folder and its contents
-        product_folder = os.path.join('/var/www/webbeta/webbeta/marketPlaceFiles', str(product.id))
+        product_folder = os.path.join('/var/www/webApp/webApp/marketPlaceFiles', str(product.id))
         if os.path.exists(product_folder):
             import shutil
             shutil.rmtree(product_folder)
@@ -3656,7 +3640,7 @@ def recordAttendance():
                 continue
             db.session.add(TempAttendance(name = student[0], lessonID=lessonID, weekNo = weekNo, AcademicYear=year))
             db.session.commit()
-            # f = open('/var/www/webbeta/webbeta/tempStudents.txt', "a")
+            # f = open('/var/www/webApp/webApp/tempStudents.txt', "a")
             # f.write("lesson-" + lessonID + "-" + "week-" + weekNo + "-" + student[0] + "\n")
             # f.close()
             continue
@@ -3758,16 +3742,20 @@ def removeTemps():
     return redirect('temp_student_reg')
 
 @beta.route('/beta/download/<fileFolder>/<fileName>')
+@login_required
 def downloadFile(fileFolder, fileName):
     #role_required("student", "ACTION: download")
 
+    # safe_join rejects path traversal ("..") in the URL segments.
+    path = safe_join('files', fileFolder, fileName)
+    if path is None:
+        abort(404)
+
     if eligibleForDownload(getUserName(current_user.id), getUserRole(current_user.id)) and current_user.is_student():
-        path = 'files/' + fileFolder + "/" + fileName 
         db.session.add(log(role = getUserRole(current_user.id), message=" (" + getUserName(current_user.id) + "): " + fileName + " was just downloaded", date=datetime.utcnow()))
         db.session.commit()
         return send_file(path, as_attachment=True)
     elif getRoleLevel(getUserRole(current_user.id)) > getRoleLevel('student'):
-        path = 'files/' + fileFolder + "/" + fileName 
         db.session.add(log(role = getUserRole(current_user.id), message=" (" + getUserName(current_user.id) + "): " + fileName + " was just downloaded", date=datetime.utcnow()))
         db.session.commit()
         return send_file(path, as_attachment=True)
@@ -3791,7 +3779,6 @@ def upload():
             studentView = request.args['studentView']
             studentView = True if studentView == "true" else False
         except:
-            print("using default value for studentView")
             studentView = True
         
         try:
@@ -3804,28 +3791,24 @@ def upload():
             topic=""
 
         if 'file' not in request.files:
-            print('No file part')
             return ""
 
         files = request.files.getlist('file')
-        print(len(files))
 
         for file in files:
             if file.filename == '':
-                print('No file selected for uploading')
                 return ""
 
             if file:
-                print("saving file")
                 filename = secure_filename(file.filename.replace("-", "_"))
                 subjectID = Lesson.query.filter_by(lessonID = lessonID).first().subjectID
                 subject = getFileFolder(subjectID)
 
-                path = "/var/www/webbeta/webbeta/files/" + subject.upper() + "/"
+                path = "/var/www/webApp/webApp/files/" + subject.upper() + "/"
                 existingFiles = [f for f in listdir(path) if isfile(join(path, f))]
 
                 if filename not in existingFiles:
-                    file.save("/var/www/webbeta/webbeta/files/" + subject.upper() + "/" + filename)
+                    file.save("/var/www/webApp/webApp/files/" + subject.upper() + "/" + filename)
                 else: 
                     exists = Files.query.filter_by(lessonID=lessonID).filter_by(weekNo = weekNo).filter_by(filename=filename).first()
                     if exists:
@@ -3865,7 +3848,6 @@ def uploadForAll():
         try:
             studentView = True if request.form['studentView'] == "true" else False
         except:
-            print("using default studentView")
             studentView = True
 
         if 'file' not in request.files:
@@ -3877,7 +3859,6 @@ def uploadForAll():
 
         for file in files:
             if file.filename == '':
-                print('No file selected for uploading')
                 continue
 
             if file:
@@ -3885,11 +3866,11 @@ def uploadForAll():
                 subject = Subject.query.filter_by(subjectID = subjectID).first()
                 subject = getFileFolder(subjectID)
 
-                path = "/var/www/webbeta/webbeta/files/" + subject + "/"
+                path = "/var/www/webApp/webApp/files/" + subject + "/"
                 existingFiles = [f for f in listdir(path) if isfile(join(path, f))]
 
                 if filename not in existingFiles:
-                    file.save("/var/www/webbeta/webbeta/files/" + subject.upper() + "/" + filename)
+                    file.save("/var/www/webApp/webApp/files/" + subject.upper() + "/" + filename)
                 else: 
                     exists = Files.query.filter_by(subjectID=subjectID).filter_by(weekNo = weekNo).filter_by(filename=filename).first()
                     if exists:
@@ -3916,10 +3897,8 @@ def uploadForAll():
 
                 db.session.commit()
                 
-                print('File successfully uploaded')
                 continue
             else:
-                print('Allowed file types are txt, pdf, png, jpg, jpeg, gif')
                 continue
                 
         
@@ -3931,21 +3910,18 @@ def  uploadPayslip(tutorid):
     #role_required("admin", "ACTION: uploading payslip")
     if request.method == 'POST':
         if 'file' not in request.files:
-            print('No file part')
             return ""
 
         files = request.files.getlist('file')
 
         for file in files:
             if file.filename == '':
-                print('No file selected for uploading')
                 return ""
 
             if file:
-                print("saving file")
                 filename = file.filename
 
-                path = f"/var/www/webbeta/webbeta/payslips/{tutorid}" 
+                path = f"/var/www/webApp/webApp/payslips/{tutorid}" 
                 existingFiles = [f for f in listdir(path) if isfile(join(path, f))]
 
                 if filename not in existingFiles:
@@ -3973,7 +3949,7 @@ def deleteUniqueFile():
 
     # file = Files.query.filter_by(lessonID = lessonID).filter_by(filename = filename).filter_by(weekNo = weekNo).first
     fileFolder = getFileFolder(getLessonSubject(lessonID))
-    os.remove('/var/www/webbeta/webbeta/files/' + fileFolder + "/" + filename)
+    os.remove('/var/www/webApp/webApp/files/' + fileFolder + "/" + filename)
 
     
     
@@ -3983,8 +3959,11 @@ def deleteUniqueFile():
     return ""
     
 @beta.route('/beta/files/<fileFolder>/<fileName>', methods=['POST', 'GET'])
-def view_files(fileFolder, fileName): 
-    path = 'files/' + fileFolder + "/" + fileName 
+def view_files(fileFolder, fileName):
+    # safe_join rejects path traversal ("..") in the URL segments.
+    path = safe_join('files', fileFolder, fileName)
+    if path is None:
+        abort(404)
 
     if fileFolder != "IMPORTANT_DOCS":
         if not current_user.is_authenticated:
@@ -4018,22 +3997,25 @@ def view_files(fileFolder, fileName):
                 abort(403, "")
             
                     
-    print("Displaying " + path)
     db.session.add(log(role = getUserRole(current_user.id), message= "(" + getUserName(current_user.id) + "): " + fileName + " Was just viewed" , date=datetime.utcnow()))
     db.session.commit()
-    
+
     return send_file(path)
 
 @beta.route('/beta/userFiles/<userID>/<filename>', methods = ['POST', 'GET'])
 @login_required
 def userFile(userID, filename):
-    if userID != current_user.id:
+    # userID arrives as a str from the URL; compare as strings so users are
+    # correctly matched against their own ID.
+    if str(userID) != str(current_user.id):
         if current_user.is_student() or current_user.is_parent() or current_user.is_tutor():
-            print("rejecting")
             abort(404, )
-            
-    path = f'userFiles/{userID}/{filename}'
-    
+
+    # safe_join rejects path traversal ("..") in the URL segments.
+    path = safe_join('userFiles', str(userID), filename)
+    if path is None:
+        abort(404)
+
     return send_file(path)
    
     
@@ -4456,7 +4438,7 @@ def register_potential_exam_student():
         db.session.add(user)
         db.session.commit()
         
-        user_files_path = '/var/www/webbeta/webbeta/userFiles/' + str(user.id)
+        user_files_path = '/var/www/webApp/webApp/userFiles/' + str(user.id)
         os.makedirs(user_files_path, exist_ok=True)
 
         # Save identification file
@@ -4482,7 +4464,7 @@ def register_potential_exam_student():
             access_doc_file_path = os.path.join(user_files_path, f'access_arrangements{access_doc_extension}')
             access_doc_file.save(access_doc_file_path)
         
-        db.session.add(exam_student(studentID = studentEntry.id, uci = uci, uln = uln, access_arrangements = accessArrangements, message=subjects, betaroved = False))
+        db.session.add(exam_student(studentID = studentEntry.id, uci = uci, uln = uln, access_arrangements = accessArrangements, message=subjects, approved = False))
         db.session.commit()
         
         db.session.add(log(role = "anonymous", message= f"Student Registration: {firstName} {secondName} has just been registered as a potential exam Student", date=datetime.utcnow()))
@@ -4619,7 +4601,7 @@ def addNewTutor():
     
     id = tutor.id
 
-    path = "/var/www/webbeta/webbeta/payslips"
+    path = "/var/www/webApp/webApp/payslips"
 
     db.session.add(User(role="tutor", otherID=id, email=data['email'].lower().strip(), password = generate_password_hash(password)))
     db.session.commit()
@@ -4683,8 +4665,7 @@ def updateLessons():
     role = data['role']
 
     tutorid = getOtherID(role = role, id=data['id'])
-    print(tutorid)
-    
+
     subjectList = TutorSubject.query.filter_by(tutorID = tutorid).all()
     subjectIdList = np.array(subjectList)
     for i in range(0, subjectIdList.size, 1):
@@ -4693,7 +4674,6 @@ def updateLessons():
    
     
     newSubjectList = data['subjects']
-    print(newSubjectList)
 
     newSubjectIdList = np.array([])
     for subject in newSubjectList:
@@ -4727,7 +4707,7 @@ def addSubject():
     check = Subject.query.filter_by(tier=data['tier'], title=data["title"].title()).first()
     
     if check is not None:
-         return json.dumps({'error':True}), 400, {'ContentType':'betalication/json'} 
+         return json.dumps({'error':True}), 400, {'ContentType':'application/json'} 
     else:
         db.session.add(Subject(tier=data['tier'], title=data["title"].title(), examBoard = data['examBoard']))
         db.session.commit()
@@ -4739,7 +4719,7 @@ def addSubject():
         
         db.session.add(log(role = getUserRole(current_user.id), message=" (" + getUserName(current_user.id) + "): " + data['tier'] + data['title'] + " was just added as a subject" , date=datetime.utcnow()))
         db.session.commit()
-        return json.dumps({'success':True}), 200, {'ContentType':'betalication/json'} 
+        return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
 
 @beta.route("/beta/addStudents", methods=['POST', 'GET'])
 @login_required
@@ -4968,9 +4948,7 @@ def updateTestInfo():
     testID = data['testID']
     key = data['key']
     value = data['value']
-    
-    print(testID, key, value)
-    
+
     oldValue = Tests.query.filter_by(testID = testID).first().__dict__[key]
     
     stmt = update(Tests).where(Tests.testID == testID).values({key : value})
@@ -4993,7 +4971,7 @@ def updateStudentInfo():
     value = data['value']
     
     if key == "exam_student":
-        db.session.add(exam_student(studentID = studentID, uci = "", uln = "", access_arrangements = "", message="", betaroved = False))
+        db.session.add(exam_student(studentID = studentID, uci = "", uln = "", access_arrangements = "", message="", approved = False))
         db.session.commit()
         
     if key == "uci": 
@@ -5320,7 +5298,7 @@ def moveFiles():
     oldSubjectID = Files.query.filter_by(fileid = fileID).first().subjectID
     filename = Files.query.filter_by(fileid = fileID).first().filename
     
-    os.replace("var/www/webbeta/webbeta/files/" + getSubjectFolder(oldSubjectID) + "/" + filename, "var/www/webbeta/webbeta/files/" + getSubjectFolder(newSubjectID) + "/" + filename)
+    os.replace("var/www/webApp/webApp/files/" + getSubjectFolder(oldSubjectID) + "/" + filename, "var/www/webApp/webApp/files/" + getSubjectFolder(newSubjectID) + "/" + filename)
     
     stmt = update(Files).where(Files.fileid == fileID).values({"subjectID" : newSubjectID, "weekNo" : newWeekNo})
     db.session.execute(stmt)
@@ -5503,29 +5481,29 @@ def getRelativeRoleLevel():
 @login_required
 def updateHours():
     check_maintenance()
-    permission_required(current_user.id, "betarove_hours", fatal=True)
+    permission_required(current_user.id, "approve_hours", fatal=True)
 
     data = request.get_json()
 
-    betarove = data['betarove']
+    approve = data['approve']
     id = data['lessonID']
     weekNo = data['weekNo']
 
-    if betarove == "betarove":
-        stmt = update(LessonInfo).values({'betaroved' : True, "rejected" : False}).where(and_(LessonInfo.lessonID == id, LessonInfo.weekNo == weekNo))
+    if approve == "approve":
+        stmt = update(LessonInfo).values({'approved' : True, "rejected" : False}).where(and_(LessonInfo.lessonID == id, LessonInfo.weekNo == weekNo))
         db.session.execute(stmt)
         
-    elif betarove == "reject":
+    elif approve == "reject":
         stmt = update(LessonInfo).values({'rejected' : True}).where(and_(LessonInfo.lessonID == id, LessonInfo.weekNo == weekNo))
         db.session.execute(stmt)
-        betarove = "rejecte"
+        approve = "rejecte"
     
     else:
         return "illegal action "
 
-    db.session.add(LittleAlerts(userID = getUserID(getStaffRole(getLessonTutor(id)), getLessonTutor(id)), message= f"Hours for {getReducedLessonString(id)} have just been {betarove}d "))
+    db.session.add(LittleAlerts(userID = getUserID(getStaffRole(getLessonTutor(id)), getLessonTutor(id)), message= f"Hours for {getReducedLessonString(id)} have just been {approve}d "))
 
-    db.session.add(log(role = getUserRole(current_user.id), message=f" ({getUserName(current_user.id)}):  has just {betarove}d the hours for {getLessonString(id)} for {weekNo}",  date=datetime.utcnow()))
+    db.session.add(log(role = getUserRole(current_user.id), message=f" ({getUserName(current_user.id)}):  has just {approve}d the hours for {getLessonString(id)} for {weekNo}",  date=datetime.utcnow()))
     db.session.commit()
 
     return ""
@@ -5564,9 +5542,7 @@ def add_exam():
     examSeries = data['examSeries']
     academicYear = data['academicYear']
     papers = data['papers']
-    
-    print(papers)
-    
+
     with db.session.no_autoflush:
         exam = Exams(tier = tier, title = title, examBoard = examBoard, code = examCode, Option = option, examSeries = examSeries, AcademicYear=academicYear)
         db.session.add(exam)
@@ -5645,7 +5621,7 @@ def editFile():
         stmt = delete(Files).where(Files.fileid == id)
         db.session.execute(stmt)
         db.session.commit()
-        # os.remove('/var/www/webbeta/webbeta/files/' + fileFolder + "/" + fileName)
+        # os.remove('/var/www/webApp/webApp/files/' + fileFolder + "/" + fileName)
         
         db.session.add(log(role = getUserRole(current_user.id), message=" (" + getUserName(current_user.id) + "):  has just deleted the file " + fileName,  date=datetime.utcnow()))
         db.session.commit()
@@ -5877,6 +5853,7 @@ def payslipsView(userID, filename):
     return send_file(path, as_attachment=True)
 
 @beta.route('/beta/getFeedback', methods = ['POST', 'GET'])
+@login_required
 def readImage():
     check_maintenance()
     if request.method == "POST":
@@ -5886,19 +5863,19 @@ def readImage():
         image_binary = base64.b64decode(image_data.split(',')[1])
 
         
-        filename = '/var/www/webbeta/webbeta/static/CS310images/' + str(datetime.utcnow()) + '.png'
+        filename = '/var/www/webApp/webApp/static/CS310images/' + str(datetime.utcnow()) + '.png'
         filename = filename.replace(" ", "_")
         
-        # file.save('/var/www/webbeta/webbeta/CS310/images/' + datetime.utcnow())
+        # file.save('/var/www/webApp/webApp/CS310/images/' + datetime.utcnow())
         
         # Save the image to the specified file path
         with open(filename, 'wb') as f:
             f.write(image_binary)
             
-        python38_path = "/var/www/webbeta/webbeta/CS310/mathreaderenv/bin/python3.8"
+        python38_path = "/var/www/webApp/webApp/CS310/mathreaderenv/bin/python3.8"
 
         # Specify the path to your script that requires TensorFlow 2.2.0
-        script_path = "/var/www/webbeta/webbeta/CS310/mathreader-master/mathreader/example.py"
+        script_path = "/var/www/webApp/webApp/CS310/mathreader-master/mathreader/example.py"
 
         # Construct the command to execute the script using the virtual environment's Python interpreter
         command = [python38_path, script_path, filename]
@@ -5906,10 +5883,8 @@ def readImage():
         # Call the script using subprocess
         result = subprocess.run(command) 
 
-        f = open("/var/www/webbeta/webbeta/CS310/mathreader-master/mathreader/feedback.txt")
+        f = open("/var/www/webApp/webApp/CS310/mathreader-master/mathreader/feedback.txt")
         feedback = f.read()
-        
-        print(feedback)
 
         if current_user.is_student():
             studentID = getOtherID("student", current_user.id)
@@ -5927,6 +5902,7 @@ def readImage():
         return jsonify({'text' : str(feedback)})
         
 @beta.route('/beta/dismissAlert', methods = ['POST', 'GET'])
+@login_required
 def dismissAlert():
     check_maintenance()
     data = request.get_json()
@@ -6011,7 +5987,7 @@ def save_signature(id):
         header, encoded = data.split(",", 1)
         signature_data = base64.b64decode(encoded)
 
-        file_path = f'var/www/webbeta/webbeta/userFiles/{current_user.id}/doc-{id}-signature.png'
+        file_path = f'var/www/webApp/webApp/userFiles/{current_user.id}/doc-{id}-signature.png'
 
         with open(file_path, 'wb') as f:
             f.write(signature_data)
@@ -6033,7 +6009,7 @@ def upload_profile_picture(userID):
         if file and file.filename.lower().endswith('.jpg'):
             # Secure the filename
             filename = 'profile_picture.jpg'
-            file_path = os.path.join('www/webbeta/webbeta/userFiles', userID, filename)
+            file_path = os.path.join('www/webApp/webApp/userFiles', userID, filename)
             
             # Save the original file
             file.save(file_path)
@@ -6065,8 +6041,7 @@ def upload_profile_picture(userID):
 @beta.route('/beta/uploadUserFiles', methods=['POST'])
 @login_required
 def upload_user_files():
-    print(request.form)
-    try: 
+    try:
         userID = request.form.get('userID')
     except:
         userID = None
@@ -6079,14 +6054,12 @@ def upload_user_files():
         role = ""
         
     if userID:
-        user_files_path = os.path.join('/var/www/webbeta/webbeta/userFiles', str(userID))
+        user_files_path = os.path.join('/var/www/webApp/webApp/userFiles', str(userID))
     elif otherID:
-        user_files_path = os.path.join('/var/www/webbeta/webbeta/userFiles', str(getUserID(role, int(otherID))))
-    else: 
-        print("ABORTING")
+        user_files_path = os.path.join('/var/www/webApp/webApp/userFiles', str(getUserID(role, int(otherID))))
+    else:
         abort(404, )
 
-    print(user_files_path)
     if not os.path.exists(user_files_path):
         os.makedirs(user_files_path)  # Create directory if it doesn't exist
 
@@ -6115,9 +6088,9 @@ def send_grade_boundaries():
         db.session.commit()
         
         
-        files = ['/var/www/webbeta/webbeta/grade-boundaries/edexcel_grade_boundaries.pdf', 
-                 '/var/www/webbeta/webbeta/grade-boundaries/aqa_grade_boundaries.pdf', 
-                 '/var/www/webbeta/webbeta/grade-boundaries/ocr_grade_boundaries.pdf'] 
+        files = ['/var/www/webApp/webApp/grade-boundaries/edexcel_grade_boundaries.pdf', 
+                 '/var/www/webApp/webApp/grade-boundaries/aqa_grade_boundaries.pdf', 
+                 '/var/www/webApp/webApp/grade-boundaries/ocr_grade_boundaries.pdf'] 
 
     
         e1 = EmailSender()
@@ -6396,8 +6369,6 @@ def assign_exams():
     data = request.get_json()
     studentID = data['studentID']
     examIDs = data['examIDs']
-    
-    print(examIDs)
 
     # First, remove any existing exam assignments for this student
     db.session.query(studentExam).filter_by(studentID=studentID).delete()
@@ -6520,10 +6491,10 @@ def send_email_timetable(student_id):
     
     # File attachments
     files = [
-        '/var/www/webbeta/webbeta/files/EXAM_FILES/IFC-Coursework_Assessments_2024_FINAL (1).pdf', 
-        '/var/www/webbeta/webbeta/files/EXAM_FILES/IFC-Written_Examinations_2024_FINAL.pdf', 
-        '/var/www/webbeta/webbeta/files/EXAM_FILES/JCQ-Social-Media-Infographic-v6.pdf', 
-        '/var/www/webbeta/webbeta/files/EXAM_FILES/Preparing-to-sit-your-exams-2024_25.pdf'
+        '/var/www/webApp/webApp/files/EXAM_FILES/IFC-Coursework_Assessments_2024_FINAL (1).pdf', 
+        '/var/www/webApp/webApp/files/EXAM_FILES/IFC-Written_Examinations_2024_FINAL.pdf', 
+        '/var/www/webApp/webApp/files/EXAM_FILES/JCQ-Social-Media-Infographic-v6.pdf', 
+        '/var/www/webApp/webApp/files/EXAM_FILES/Preparing-to-sit-your-exams-2024_25.pdf'
     ]
     
     # Ensure files exist
@@ -6595,8 +6566,8 @@ def view_ucas_references():
 
     return render_template('view_ucas_references.html', references=ucas_references)
 
-@beta.route('/beta/betaly_tutor', methods=['POST'])
-def betaly_tutor():
+@beta.route('/beta/apply_tutor', methods=['POST'])
+def apply_tutor():
     # Extract form data
     name = request.form['name']
     date_of_birth = request.form['date_of_birth']
@@ -6612,7 +6583,6 @@ def betaly_tutor():
     tutorExists = User.query.filter_by(email=email.lower().strip()).first()
     
     if tutorExists:
-        print("couldnt do it")
         return jsonify({'message': 'User with that email already exists!'}), 400
     
     # Generate a random password
@@ -6644,7 +6614,7 @@ def betaly_tutor():
     db.session.commit()
 
     # Create a directory to store the files (if needed)
-    user_files_path = f'/var/www/webbeta/webbeta/userFiles/{user.id}/'
+    user_files_path = f'/var/www/webApp/webApp/userFiles/{user.id}/'
     os.makedirs(user_files_path, exist_ok=True)
 
     cv_file.save(os.path.join(user_files_path, secure_filename('cv.pdf')))
@@ -6653,9 +6623,9 @@ def betaly_tutor():
 
     # Send a registration email (if needed)
     e1 = EmailSender()
-    e1.send(email=email, subject="Tutor betalication Received", message=gen_html_tutor_registration(name, password))
+    e1.send(email=email, subject="Tutor application Received", message=gen_html_tutor_registration(name, password))
     
-    return jsonify({'message': 'Tutor betalication submitted successfully!'}), 200
+    return jsonify({'message': 'Tutor application submitted successfully!'}), 200
 
 
 '''   _____  _____ _    _ ______ _____  _    _ _      _____ _   _  _____  '''
@@ -6668,7 +6638,7 @@ def betaly_tutor():
 # # cron examples
 # @scheduler.task('cron', id='do_job_3', week='*', day_of_week='*', hour = "19", minute = "0")
 # def job3():
-#     with beta.beta_context():
+#     with app.app_context():
 #         lesson_map = getLessonsTomorrow()
 #         print(lesson_map)
         
@@ -6698,11 +6668,11 @@ def oneTime():
     check_maintenance()
     role_required("admin", "ACTION: tried to trigger onetime")
 
-    # with beta.beta_context():
+    # with app.app_context():
     #     db.create_all()
 
 
-    # extract_classes_from_html('/var/www/webbeta/webbeta/templates', '/var/www/webbeta/webbeta/output.txt')
+    # extract_classes_from_html('/var/www/webApp/webApp/templates', '/var/www/webApp/webApp/output.txt')
     
     e1 = EmailSender()
     e1.send("asafwaan03@gmail.com", "TEST NO REPLY", "this is a test email")
@@ -6719,7 +6689,7 @@ def oneTime():
 @login_required
 def oneTimeView():
     check_maintenance()
-    #role_required("admin", "One Time View")
+    role_required("admin", "One Time View")
     try:
         page = request.args['page']
     except:
@@ -6758,24 +6728,10 @@ def oneTimeView():
         return render_template("dashboard.html", data = sorted(data, key=lambda x:x['amount']))       
     if(page == "6"):
         return render_template('tutor_dashboard.html')
-    if(page == "7"):
-        students = [
-            {'student_id': '001', 'surname': 'Smith', 'exam_code': 'MATH101'},
-            {'student_id': '002', 'surname': 'Johnson', 'exam_code': 'MATH101'},
-            {'student_id': '003', 'surname': 'Williams', 'exam_code': 'PHYS101'},
-            {'student_id': '004', 'surname': 'Brown', 'exam_code': 'PHYS101'},
-            {'student_id': '002', 'surname': 'Johnson', 'exam_code': 'PHYS01'},
-            {'student_id': '005', 'surname': 'Jones', 'exam_code': 'CHEM101'},
-            {'student_id': '006', 'surname': 'Garcia', 'exam_code': 'CHEM101'},
-            {'student_id': '007', 'surname': 'Martinez', 'exam_code': 'BIO101'},
-            {'student_id': '008', 'surname': 'Davis', 'exam_code': 'BIO101'},
-        ]
-
-        return render_template('exam_timetable_generator.html', students = students)
-    
-    if(page == "8"): 
-        return render_template('admin_dashboard\-original.html')
-    if(page == "9"): 
+    # pages 7 and 8 removed: they rendered templates that do not exist
+    # (exam_timetable_generator.html, admin_dashboard-original.html) and
+    # always returned a 500.
+    if(page == "9"):
         return render_template('oneTimeView.html')
     if(page == "10"):
         lesson_map = getLessonsTomorrow()

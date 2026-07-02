@@ -1542,13 +1542,16 @@ def studentWasJustCreated(studentInfo):
     
     existingStudent = Students.query.filter_by(firstName = studentInfo['firstName'].capitalize()).filter_by(secondName = studentInfo['secondName'].capitalize()).filter_by(email = studentInfo['email']).first()
         
-    if existingStudent is not None: 
+    if existingStudent is not None:
         try:
-            f = open("var/www/webApp/webApp/tempStudents.txt")
-            f.write(studentInfo)
-            f.close()
-        except:
-            print(studentInfo)
+            # Append (not read-mode) to the data file next to the package;
+            # the old code opened read-only and wrote a dict, so it always failed.
+            tempStudentsPath = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), "webApp", "tempStudents.txt")
+            with open(tempStudentsPath, "a") as f:
+                f.write(str(studentInfo) + "\n")
+        except OSError:
+            pass
         return True
     else:   
         return False
@@ -2243,7 +2246,7 @@ def getLessonsToJoin():
     lessons = Lesson.query.filter(or_(or_(Lesson.weekNo == -1, Lesson.weekNo == gen_week_no(0)), Lesson.weekNo == gen_week_no(1))).filter(Lesson.active == True).filter(Lesson.AcademicYear == gen_academic_year()).all()
     
     for lesson in lessons:
-        num = getNumberOfStudentsInLesson(lesson.id)
+        num = getNumberOfStudentsInLesson(lesson.lessonID)
         if 1 < num and num < 8: 
             result.append(lesson)
             
@@ -2450,7 +2453,6 @@ def mass_print(lessons, eco_mode=False):
 
     # Group lessons by center, tutor, and lesson
     for lesson in lessons:
-        print(f"dealing with {getLessonString(lesson.lessonID)}")
         files = get_files_to_print(lesson.lessonID, gen_week_no(0), eco_mode=eco_mode)
         reg, unreg, temp = getAttendance(lesson.lessonID, gen_week_no(-7))
         
@@ -2482,7 +2484,6 @@ def mass_print(lessons, eco_mode=False):
         if len(files) > 0:
             for file in files:
                 filename = file.replace("var/www/webApp/webApp/files/", "").replace("_", " ")
-                print(f"{str(copies)} copies of {filename}")
                 file_pages = get_file_page_count(file)  # Get page count for the file
                 pages_printed = file_pages * copies  # Total pages for this file
                 grouped_data[centre][tutor][lesson_name]["files"].append((filename, copies, file_pages, pages_printed))
@@ -2519,8 +2520,6 @@ def mass_print(lessons, eco_mode=False):
     with open(pdf_filename, "wb") as f:
         f.write(pdf)
 
-    print(f"PDF report generated: {pdf_filename}")
-    
     return pdf_filename
     # return render_template_string(html_template, grouped_data=grouped_data, totals=totals, overall_total=0)
 
@@ -2640,8 +2639,6 @@ def extract_classes_from_html(folder_path, output_file):
             css_file.write(f"/* Used in: {', '.join(tags)} */\n")
             css_file.write(f".{cls} {{\n    /* Add your styles here */\n}}\n\n")
 
-    print(f"CSS class extraction complete. Output saved to {output_file}")
-
 def combine_two_pages_per_sheet(input_filename, output_filename, watermark=False, tutor_name="", code="None Supplied", eco_mode=False, auto=True, alternate_mode=False):
     # Read the input PDF
     reader = PdfReader(input_filename)
@@ -2715,9 +2712,7 @@ def combine_two_pages_per_sheet(input_filename, output_filename, watermark=False
     # Write the PDF to the output path
     with open(output_filename, 'wb') as f:
         f.write(output_buffer.getvalue())
-        
-    print(f"2-up PDF created: {output_filename}")
-    
+
     return output_filename
 
 

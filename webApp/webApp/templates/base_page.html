@@ -51,8 +51,7 @@
         function toggleTheme(value) { 
             // Use the id to target the correct <link> element
             document.getElementById("mainTheme").href = value += '?rnd=' + (new Date().valueOf());;
-            console.log("changed to " + value);
-        } 
+        }
     </script>
 
     <script>
@@ -206,7 +205,6 @@
 
             const result = await response.json();
             if (result.status === 'success') {
-                console.log('Alerts marked as viewed.');
             } else {
                 console.error('Failed to mark alerts as viewed:', result.error);
             }
@@ -232,7 +230,6 @@
     async function fetchAllPermissions() {
         const fetchPromises = permissions.map(permission => fetchPermission(permission));
         await Promise.all(fetchPromises);
-        <!-- console.log('User Permissions:', userPermissions); -->
 
         try {
             const response2 = await fetch('/getRoleLevel');
@@ -289,7 +286,6 @@
             const relativeRole = await fetch('getRelativeRoleLevel?role=tutor&inc=false');
             const relativeData = await relativeRole.json(); 
             const result = relativeData.roleLevel;
-            console.log(result);
             if (result) {
                 document.getElementById('weekly_report').disabled = false;
                 document.getElementById('tutorHours').disabled = false;
@@ -358,7 +354,6 @@
             const relativeRole = await fetch('getRelativeRoleLevel?role=exams%20officer&inc=true');
             const relativeData = await relativeRole.json(); 
             const result = relativeData.roleLevel;
-            console.log(result);
             if (result) {
                 document.getElementById('make_new_exam_student').disabled = false;
                 document.getElementById('exam_students').disabled = false;
@@ -407,7 +402,6 @@
             const relativeRole2 = await fetch('getRelativeRoleLevel?role=admin&inc=true');
             const relativeData2 = await relativeRole2.json(); 
             const result = relativeData2.roleLevel;
-            console.log(result);
             if (result) {
                 document.getElementById('roleAccessRights').disabled = false;
                 document.getElementById('report_cards').disabled = false;
@@ -426,7 +420,6 @@
             const relativeRole2 = await fetch('getRelativeRoleLevel?role=tutor&inc=true');
             const relativeData2 = await relativeRole2.json(); 
             const result = relativeData2.roleLevel;
-            console.log(result);
             if (result) {
                 document.getElementById('importantDocs').disabled = false;
             } else {
@@ -441,7 +434,6 @@
             const relativeRole3 = await fetch('getRelativeRoleLevel?role=financial%20clerk&inc=true');
             const relativeData3 = await relativeRole3.json(); 
             const result = relativeData3.roleLevel;
-            console.log(result)
             if (result) {
                 document.getElementById('finance_dashboard_link').disabled = false;
             } else {
@@ -455,7 +447,6 @@
     }
 
     function initialisebuttons() {
-        console.log("doing this")
         const collapseItemButtons = document.querySelectorAll('.collapse-item');
 
         // Iterate over the selected elements and disable each button

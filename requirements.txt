@@ -1,0 +1,31 @@
+# Root-level requirements so Replit (upm) and other tooling pick up the FULL
+# dependency set. Mirrors webApp/requirements-local.txt.
+
+# --- config ---
+python-dotenv
+
+# --- web framework ---
+flask
+flask_sqlalchemy
+Flask-Migrate
+flask_login
+flask_cors
+flask_apscheduler
+werkzeug
+jinja2
+
+# --- database ---
+psycopg2-binary
+
+# --- data / numeric ---
+numpy
+babel
+matplotlib
+
+# --- PDF / documents / images ---
+weasyprint
+PyPDF2
+reportlab
+pdf2image
+pdfminer.six
+Pillow

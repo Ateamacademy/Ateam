@@ -20,13 +20,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, current_user, logout_user, login_required, UserMixin, LoginManager, AnonymousUserMixin
 from datetime import date, datetime
 from os.path import isfile, join, isdir
-from werkzeug.utils import secure_filename
+from werkzeug.utils import secure_filename, safe_join
 from pdfminer.high_level import extract_text
 from os import listdir
 from datetime import date, datetime
 from email.mime.text import MIMEText
-from unknown_string import *
-from EmailSender import * 
+from EmailSender import *
 from PIL import Image
 from flask_apscheduler import APScheduler
 from io import StringIO
@@ -43,6 +42,7 @@ import babel.numbers
 import decimal
 import itertools
 import random
+import secrets
 import subprocess
 import base64
 import os
@@ -53,8 +53,10 @@ import calendar
 
  
 app = Flask(__name__)
-# Secret key from env; the fallback is for local dev ONLY (do not use in prod).
-app.secret_key = os.environ.get("SECRET_KEY", "dev-insecure-change-me")
+# Secret key from env. If unset, fall back to a random per-process key rather
+# than a publicly known string: sessions won't survive a restart, but they
+# can't be forged either. Set SECRET_KEY in production.
+app.secret_key = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
 
 app.register_blueprint(beta)
 
@@ -146,11 +148,11 @@ def error403(error):
     return render_template('403.html'), 403
 
 @app.errorhandler(404)
-def error403(error):
+def error404(error):
     return render_template('404.html'), 404
 
 @app.errorhandler(503)
-def error403(error):
+def error503(error):
     return render_template('maintenance.html'), 503
 
 @app.errorhandler(400)
@@ -189,7 +191,6 @@ def download_file(filename):
 def begin():
     if request.method == 'POST':
         email = request.form['email'].lower().strip()
-        print(email)
         password = request.form['password']
 
         user = User.query.filter_by(email=email).first()
@@ -204,11 +205,9 @@ def begin():
             session['role'] = user.role
             session['name'] = getUserName(user.id)
             session['theme'] = getUserTheme(user.id)
-            print(session['name'] + "has just logged in")
             # print(session['theme'])
 
 
-            print(getUserName(current_user.id) + "( " + session['role'] + ") has just logged in")
             if check_password_hash(generate_password_hash('password'), password):
                 session.pop('_flashes', None)
                 return redirect(url_for('change_password'))
@@ -707,7 +706,6 @@ def receptionist_dashboard():
     role_required("receptionist", "receptionist dashboard")
     centreIDList = UserCentre.query.filter_by(userID = current_user.id).all()
     centreIDs = [user.centreID for user in centreIDList ]
-    print(centreIDs)
 
     #lesson completion percentage
     allLessons = len(Lesson.query.filter(or_(Lesson.weekNo == gen_week_no(0), Lesson.weekNo == -1)).filter(Lesson.centreID in centreIDs).all())
@@ -1226,7 +1224,9 @@ def allTimetable():
     
     centreList = getAllCentres()
     centres = {}
-    colours = ['E63946', 'F1FAEE', 'A8DADC', '457B9D', '1D3557']
+    # Values are assigned to element.style.backgroundColor, so they need the
+    # leading '#' to be valid CSS colours.
+    colours = ['#E63946', '#F1FAEE', '#A8DADC', '#457B9D', '#1D3557']
     # Use enumerate to iterate over centreList and match colors
     for i, centre in enumerate(centreList):
         # Ensure we have enough colors or handle the case when there are more centres
@@ -1488,7 +1488,6 @@ def Classroom_View():
     delete_a_lesson = permission_required(current_user.id, 'delete_a_lesson')
     send_emails_to_students = permission_required(current_user.id, 'send_emails_to_students')
     
-    print(send_emails_to_students)
     updateLessonInfo = change_lesson_time or change_lesson_day or change_lesson_tutor or change_lesson_subject or change_lesson_centre or change_lesson_students or delete_a_lesson
     
         
@@ -1675,7 +1674,6 @@ def Classroom_View_Files():
     subjectID = lesson.subjectID
     subject = Subject.query.filter_by(subjectID=subjectID).first()
     fileFolder = getFileFolder(subjectID)
-    print(getUserName(current_user.id) + " " + fileFolder)
     
     subjectList = lessonPlan.query.filter_by(subjectID=subjectID).all()
     for subject in subjectList:
@@ -1706,7 +1704,6 @@ def Classroom_View_Files():
             if file.type == "notes":
                 notesList.append([file.filename, file.associatedTopic, 'subject'])
     
-    print(mainList)
 
     
     #Get all the files at the lesson level
@@ -2101,7 +2098,6 @@ def admin_view_tutors():
     for tutor in tutorList:           
         tutors.append({"id" : getUserID("tutor", tutor.id), "firstName" : tutor.firstName, "secondName" : tutor.secondName, "gender" : tutor.gender, "email" : tutor.email, "phone" : tutor.phone, "logOn" : getUserPermission(id = tutor.id, action = "log_on", role = "tutor"), "profile_pic" : os.path.isfile(f"userFiles/{tutor.id}/profile_picture.jpg")})
     
-    print(tutors)
     return render_template("admin_tutor_view.html", tutors= sorted(sorted(tutors, key = lambda x : x['firstName']), key=lambda x: x['logOn'], reverse = True))
     # return render_template("admin_tutor_view.html", tutors= tutors)
 
@@ -2743,12 +2739,6 @@ def fixFiles():
         
     return render_template('fixFiles.html', files = lessons, subjects = sorted(subjects, key = lambda x:x['name']))
 
-@app.route('/alerts')
-@login_required
-def alerts():
-    check_maintenance()
-    return render_template("alerts.html")
-            
 @app.route('/release_notes')
 @login_required
 def release_notes(): 
@@ -2881,7 +2871,6 @@ def exam_students():
         else:
             user_files_map[user_id] = []
     
-    print(exam_students)
     
     return render_template(
         "exam_students.html",
@@ -2969,7 +2958,6 @@ def payslips():
 
 
 
-    print(userID)
 
     path = "/var/www/webApp/webApp/payslips"
 
@@ -4294,16 +4282,20 @@ def removeTemps():
     return redirect('temp_student_reg')
 
 @app.route('/download/<fileFolder>/<fileName>')
+@login_required
 def downloadFile(fileFolder, fileName):
     #role_required("student", "ACTION: download")
 
+    # safe_join rejects path traversal ("..") in the URL segments.
+    path = safe_join('files', fileFolder, fileName)
+    if path is None:
+        abort(404)
+
     if eligibleForDownload(getUserName(current_user.id), getUserRole(current_user.id)) and current_user.is_student():
-        path = 'files/' + fileFolder + "/" + fileName 
         db.session.add(log(role = getUserRole(current_user.id), message=" (" + getUserName(current_user.id) + "): " + fileName + " was just downloaded", date=datetime.utcnow()))
         db.session.commit()
         return send_file(path, as_attachment=True)
     elif getRoleLevel(getUserRole(current_user.id)) > getRoleLevel('student'):
-        path = 'files/' + fileFolder + "/" + fileName 
         db.session.add(log(role = getUserRole(current_user.id), message=" (" + getUserName(current_user.id) + "): " + fileName + " was just downloaded", date=datetime.utcnow()))
         db.session.commit()
         return send_file(path, as_attachment=True)
@@ -4327,7 +4319,6 @@ def upload():
             studentView = request.args['studentView']
             studentView = True if studentView == "true" else False
         except:
-            print("using default value for studentView")
             studentView = True
         
         try:
@@ -4340,19 +4331,15 @@ def upload():
             topic=""
 
         if 'file' not in request.files:
-            print('No file part')
             return ""
 
         files = request.files.getlist('file')
-        print(len(files))
 
         for file in files:
             if file.filename == '':
-                print('No file selected for uploading')
                 return ""
 
             if file:
-                print("saving file")
                 filename = secure_filename(file.filename.replace("-", "_"))
                 subjectID = Lesson.query.filter_by(lessonID = lessonID).first().subjectID
                 subject = getFileFolder(subjectID)
@@ -4401,7 +4388,6 @@ def uploadForAll():
         try:
             studentView = True if request.form['studentView'] == "true" else False
         except:
-            print("using default studentView")
             studentView = True
 
         if 'file' not in request.files:
@@ -4413,7 +4399,6 @@ def uploadForAll():
 
         for file in files:
             if file.filename == '':
-                print('No file selected for uploading')
                 continue
 
             if file:
@@ -4452,10 +4437,8 @@ def uploadForAll():
 
                 db.session.commit()
                 
-                print('File successfully uploaded')
                 continue
             else:
-                print('Allowed file types are txt, pdf, png, jpg, jpeg, gif')
                 continue
                 
         
@@ -4467,18 +4450,15 @@ def  uploadPayslip(tutorid):
     #role_required("admin", "ACTION: uploading payslip")
     if request.method == 'POST':
         if 'file' not in request.files:
-            print('No file part')
             return ""
 
         files = request.files.getlist('file')
 
         for file in files:
             if file.filename == '':
-                print('No file selected for uploading')
                 return ""
 
             if file:
-                print("saving file")
                 filename = file.filename
 
                 path = f"/var/www/webApp/webApp/payslips/{tutorid}" 
@@ -4519,8 +4499,11 @@ def deleteUniqueFile():
     return ""
     
 @app.route('/files/<fileFolder>/<fileName>', methods=['POST', 'GET'])
-def view_files(fileFolder, fileName): 
-    path = 'files/' + fileFolder + "/" + fileName 
+def view_files(fileFolder, fileName):
+    # safe_join rejects path traversal ("..") in the URL segments.
+    path = safe_join('files', fileFolder, fileName)
+    if path is None:
+        abort(404)
 
     if fileFolder != "IMPORTANT_DOCS":
         if not current_user.is_authenticated:
@@ -4556,7 +4539,6 @@ def view_files(fileFolder, fileName):
                 abort(403, "")
             
                     
-    print("Displaying " + path)
     db.session.add(log(role = getUserRole(current_user.id), message= "(" + getUserName(current_user.id) + "): " + fileName + " Was just viewed" , date=datetime.utcnow()))
     db.session.commit()
     
@@ -4565,13 +4547,17 @@ def view_files(fileFolder, fileName):
 @app.route('/userFiles/<userID>/<filename>', methods = ['POST', 'GET'])
 @login_required
 def userFile(userID, filename):
-    if userID != current_user.id:
+    # userID arrives as a str from the URL; compare as strings so users are
+    # correctly matched against their own ID.
+    if str(userID) != str(current_user.id):
         if current_user.is_student() or current_user.is_parent() or current_user.is_tutor():
-            print("rejecting")
             abort(404, )
-            
-    path = f'userFiles/{userID}/{filename}'
-    
+
+    # safe_join rejects path traversal ("..") in the URL segments.
+    path = safe_join('userFiles', str(userID), filename)
+    if path is None:
+        abort(404)
+
     return send_file(path)
    
 
@@ -5237,7 +5223,6 @@ def updateLessons():
     role = data['role']
 
     tutorid = getOtherID(role = role, id=data['id'])
-    print(tutorid)
     
     subjectList = TutorSubject.query.filter_by(tutorID = tutorid).all()
     subjectIdList = np.array(subjectList)
@@ -5247,7 +5232,6 @@ def updateLessons():
    
     
     newSubjectList = data['subjects']
-    print(newSubjectList)
 
     newSubjectIdList = np.array([])
     for subject in newSubjectList:
@@ -5526,7 +5510,6 @@ def updateTestInfo():
     key = data['key']
     value = data['value']
     
-    print(testID, key, value)
     
     oldValue = Tests.query.filter_by(testID = testID).first().__dict__[key]
     
@@ -6140,7 +6123,6 @@ def add_exam():
     academicYear = data['academicYear']
     papers = data['papers']
     
-    print(papers)
     
     with db.session.no_autoflush:
         exam = Exams(tier = tier, title = title, examBoard = examBoard, code = examCode, Option = option, examSeries = examSeries, AcademicYear=academicYear)
@@ -6490,6 +6472,7 @@ def payslipsView(userID, filename):
     return send_file(path, as_attachment=True)
 
 @app.route('/getFeedback', methods = ['POST', 'GET'])
+@login_required
 def readImage():
     check_maintenance()
     if request.method == "POST":
@@ -6522,7 +6505,6 @@ def readImage():
         f = open("/var/www/webApp/webApp/CS310/mathreader-master/mathreader/feedback.txt")
         feedback = f.read()
         
-        print(feedback)
 
         if current_user.is_student():
             studentID = getOtherID("student", current_user.id)
@@ -6540,6 +6522,7 @@ def readImage():
         return jsonify({'text' : str(feedback)})
         
 @app.route('/dismissAlert', methods = ['POST', 'GET'])
+@login_required
 def dismissAlert():
     check_maintenance()
     data = request.get_json()
@@ -6658,7 +6641,6 @@ def upload_profile_picture():
 @app.route('/uploadUserFiles', methods=['POST'])
 @login_required
 def upload_user_files():
-    print(request.form)
     try: 
         userID = request.form.get('userID')
     except:
@@ -6676,10 +6658,8 @@ def upload_user_files():
     elif otherID:
         user_files_path = os.path.join('/var/www/webApp/webApp/userFiles', str(getUserID(role, int(otherID))))
     else: 
-        print("ABORTING")
         abort(404, )
 
-    print(user_files_path)
     if not os.path.exists(user_files_path):
         os.makedirs(user_files_path)  # Create directory if it doesn't exist
 
@@ -6990,7 +6970,6 @@ def assign_exams():
     studentID = data['studentID']
     examIDs = data['examIDs']
     
-    print(examIDs)
 
     # First, remove any existing exam assignments for this student
     db.session.query(studentExam).filter_by(studentID=studentID).delete()
@@ -7378,7 +7357,6 @@ def apply_tutor():
     tutorExists = User.query.filter_by(email=email.lower().strip()).first()
     
     if tutorExists:
-        print("couldnt do it")
         return jsonify({'message': 'User with that email already exists!'}), 400
     
     # Generate a random password
@@ -7844,7 +7822,6 @@ def get_search_results():
 def update_ucas_reference(): 
     role_required("admin", "updating ucas reference")
     data = request.get_json()
-    print(data)
     
     id = data['referenceID']
     extra_info = data['extra_info']
@@ -7943,7 +7920,6 @@ def register_event():
 def job3():
     with app.app_context():
         lesson_map = getLessonsTomorrow()
-        print(lesson_map)
         
         for tutorID, lessons in lesson_map.items(): 
             
@@ -7951,13 +7927,11 @@ def job3():
             e1.send(getTutorEmail(tutorID), "Schedule Tomorrow", message = render_template("email_template.html", bigTitle = "Schedule for Tomorrow", littleTitle = f"Hi {getStaff(tutorID)}", mainMessage = gen_html_tomorrow_timetable(getStaff(tutorID), lessons)))
             # e1.send("asafwaan03@gmail.com", "Schedule Tomorrow - TEST", gen_html_tomorrow_timetable(getStaff(tutorID), lessons))
             
-        print("should have sent email")
         
 
 @scheduler.task('cron', id='breakout_rooms', week='*', day_of_week='*', hour = '16', minute = '45')
 def breakout_rooms(): 
     e1 = EmailSender()
-    print("triggered")
     
     e1.send("ateam1772@gmail.com", "Start Zoom Meeting", "this is a test to trigger the zoom meeting")
     return redirect('/allTimetable?offset=0')
@@ -7979,11 +7953,8 @@ def breakout_rooms():
    
 @scheduler.task('cron', id='print_files', week='*', day_of_week='mon-fri', hour = '*', minute = '45')
 def print_files(): 
-    print("website still running....")
     with app.app_context():
-        print("Printing some files")
         lessons = get_lessons_starting_soon()
-        print(lessons)
         
         for lesson in lessons:
             reg, unreg, temp = getAttendance(lesson.lessonID, gen_week_no(-7))
@@ -8003,7 +7974,6 @@ def print_files():
             files = [combine_two_pages_per_sheet(f"var/www/webApp/webApp/files/{subject_folder}/{file.filename}", f"var/www/webApp/webApp/files/{subject_folder}/{file.filename[:-4]}-2up.pdf", watermark=True, tutor_name=getStaff(getLessonTutor(lesson.lessonID))) for file in files if classTypeCheck(lesson, file.classtype)]
             
             for file in files: 
-                print(file)
                 e1 = EmailSender()
                 e1.send(email = "ateam1772@gmail.com", subject = f"Printing {getStaff(lesson.tutorID)}s files", message = f"COPIES={int(copies)}\nB/W PRINT=ON\nDUPLEX=LEFT", files=[file],  subtype='plain')
         
@@ -8103,7 +8073,7 @@ def oneTime():
 @login_required
 def oneTimeView():
     check_maintenance()
-    #role_required("admin", "One Time View")
+    role_required("admin", "One Time View")
     try:
         page = request.args['page']
     except:
@@ -8142,24 +8112,10 @@ def oneTimeView():
         return render_template("dashboard.html", data = sorted(data, key=lambda x:x['amount']))       
     if(page == "6"):
         return render_template('tutor_dashboard.html')
-    if(page == "7"):
-        students = [
-            {'student_id': '001', 'surname': 'Smith', 'exam_code': 'MATH101'},
-            {'student_id': '002', 'surname': 'Johnson', 'exam_code': 'MATH101'},
-            {'student_id': '003', 'surname': 'Williams', 'exam_code': 'PHYS101'},
-            {'student_id': '004', 'surname': 'Brown', 'exam_code': 'PHYS101'},
-            {'student_id': '002', 'surname': 'Johnson', 'exam_code': 'PHYS01'},
-            {'student_id': '005', 'surname': 'Jones', 'exam_code': 'CHEM101'},
-            {'student_id': '006', 'surname': 'Garcia', 'exam_code': 'CHEM101'},
-            {'student_id': '007', 'surname': 'Martinez', 'exam_code': 'BIO101'},
-            {'student_id': '008', 'surname': 'Davis', 'exam_code': 'BIO101'},
-        ]
-
-        return render_template('exam_timetable_generator.html', students = students)
-    
-    if(page == "8"): 
-        return render_template('admin_dashboard\-original.html')
-    if(page == "9"): 
+    # pages 7 and 8 removed: they rendered templates that do not exist
+    # (exam_timetable_generator.html, admin_dashboard-original.html) and
+    # always returned a 500.
+    if(page == "9"):
         subjects = Subject.query.all()
         result = {}
 
@@ -8243,7 +8199,6 @@ def oneTimeView():
                     for tutor, color in zip(unique_tutors, tutor_colors.colors)
                 }
                 
-        print(result2)
                 
         return render_template('scatter_percentage_chat.html', result=result, result2=result2, tutors_colors=tutors_colors)
     
@@ -8275,7 +8230,6 @@ def oneTimeView():
         userPoints = [[getStaff(tutor.otherID), tutor.points] for tutor in tutors if tutor.points > 0 and "No Name" not in getStaff(tutor.otherID)]
             
         userPoints = sorted(userPoints, key= lambda x:x[1])
-        print(userPoints)
         
         for index, user in enumerate(userPoints): 
             # Ensure the key exists in tutorPoints
@@ -8314,10 +8268,8 @@ def oneTimeView():
         
         find_words_with_few_unique_letters(word_list)
 
-        print(generate_word_codes(word_list))
 
         letter_pairs = generate_letter_pairs(10)
-        print(letter_pairs)
             
         return synonym_generator(5)
         # return letter_sequence_generator()

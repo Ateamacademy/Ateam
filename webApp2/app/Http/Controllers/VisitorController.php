@@ -87,10 +87,11 @@ class VisitorController extends Controller
     public function landingSignUp(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required', 'max:80',
-            'email' => 'required | email | unique:visitors,email',
-            'option' => 'required',
-            'subject' => 'required'
+            'name' => 'required|max:80',
+            'email' => 'required|email|max:255|unique:visitors,email',
+            'option' => 'required|max:255',
+            'subject' => 'required|max:255',
+            'message' => 'nullable|max:2000',
         ]);
 
         if ($validator->fails()) {
@@ -119,7 +120,7 @@ class VisitorController extends Controller
     {
 
         $validator = Validator::make($request->all(), [
-            'email' => 'required | email | unique:visitors,email',
+            'email' => 'required|email|max:255|unique:visitors,email',
         ]);
 
         if ($validator->fails()) {

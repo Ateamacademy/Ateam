@@ -96,7 +96,10 @@ def run_on_linux():
     from webApp import app
     print(f"\n  A-Team webApp -> http://localhost:{PORT}")
     print("  login: admin@local / AdminLocal1   (Ctrl+C to stop)\n")
-    app.run(host=HOST, port=PORT, debug=True, use_reloader=False)
+    # Werkzeug's interactive debugger allows remote code execution; only
+    # enable it when explicitly requested via FLASK_DEBUG=1.
+    debug = os.environ.get("FLASK_DEBUG", "") == "1"
+    app.run(host=HOST, port=PORT, debug=debug, use_reloader=False)
 
 
 if __name__ == "__main__":

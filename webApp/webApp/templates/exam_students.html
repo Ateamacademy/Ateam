@@ -509,7 +509,6 @@
             contentType: 'application/json',
             data: JSON.stringify({ "studentID": studentID, "paid": isChecked }),
             success: function(response) {
-                console.log("Paid status updated for student " + studentID);
             },
             error: function(error) {
                 alert("Error updating paid status.");
@@ -526,7 +525,6 @@
             contentType: 'application/json',
             data: JSON.stringify({ "studentID": studentID, "paidAmount": amount }),
             success: function(response) {
-                console.log("Paid amount updated for student " + studentID);
             },
             error: function(error) {
                 alert("Error updating paid amount.");
@@ -544,7 +542,6 @@
             contentType: 'application/json',
             data: JSON.stringify({ "studentID": studentID, "referenceRequired": isChecked }),
             success: function(response) {
-                console.log("UCAS reference status updated for student " + studentID);
             },
             error: function(error) {
                 alert("Error updating UCAS reference status.");

@@ -380,7 +380,6 @@
             var search = document.getElementById("searchLessons").value;
             const lessons = JSON.parse('{{ lessons | tojson }}');
             resetList();
-            console.log(checked);
 
             if(search == "") {
                 for(i in lessons) {
@@ -397,8 +396,7 @@
                     input.setAttribute("id", "lesson".concat(lessons[i].id));
                     input.setAttribute("style", "width:20px;");
                     input.setAttribute("onchange", "amendChecked(".concat(lessons[i].id).concat(")"))
-                    console.log(lessons[i].id);
-                    if(checked.includes(toString(lessons[i].id)) == true) { input.setAttribute(checked,true); console.log("it includes");};
+                    if(checked.includes(lessons[i].id)) { input.checked = true; };
 
                     label = document.createElement("label");
                     label.classList.add("form-check-label");
@@ -432,8 +430,7 @@
                     input.setAttribute("id", "lesson".concat(lessons[i].id));
                     input.setAttribute("style", "width:20px;");
                     input.setAttribute("onchange", "amendChecked(".concat(lessons[i].id).concat(")"))
-                    console.log(lessons[i].id);
-                    if(checked.includes(toString(lessons[i].id)) == true) {input.setAttribute(checked, true); console.log("it includes");};
+                    if(checked.includes(lessons[i].id)) { input.checked = true; };
 
                     label = document.createElement("label");
                     label.classList.add("form-check-label");
@@ -470,7 +467,6 @@
 
       <script>
         function register_tutor() {
-          console.log("test")
           var firstName = document.getElementById('student_firstname').value;
           var middleName = document.getElementById('student_middlename').value;
           var secondName = document.getElementById('student_lastname').value;
@@ -523,10 +519,10 @@
                                      
                  }),
                 success: function(response) {
-                  alert("succes");
+                  alert("Your application was submitted successfully.");
                 },
                 error: function(error) {
-                  alert("failed");
+                  alert("Something went wrong while submitting your application. Please try again.");
                 }
             });
 
@@ -585,7 +581,6 @@
         x = document.getElementsByClassName("tab");
         y = x[currentTab].getElementsByTagName("input");
         z = x[currentTab].getElementsByTagName("select");
-        console.log(z)
         // A loop that checks every input field in the current tab:
         for (i = 0; i < y.length; i++) {
           // If a field is empty...
@@ -602,7 +597,6 @@
           if (z[i].value == ""  && z[i].required==true) {
             // add an "invalid" class to the field:
             z[i].className += " invalid";
-            console.log(z[i].value)
             // and set the current valid status to false:
             valid = false;
           }
@@ -611,7 +605,6 @@
         if (valid) {
           document.getElementsByClassName("step")[currentTab].className += " finish";
         }
-        console.log(valid);
         return valid; // return the valid status
       }
       

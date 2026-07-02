@@ -98,11 +98,9 @@
                                 contentType: 'application/json',
                                 data: JSON.stringify({"id": id}),
                                 success: function(response) {
-                                    console.log("success")
                                     alert("The Lesson was removed")
                                 },
                                 error: function(error) {
-                                console.log("error")
                                 alert("The Lesson could not be removed")
                                 }
                             });
@@ -546,8 +544,6 @@
                                 for(i in tempStudents) {
                                     students.push("temp-".concat(tempStudents[i].value))
                                 }
-
-                                console.log(students);
                             }
 
                             function addStudents() {
@@ -563,7 +559,6 @@
                                         //document.getElementById('statusmessagediv').style.display="Inline";
                                         //document.getElementById('statusmessagediv').class = "alert alert-success";
                                         //document.getElementById('statusmessage').innerHTML = firstName + " was successfully added";
-                                        console.log("success")
                                         alert("The Students were added")
                                         location.reload();
                     
@@ -573,7 +568,6 @@
                                     //document.getElementById('statusmessagediv').setAttribute("class", "alert alert-danger");
                                     //if(firstName = "") {document.getElementById('statusmessage').innerHTML = "The Student could not be added";}
                                     //else { document.getElementById('statusmessage').innerHTML = firstName + " could not be added";};
-                                    console.log("error")
                                     alert("The students could not be added")
                                     }
                                 });
@@ -592,7 +586,6 @@
                                         //document.getElementById('statusmessagediv').style.display="Inline";
                                         //document.getElementById('statusmessagediv').class = "alert alert-success";
                                         //document.getElementById('statusmessage').innerHTML = firstName + " was successfully added";
-                                        console.log("success")
                                         alert("The Students were removed")
                                         location.reload();
                     
@@ -602,7 +595,6 @@
                                         //document.getElementById('statusmessagediv').setAttribute("class", "alert alert-danger");
                                         //if(firstName = "") {document.getElementById('statusmessage').innerHTML = "The Student could not be added";}
                                         //else { document.getElementById('statusmessage').innerHTML = firstName + " could not be added";};
-                                        console.log("error")
                                         alert("The students could not be removed")
                                     }
                                 });
@@ -698,7 +690,6 @@
                         <script>
                             function removeStudent(id) {
                                 var lessonID = {{ request.args['lessonid']|tojson }};
-                                console.log(id)
 
                                 $.ajax({
                                     url: '/removeStudent',
@@ -707,13 +698,11 @@
                                     data: JSON.stringify({"lessonID" : lessonID, "studentID" : id}),
                                     success: function(response) {
 
-                                        console.log("success")
                                         document.getElementById(id).style.display = "none";
                     
                                     },
                                     error: function(error) {
 
-                                        console.log("error")
                                         alert("The students could not be removed")
                                     }
                                 });
@@ -782,13 +771,11 @@
                         contentType: 'application/json',
                         data: JSON.stringify({"lessonID": {{request.args['lessonid']}}, "subject" : document.getElementById("email_subject").value , "message": document.getElementById("email_message").value}),
                         success: function(response) {
-                            console.log("success")
                             alert("The Email was sent")
                             location.reload();
     
                         },
                         error: function(error) {
-                        console.log("error")
                         alert("The Email could not be sent")
                         }
                     });

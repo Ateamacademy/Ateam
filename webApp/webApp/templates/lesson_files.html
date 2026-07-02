@@ -51,7 +51,6 @@
       //const rowIndex = ev.target.parentNode.setting 
       //const columns = Array.from(rowsArray[rowIndex].querySelectorAll('td'));
       //const columnIndex = columns.findIndex(column => column == event.target);
-      //console.log(rowIndex, columnIndex)
 
       var numberPattern = /\d+/g;
       var matches = id.match(numberPattern);
@@ -64,11 +63,6 @@
       movedButton.onclick = function() {
           openInNewTab('/files/' + newFolderPath + '/' + filename);
       };
-
-      console.log(data)
-      console.log(subjectID)
-      console.log(weekNo)
-
 
       $.ajax({
         url:  '/moveFiles',
@@ -161,8 +155,6 @@
                     newButton.textContent = filename + " - all";
                     progressBar.style.display = "none";
                     cell.appendChild(newButton);
-    
-                    console.log('File successfully uploaded');
                 } else {
                     console.error('File upload failed');
                 }

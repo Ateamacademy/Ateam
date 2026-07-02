@@ -26,6 +26,11 @@ webApp/webApp/addresses.txt
 webApp/webApp/CS310/
 webApp/webApp/static/CS310images/
 
+# --- runtime-generated artifacts (never commit) ---
+webApp/webApp/tempStudents.txt
+webApp/webApp/output.txt
+webApp/webApp/print_reports/*.pdf
+
 # --- one-off ops / provisioning scripts (may embed creds) ---
 srv_*.sh
 sync_*.sh

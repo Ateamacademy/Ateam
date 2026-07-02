@@ -72,7 +72,6 @@
         const tooltipContent = document.getElementById("tooltip-content");
     
         function showTooltip(event, lessonDetails) {
-            console.log("Tooltip triggered"); // Log to check if function is called
             tooltipContent.innerHTML = `
                 <strong>Class:</strong> ${lessonDetails.className} <br>
                 <strong>Tutor:</strong> ${lessonDetails.tutorName} <br>
@@ -206,7 +205,6 @@
     var todaysMax = {};
     for(i in maxRows){
         for(j=1 ; j<=parseInt(maxRows[i]['max']) ; j++){
-            console.log("Doing stuff")
             items[maxRows[i]['name'].concat("-").concat(parseInt(j))] = []
         }
         todaysMax[i] = 0
@@ -226,12 +224,6 @@
                 var current = list[i];
                 var currentStart = parseFloat(parseInt(current.startHour) + (parseInt(current.startMinute))/100);
                 var currentEnd = parseFloat(parseInt(current.endHour) + (parseInt(current.endMinute))/100);
-                //console.log("COV-".concat(String(num)));
-                //console.log(items["COV-".concat(String(num))])
-                //console.log("currentStartHour: ".concat(current.startHour))
-                //console.log("currentEndHour: ".concat(current.endHour))
-                //console.log("Current Start:".concat(currentStart).concat("-").concat(currentEnd));
-                //console.log("New start: ".concat(start).concat(" New End: ".concat(end)));
 
                 if( ((parseFloat(start) >= currentStart && parseFloat(start) < currentEnd) 
                 || (parseFloat(end) > currentStart && parseFloat(end) <= currentEnd) ) 
@@ -241,8 +233,6 @@
                         return assignRoom(centreName, start, end, num+1, lesson);
                     }
             }
-            //console.log("adding".concat(lesson.lessonID).concat( "to the array COV-").concat(num));
-
             items[maxRows[centreName]['name'].concat("-").concat(String(num))].push(lesson);
             todaysMax[centreName] = Math.max(num, todaysMax[centreName]);
             return maxRows[centreName]['name'].concat(String(num))
@@ -267,7 +257,6 @@
                     }
 
             }
-            //console.log("adding".concat(lesson).concat( "to the array SOHO").concat(num));
             items["SOHO-".concat(String(num))].push(lesson);
             return "SOHO-".concat(String(num))
         }
@@ -289,8 +278,6 @@
                         return assignRoom(centreName, start, end, num+1, lesson);
                     }
             }
-            console.log(num)
-            console.log("adding".concat(lesson).concat( "to the array ONLINE").concat(num));
             items["ONLINE-".concat(String(num))].push(lesson);
             return "ONLINE-".concat(String(num))
         }
@@ -530,8 +517,6 @@
                                     new Date(2015,7,17,parseInt(lessons[i].startHour),parseInt(lessons[i].startMinute)), 
                                     new Date(2015,7,17,parseInt(lessons[i].endHour), parseInt(lessons[i].endMinute)), 
                                     options );
-                //console.log("just added");
-                //  console.log(lessons[i]);
         
                 };
 
@@ -544,20 +529,10 @@
         timetable.rows;
         renderer.draw('.timetable'); // any css selector
         
-        // Center-based coloring for tutor mode
-        if (mode === 'Tutor') {     
-            console.log("tutor mode activated")
-            console.log(centres)  
-            for (i = 0; i < centres.length; i++) {
-                var centerList = document.getElementsByClassName(centres[i]);
-        
-                for(i = 0; i<centerList.length; i++) {
-                    centerList[i].style.backgroundColor = centres[center];  // Set background color dynamically
-                    console.log(cengtres[center])
-                    centerList[i].style.borderColor = centres[center];  // Set border color
-                }
-            }
-        }
+        // Centre-based colouring for tutor mode is handled after the lessons
+        // are rendered (see the data-center block below). The earlier loop here
+        // was broken (undefined variables) and threw, killing the rest of this
+        // script.
 
         theme = document.getElementById('mainTheme').href
 
@@ -671,7 +646,6 @@
 
             },
             error: function(error) {
-              console.log("error")
               alert("the alert could not be dismissed right now")
             }
         });

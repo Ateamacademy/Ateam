@@ -21,8 +21,8 @@ Route::get('/', function () {
 
 Route::get('/dashboard', [PageController::class, 'getDashboard'])->middleware(['auth'])->name('dashboard');
 
-Route::post('/landing/signup', [VisitorController::class, 'landingSignUp']);
-Route::post('/email/signup', [VisitorController::class, 'emailOnlySignUp']);
+Route::post('/landing/signup', [VisitorController::class, 'landingSignUp'])->middleware('throttle:10,1');
+Route::post('/email/signup', [VisitorController::class, 'emailOnlySignUp'])->middleware('throttle:10,1');
 Route::get('/thankyou', [PageController::class, 'getThankyou']);
 Route::get('/plans', [PageController::class, 'getPlans']);
 require __DIR__ . '/auth.php';

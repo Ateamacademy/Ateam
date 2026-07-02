@@ -50,18 +50,14 @@
             for(i in list) 
             {
                 var current = list[i];
-                //console.log("COV1 IS:")
-                //console.log(items["COV-".concat(String(num))])
                 var currentStart = parseFloat(parseInt(current.startHour) + (parseInt(current.startMinute))/100);
                 var currentEnd = parseFloat(parseInt(current.endHour) + (parseInt(current.startHour))/100);
-                //console.log("Current Start:".concat(currentStart).concat("-").concat(currentEnd));
 
                 if( ((parseFloat(start) >= currentStart && parseFloat(start) < currentEnd) ||  (parseFloat(end) > currentStart && parseFloat(end) <= currentEnd) ) || (parseFloat(start) == currentStart && parseFloat(end) == currentEnd))
                     {
                         return assignRoom(centreName, start, end, num+1, lesson);
                     }
             }
-            //console.log("adding".concat(lesson).concat( "to the array COV").concat(num));
             items["COV-".concat(String(num))].push(lesson);
             return "COV-".concat(String(num))
         }
@@ -80,7 +76,6 @@
                     }
 
             }
-            //console.log("adding".concat(lesson).concat( "to the array SOHO").concat(num));
             items["SOHO-".concat(String(num))].push(lesson);
             return "SOHO-".concat(String(num))
         }
@@ -98,8 +93,6 @@
                     }
 
             }
-            //console.log("adding".concat(lesson).concat( "to the array ONLINE").concat(num));
-
             items["ONLINE-".concat(String(num))].push(lesson);
             return "ONLINE-".concat(String(num))
         }
@@ -114,7 +107,6 @@
         items = {"COV-1" : [], "COV-2" : [], "COV-3" : [], "COV-4" : [], "COV-5" : [], "COV-6" : [], "SOHO-1" : [], "SOHO-2" : [], "SOHO-3" : [], "SOHO-4" : [], "SOHO-5" : [], "ONLINE-1" : [], "ONLINE-2" : [], "ONLINE-3" : [], "ONLINE-4" : [], "ONLINE-5" : []}
         var rows = {{ rows|tojson }};
         var lessons = {{ lesson2|tojson }};
-        //console.log(lessons);
         var role = {{ role|tojson }}
 
         timetable.setScope(7, 22); // optional, only whole hours between 0 and 23
@@ -127,8 +119,6 @@
             for(i in lessons) {
                 var start = parseFloat( parseInt(lessons[i].startHour) + parseFloat((lessons[i].startMinute / 100)) );
                 var end = parseFloat( parseInt(lessons[i].endHour) + parseFloat((lessons[i].endMinute / 100))) ;
-                //console.log("start is:".concat(start));
-                //console.log("processing-> ".concat(start).concat("-").concat(end));
 
                 assignRoom(lessons[i].centre, start, end, 1, lessons[i])
             }
@@ -145,17 +135,12 @@
                         onClick: function(event, timetable, clickEvent) {} // custom click handler, which is passed the event object and full timetable as context  
                     };
 
-                    console.log("item Subject is: ".concat(items[property][i].subjectID))
-
-
-                    timetable.addEvent(items[property][i].title.concat(" - ").concat(items[property][i].tutor), 
+                    timetable.addEvent(items[property][i].title.concat(" - ").concat(items[property][i].tutor),
                                         property, 
                                         new Date(2015,7,17,parseInt(items[property][i].startHour),parseInt(items[property][i].startMinute)), 
-                                        new Date(2015,7,17,parseInt(items[property][i].endHour), parseInt(items[property][i].endMinute)), 
+                                        new Date(2015,7,17,parseInt(items[property][i].endHour), parseInt(items[property][i].endMinute)),
                                         options );
-                    //console.log("just added");
-                    //console.log(items[property][i]);
-        
+
                 };
 
             };
@@ -176,11 +161,9 @@
                     timetable.addEvent(lessons[i].title.concat(" - ").concat(lessons[i].tutor), 
                                         lessons[i].day, 
                                         new Date(2015,7,17,parseInt(lessons[i].startHour),parseInt(lessons[i].startMinute)), 
-                                        new Date(2015,7,17,parseInt(lessons[i].endHour), parseInt(lessons[i].endMinute)), 
+                                        new Date(2015,7,17,parseInt(lessons[i].endHour), parseInt(lessons[i].endMinute)),
                                         options );
-                    //console.log("just added");
-                    //console.log(lessons[i]);
-        
+
                 };
         }
         

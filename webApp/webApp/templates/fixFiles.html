@@ -54,7 +54,6 @@
                                     data: JSON.stringify({"filename" : filename, "subjectID" : subjectID, "studentView" : blockStudents, "classtype" : classtype, "weekNo" : weekNo}),
                                     success: function(response) {
                                         document.getElementById("div-".concat(filename)).style.display = "none";
-                                        console.log("success")
                                     },
                                     error: function(error) {
                                       alert("The students could not be removed")

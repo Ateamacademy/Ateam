@@ -1,0 +1,16 @@
+run = ["python3", "run_replit.py"]
+modules = ["python-3.11", "postgresql-16"]
+hidden = [".config", "**/__pycache__"]
+
+[nix]
+channel = "stable-24_05"
+
+[env]
+MPLCONFIGDIR = "${REPL_HOME}/.config/matplotlib"
+
+[deployment]
+run = ["python3", "run_replit.py"]
+
+[[ports]]
+localPort = 5000
+externalPort = 80

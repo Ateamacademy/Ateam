@@ -330,8 +330,6 @@
                                 removeItemOnce(checked, id);
                                 checked.push(id);
                             }
-                            
-                            console.log(checked)
                         };
                         
                         function filterList() {
@@ -507,21 +505,17 @@
             };
 
             function removeLesson() {
-                console.log(id)
-
                 $.ajax({
                     url: '/remove_lesson',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({"id": id}),
                     success: function(response) {
-                        console.log("success")
                         alert("The Lesson was removed")
                         location.reload();
 
                     },
                     error: function(error) {
-                    console.log("error")
                     alert("The Lesson could not be removed")
                     }
                 });

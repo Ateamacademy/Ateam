@@ -129,7 +129,6 @@ function saveReference() {
     var extraInfo = $('#referenceExtraInfo').val();
     var referenceCompletedReference = $('#referenceCompletedReference').val();
 
-    console.log(referenceId)
     $.ajax({
         url: '/update_ucas_reference',
         method: 'POST',

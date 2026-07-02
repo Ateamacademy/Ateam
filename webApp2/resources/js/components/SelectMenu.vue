@@ -127,10 +127,6 @@ export default {
             }
         );
 
-        if (store.state.course_option.length > 0) {
-            console.log("Option is selected");
-        }
-
         return {
             selected
         };

@@ -200,10 +200,7 @@
                         studentAttendance = []
                         studentAttendanceTemp = []
                         function addToList(id) {
-                            console.log("id is;")
-                            console.log(id)
                             extra_notes = document.getElementById("extra".concat(id)).value
-                            console.log(extra_notes)
                             if (document.getElementById("check".concat(id)).checked == true) 
                             {
                                 removeItemOnce(studentAttendanceTemp, [id, false, extra_notes]);
@@ -214,8 +211,7 @@
                                 removeItemOnce(studentAttendanceTemp, [id, true, extra_notes]);
                                 studentAttendanceTemp.push([id, false, extra_notes]);
                             }
-                            
-                            console.log(studentAttendanceTemp)
+
                         };
 
                         function makeList() {
@@ -228,14 +224,12 @@
                             }
 
                             studentAttendance = studentAttendanceTemp
-                            console.log(studentAttendance)
                             
                         }
 
 
                         function recordAttendance() {
                             var tempNames = document.getElementsByClassName('tempNames');
-                            console.log(tempNames); 
                             description = document.getElementById("lesson_description").value;
 
                             for(i in tempNames) {
@@ -272,7 +266,6 @@
                             contentType: 'application/json',
                             data: JSON.stringify({"name" : student, "lessonID" : lessonID, "year" : year, "weekNo": weekNo}),
                             success: function(response) {
-                                console.log("success");
                                 setTimeout(function() {alert("the register has been updated"); location.reload();}, 1000);
                             },
                             error: function(error) {

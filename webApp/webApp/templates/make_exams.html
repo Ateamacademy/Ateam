@@ -73,7 +73,6 @@
             papers = []
 
             for(var i = 0 ; i < count ; i++) {
-                console.log("paperNo-" + i.toString());
                 paperNumber = document.getElementById("paperNo-" + i.toString()).value || null;
                 paperCode = document.getElementById("paperCode-" + i.toString()).value || null;
                 duration = document.getElementById("duration-" + i.toString()).value || null;
@@ -95,7 +94,6 @@
                     setTimeout(function() {alert("the excam has been added"); location.reload();}, 1000);
                 },
                 error: function(error) {
-                    console.log(error);
                 }
             })
         }
@@ -388,8 +386,7 @@
         // Fetch the exam data (can be from your data source)
         exams = {{ exams | tojson }};
         const exam = exams.find(e => e.id.toString() === examId.toString());
-        console.log(exam)
-    
+
         // Prepopulate the modal with the exam data
         document.getElementById('edit-tier').value = exam.tier;
         document.getElementById('edit-title').value = exam.title;
@@ -446,7 +443,6 @@
                     location.reload(); // Reload the page after deletion
                 },
                 error: function(error) {
-                    console.log(error);
                     alert("Error deleting the exam");
                 }
             });
@@ -506,7 +502,6 @@
                         `;
                     });
                     document.getElementById('paper-examId').value = examId;
-                    console.log(document.getElementById('paper-examId').value)
                     $('#editPapersModal').modal('show');
                 },
                 error: function(error) {

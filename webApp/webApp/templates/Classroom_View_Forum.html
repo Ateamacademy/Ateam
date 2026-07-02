@@ -101,11 +101,9 @@
                             contentType: 'application/json',
                             data: JSON.stringify({"id": id}),
                             success: function(response) {
-                                console.log("success")
                                 alert("The Lesson was removed")
                             },
                             error: function(error) {
-                            console.log("error")
                             alert("The Lesson could not be removed")
                             }
                         });
@@ -197,7 +195,6 @@
                     },
                     error: function(error) {
                         alert("Unfortunately the message couldnt be sent right now. Please try again later")
-                        console.log(error);
                     }
 
                 })
@@ -218,12 +215,10 @@
                 contentType: 'application/json',
                 data: JSON.stringify({"id": id}),
                 success: function(response) {
-                    console.log("success")
                     alert("The message was removed and reported thanks")
                     location.reload(10)
                 },
                 error: function(error) {
-                console.log("error")
                 alert("The message could not be removed because of ".concat(error).concat(" please let Safwaan know about this issue so it can be resolved"))
                 }
             });
@@ -239,12 +234,12 @@
                         var card = document.createElement("div"); card.classList.add("card", "mb-4"); card.setAttribute("id", message.messageID);
                             var cardHeader = document.createElement("div"); cardHeader.classList.add("card-header");
                                 var mediaFlex = document.createElement("div"); mediaFlex.classList.add("media", "flex-wrap", "w-100", "align-items-center");
-                                    var mediaBody = document.createElement("div"); mediaBody.classList.add("media-body", "text-primary"); mediaBody.innerHTML = message.name;
-                                        var time = document.createElement("div"); time.classList.add("text-muted", "small"); time.innerHTML = message.time
-                                        var role = document.createElement("div"); role.classList.add("text-muted", "small", "ml-3"); role.innerHTML = message.role
+                                    var mediaBody = document.createElement("div"); mediaBody.classList.add("media-body", "text-primary"); mediaBody.textContent = message.name;
+                                        var time = document.createElement("div"); time.classList.add("text-muted", "small"); time.textContent = message.time
+                                        var role = document.createElement("div"); role.classList.add("text-muted", "small", "ml-3"); role.textContent = message.role
                             
                             var cardBody = document.createElement("div"); cardBody.classList.add("card-body");
-                                var messageTag = document.createElement("p"); messageTag.innerHTML = message.message;
+                                var messageTag = document.createElement("p"); messageTag.textContent = message.message;
                                 var bottomRow = document.createElement("div"); bottomRow.classList.add("row", "border-bottom", "border-dark");
                                     var reportDiv = document.createElement("div"); reportDiv.classList.add();
                                         var report = document.createElement("button"); report.classList.add("btn", "btn-sm", "btn-outline-danger"); report.innerHTML = " <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-flag-fill' viewBox='0 0 16 16'> <path d='M14.778.085A.5.5 0 0 1 15 .5V8a.5.5 0 0 1-.314.464L14.5 8l.186.464-.003.001-.006.003-.023.009a12.435 12.435 0 0 1-.397.15c-.264.095-.631.223-1.047.35-.816.252-1.879.523-2.71.523-.847 0-1.548-.28-2.158-.525l-.028-.01C7.68 8.71 7.14 8.5 6.5 8.5c-.7 0-1.638.23-2.437.477A19.626 19.626 0 0 0 3 9.342V15.5a.5.5 0 0 1-1 0V.5a.5.5 0 0 1 1 0v.282c.226-.079.496-.17.79-.26C4.606.272 5.67 0 6.5 0c.84 0 1.524.277 2.121.519l.043.018C9.286.788 9.828 1 10.5 1c.7 0 1.638-.23 2.437-.477a19.587 19.587 0 0 0 1.349-.476l.019-.007.004-.002h.001'/> </svg> delete";                                       
@@ -294,11 +289,11 @@
                         svg.append(path);
                     var col2 = document.createElement("div"); col2.classList.add("col-11"); col2.setAttribute("id", message.messageID); 
                         var mediaFlex = document.createElement("div"); mediaFlex.classList.add("media", "flex-wrap", "w-100", "align-items-center");
-                            var mediaBody = document.createElement("div"); mediaBody.classList.add("media-body", "text-primary"); mediaBody.innerHTML = message.name;
-                                var time = document.createElement("div"); time.classList.add("text-muted", "small"); time.innerHTML = message.time
-                            var role = document.createElement("div"); role.classList.add("text-muted", "small", "ml-3"); role.innerHTML = message.role
+                            var mediaBody = document.createElement("div"); mediaBody.classList.add("media-body", "text-primary"); mediaBody.textContent = message.name;
+                                var time = document.createElement("div"); time.classList.add("text-muted", "small"); time.textContent = message.time
+                            var role = document.createElement("div"); role.classList.add("text-muted", "small", "ml-3"); role.textContent = message.role
                                 
-                            var messageTag = document.createElement("p"); messageTag.innerHTML = message.message;
+                            var messageTag = document.createElement("p"); messageTag.textContent = message.message;
                             var bottomRow = document.createElement("div"); bottomRow.classList.add("row", "border-bottom", "border-dark");
                             var reportDiv = document.createElement("div"); reportDiv.classList.add();
                                 var report = document.createElement("button"); report.classList.add("btn", "btn-sm", "btn-outline-danger"); report.innerHTML = " <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-flag-fill' viewBox='0 0 16 16'> <path d='M14.778.085A.5.5 0 0 1 15 .5V8a.5.5 0 0 1-.314.464L14.5 8l.186.464-.003.001-.006.003-.023.009a12.435 12.435 0 0 1-.397.15c-.264.095-.631.223-1.047.35-.816.252-1.879.523-2.71.523-.847 0-1.548-.28-2.158-.525l-.028-.01C7.68 8.71 7.14 8.5 6.5 8.5c-.7 0-1.638.23-2.437.477A19.626 19.626 0 0 0 3 9.342V15.5a.5.5 0 0 1-1 0V.5a.5.5 0 0 1 1 0v.282c.226-.079.496-.17.79-.26C4.606.272 5.67 0 6.5 0c.84 0 1.524.277 2.121.519l.043.018C9.286.788 9.828 1 10.5 1c.7 0 1.638-.23 2.437-.477a19.587 19.587 0 0 0 1.349-.476l.019-.007.004-.002h.001'/> </svg> delete";                                        
@@ -341,9 +336,7 @@
         var starterMessages = {{ starterMessages|tojson }};
 
         window.onload = function() {
-            console.log(messages)
-
-            for(j in starterMessages) { 
+            for(j in starterMessages) {
                 row2 = document.createElement("div"); row2.classList.add("row");
                 col = document.createElement("div"); col.classList.add("col-12");
                 

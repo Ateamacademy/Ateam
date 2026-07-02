@@ -703,7 +703,7 @@ def addPoints(staffID):
 
 class StaffReviews(db.Model):
     staffID = Column(Integer, ForeignKey('staff.id'), primary_key = True)
-    date = Column(Date, primary_key = True, default = datetime.date.today())
+    date = Column(Date, primary_key = True, default = datetime.date.today)
     PunctualityScore = Column(Integer)
     PunctualityComments = Column(String)
     LessonQualityScore = Column(Integer)
@@ -718,7 +718,7 @@ class StaffReviews(db.Model):
             
 class StaffStrikes(db.Model):
     staffID = Column(Integer, ForeignKey('staff.id'), primary_key = True)
-    date = Column(Date, primary_key = True, default = datetime.date.today())
+    date = Column(Date, primary_key = True, default = datetime.date.today)
     description = Column(String)
 
 
@@ -1732,7 +1732,7 @@ def getStudentsInLesson(id):
     '''
     {"registered": [], "unregistered" : []}
     '''
-    lesson = Lesson.query.filter_by(id = id).first()
+    lesson = Lesson.query.filter_by(lessonID = id).first()
     if lesson:
         regStudents = StudentLesson.query.filter_by(lessonID = id).all()
         
@@ -1749,8 +1749,8 @@ def getStudentsInLesson(id):
 
 def getNumberOfStudentsInLesson(id):
     students = getStudentsInLesson(id)
-    
-    return len(students.registered) + len(students.unregistered)
+
+    return len(students["registered"]) + len(students["unregistered"])
     
 def getLessonYear(id):
     lesson = Lesson.query.filter_by(lessonID=id).first()
@@ -1931,7 +1931,9 @@ def getTopic(subjectID, weekNo):
 
 
 class log(db.Model):
-    date = Column(DateTime, primary_key= True, default=datetime.datetime.utcnow())
+    # Pass the callable, not its result: calling utcnow() here would freeze the
+    # default at import time, giving every row the same timestamp.
+    date = Column(DateTime, primary_key= True, default=datetime.datetime.utcnow)
     message = Column(String)
     role = Column(String)
     
@@ -2522,7 +2524,7 @@ class Enquiry(db.Model):
     userID = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     escalated = db.Column(db.Boolean, default=False)
     escalated_user = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    date = Column(DateTime, default=datetime.datetime.utcnow())
+    date = Column(DateTime, default=datetime.datetime.utcnow)
 
 class BookableEvent(db.Model):
     __tablename__ = 'bookable_events'

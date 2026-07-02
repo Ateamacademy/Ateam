@@ -70,7 +70,6 @@
     <script>
         // Submit new question form via AJAX
         function add_question() {
-            console.log("doing this")
             var formData = {
                 question: $('#question').val(),
                 correctAnswer: $('#correctAnswer').val(),
@@ -85,7 +84,6 @@
                 contentType: 'application/json',
                 data: JSON.stringify(formData),
                 success: function(response) {
-                    console.log('Question added successfully');
                     $('#addQuestionForm')[0].reset(); // Reset form fields
                     loadQuestions(); // Reload questions after adding new one
                 },

@@ -105,7 +105,6 @@
                     setTimeout(function() {alert("the test has been created"); location.reload();}, 1000);
                 },
                 error: function(error) {
-                    console.log(error);
                 }
             })
         }
@@ -115,7 +114,6 @@
     <script> 
         function viewStudents(id) {
             elements = document.getElementsByClassName("studentMarks-".concat(id));
-            console.log(elements);
 
             //btn = document.getElementById("btn-".concat(id));
             //btn.innerHTML = "Save Marks";
@@ -158,9 +156,6 @@
                 }
             }
 
-            console.log(studentMarks);
-
-
             $.ajax({
                 url: '/updateTestMarks',
                 type: 'POST',
@@ -170,7 +165,6 @@
                     setTimeout(function() {alert("the marks have been updated"); location.reload();}, 1000);
                 },
                 error: function(error) {
-                    console.log(error);
                 }
             })
         }
@@ -475,7 +469,6 @@
                     },
                     error: function(error) {
                         alert("Unfortunately the test could not be deleted right now".concat(error))
-                        console.log(error);
                     }
 
                 })

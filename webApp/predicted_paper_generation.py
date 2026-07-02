@@ -81,7 +81,6 @@ generate_word_codes(list) the list should be similar words (similar letters)
 def generate_word_codes(word_list):
     selected_words = random.sample(word_list, 4)  # Select 4 random words
     unique_letters = list(set("".join(selected_words)))  # Unique letters in selected words
-    print(unique_letters)
     random.shuffle(unique_letters)
     letter_mapping = {}
     
@@ -107,7 +106,7 @@ def find_words_with_few_unique_letters(words):
             grouped_words[unique_count].append(word)
 
     for count, word_list in sorted(grouped_words.items()):
-        print(f"Words with {count} unique letters: {word_list}")
+        pass
         
 
 
@@ -152,7 +151,7 @@ def synonym_generator(words_in_group):
 
     # Ensure there are synonyms available
     if not synonyms:
-        print(f"No synonyms found for '{word}', try another word.")
+        pass
     else:
         # Pick a random synonym
         synonym = random.choice(synonyms)
@@ -166,9 +165,3 @@ def synonym_generator(words_in_group):
         # Form two groups of 3
         group1 = [word, other_words[0], other_words[1]]
         group2 = [synonym, other_words[2], other_words[3]]
-
-        # Print results
-        print(f"Original Word: {word}")
-        print(f"Chosen Synonym: {synonym}")
-        print("\nGroup 1:", group1)
-        print("Group 2:", group2)

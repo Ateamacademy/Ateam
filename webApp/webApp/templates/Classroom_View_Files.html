@@ -641,13 +641,11 @@
                     contentType: 'application/json',
                     data: JSON.stringify({"recipient": document.getElementById("email_recipient").value, "subject" : document.getElementById("email_subject").value , "message": document.getElementById("email_message").value, "files" : files}),
                     success: function(response) {
-                        console.log("success")
                         alert("The Email was sent")
                         location.reload();
 
                     },
                     error: function(error) {
-                    console.log("error")
                     alert("The Email could not be sent")
                     }
                 });
