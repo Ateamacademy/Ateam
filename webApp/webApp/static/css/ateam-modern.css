@@ -332,3 +332,37 @@ label { font-weight: 600; color: var(--ink); }
 
 /* Page headings SB Admin 2 uses */
 .h3.mb-0.text-gray-800, h1.h3 { color: var(--ink); font-weight: 800; }
+
+/* Bare, class-less inputs used by the older registration/data-entry forms
+   (e.g. tutor_reg, make_new_exam_student) so they match the modern fields
+   without needing every template changed. Class-less only, so Bootstrap
+   .form-control inputs and checkboxes/radios are untouched. */
+#content .container-fluid input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=submit]):not([type=button]):not([type=range]):not([type=color]):not([class]),
+#content .container-fluid textarea:not([class]),
+#content .container-fluid select:not([class]),
+#regForm input:not([type=checkbox]):not([type=radio]):not([type=file]),
+#regForm select, #regForm textarea {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0 14px;
+  background: #fff;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: 0.15s;
+}
+#content .container-fluid textarea:not([class]), #regForm textarea { padding: 12px 14px; min-height: 96px; }
+#content .container-fluid input:not([class]):focus,
+#content .container-fluid textarea:not([class]):focus,
+#content .container-fluid select:not([class]):focus,
+#regForm input:focus, #regForm select:focus, #regForm textarea:focus {
+  outline: none;
+  border-color: var(--brand-400, #a78bfa);
+  box-shadow: 0 0 0 3px var(--brand-100);
+}
+#regForm .tab h2, #regForm .item h2 { color: var(--ink); font-weight: 700; margin-bottom: 14px; }
+#regForm .step { height: 11px; width: 11px; background: #e2ddf3; border-radius: 50%; display: inline-block; margin: 0 4px; }
+#regForm .step.active { background: var(--brand-600); }
+#regForm .step.finish { background: #12b886; }
