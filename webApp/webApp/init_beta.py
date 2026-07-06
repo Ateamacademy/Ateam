@@ -12,7 +12,10 @@ from flask_login import login_user, current_user, logout_user, login_required, U
 from datetime import date, datetime
 from os.path import isfile, join, isdir
 from werkzeug.utils import secure_filename, safe_join
-from pdfminer.high_level import extract_text
+try:
+    from pdfminer.high_level import extract_text
+except Exception:
+    extract_text = None
 from os import listdir
 from datetime import date, datetime
 from email.mime.text import MIMEText

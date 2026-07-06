@@ -12,14 +12,29 @@ import smtplib
 import json
 from flask import render_template_string
 from jinja2 import Template
-from weasyprint import HTML
 import calendar
-from PyPDF2 import PdfReader
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import landscape, A4
-from reportlab.lib.utils import ImageReader
 from io import BytesIO
-from pdf2image import convert_from_path
+
+# PDF generation libraries load native system libs that can be missing in some
+# deployments; keep the module importable so the app boots regardless.
+try:
+    from weasyprint import HTML
+except Exception:
+    HTML = None
+try:
+    from PyPDF2 import PdfReader
+except Exception:
+    PdfReader = None
+try:
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import landscape, A4
+    from reportlab.lib.utils import ImageReader
+except Exception:
+    canvas = landscape = A4 = ImageReader = None
+try:
+    from pdf2image import convert_from_path
+except Exception:
+    convert_from_path = None
 
 '''
  ____   ____     _    

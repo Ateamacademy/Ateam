@@ -11,17 +11,39 @@ import string
 import smtplib
 from flask import render_template_string
 from jinja2 import Template
-from weasyprint import HTML
 import calendar
-from PyPDF2 import PdfReader
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import landscape, A4
-from reportlab.lib.utils import ImageReader
 from io import BytesIO
-from pdf2image import convert_from_path
+
+# PDF / chart generation libraries. These load native system libraries (pango,
+# cairo, poppler, ...) that can be missing in some deployments; keep the app
+# booting even if they're unavailable — the affected PDF/report features then
+# fail only when actually used, instead of taking down the whole app.
+try:
+    from weasyprint import HTML
+except Exception:
+    HTML = None
+try:
+    from PyPDF2 import PdfReader
+except Exception:
+    PdfReader = None
+try:
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import landscape, A4
+    from reportlab.lib.utils import ImageReader
+except Exception:
+    canvas = landscape = A4 = ImageReader = None
+try:
+    from pdf2image import convert_from_path
+except Exception:
+    convert_from_path = None
 
 os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
-import matplotlib.pyplot as plt
+try:
+    import matplotlib
+    matplotlib.use("Agg")  # headless backend
+    import matplotlib.pyplot as plt
+except Exception:
+    plt = None
 
 
 
