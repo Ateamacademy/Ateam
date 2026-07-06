@@ -43,12 +43,18 @@ def _bootstrap_db() -> None:
     # Optional realistic (fake) demo data, so the app looks populated. Enabled
     # via SEED_DEMO=1. Idempotent — seed_demo() skips if students already exist.
     if os.environ.get("SEED_DEMO") == "1":
-        try:
-            import seed_demo  # webApp/seed_demo.py
-            with app.app_context():
+        import seed_demo  # webApp/seed_demo.py
+        with app.app_context():
+            # Core data first, then the extras that top up every other area.
+            # Both are idempotent and wrapped so one failure can't block the other.
+            try:
                 seed_demo.seed_demo()
-        except Exception as exc:
-            print(f"[run_replit] demo seed skipped/failed (non-fatal): {exc}")
+            except Exception as exc:
+                print(f"[run_replit] core demo seed failed (non-fatal): {exc}")
+            try:
+                seed_demo.seed_extras()
+            except Exception as exc:
+                print(f"[run_replit] extra demo seed failed (non-fatal): {exc}")
 
 
 if __name__ == "__main__":

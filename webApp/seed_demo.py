@@ -54,6 +54,37 @@ from Schema import (
     gen_schema_week_no,
 )
 
+# Models used only by seed_extras(). Imported separately so the core seeder's
+# import list stays exactly as it was.
+from Schema import (
+    lessonPlan,
+    Files,
+    Feedback,
+    Document,
+    individualDocument,
+    Exams,
+    ExamPapers,
+    studentExam,
+    exam_student,
+    UserEvents,
+    BookableEvent,
+    Booking,
+    staffHours,
+    UCASReference,
+    Product,
+    gameQuestions,
+    GameScores,
+    ExamRoom,
+    RoomArrangements,
+    SeatingArrangement,
+    Enquiry,
+    MailingList,
+    PointSystem,
+    StaffReviews,
+    StaffStrikes,
+    LittleAlerts,
+)
+
 
 # --------------------------------------------------------------------------- #
 # Static demo content (all fake)                                              #
@@ -714,4 +745,923 @@ def seed_demo():
             print(f"  [{role:7}] {email}  /  {pw}")
     else:
         print("  (no new logins created)")
+    print()
+
+
+# --------------------------------------------------------------------------- #
+# seed_extras(): top up all the OTHER page-backing areas.                      #
+#                                                                              #
+# Unlike seed_demo() this is NOT globally guarded. Each area is its own        #
+# try/except section that:                                                     #
+#   * checks whether ITS OWN table already has rows and skips if so            #
+#     (so it can top up a DB that has the core data but none of the extras);   #
+#   * FETCHES its dependencies from the database (never assumes in-memory      #
+#     objects, because on the live server seed_demo() will have been skipped   #
+#     and only the DB rows exist);                                             #
+#   * rolls back only itself on failure and keeps going.                       #
+#                                                                              #
+# The caller wires this into startup; seed_demo() is left untouched.           #
+# --------------------------------------------------------------------------- #
+
+def _weeks_in_play():
+    """Weeks the classroom pages care about: the permanent marker (-1) and a
+    small window around the current schema week."""
+    try:
+        current = int(gen_schema_week_no(0))
+    except Exception:  # noqa: BLE001
+        current = 1
+    weeks = {-1, current}
+    for w in (current - 2, current - 1, current + 1):
+        if w >= 1:
+            weeks.add(w)
+    return sorted(weeks)
+
+
+def seed_extras():
+    """Top up every remaining page-backing area with fake demo data.
+
+    Safe to run on every boot: each section is independently idempotent and
+    self-contained. Returns nothing; prints per-section progress + a summary.
+    """
+    counts = {}          # area -> row count after seeding
+    skipped = []         # areas skipped because already populated
+
+    weeks = _weeks_in_play()
+    try:
+        current_week = int(gen_schema_week_no(0))
+    except Exception:  # noqa: BLE001
+        current_week = 1
+    academic_year = _academic_year()
+
+    # ----------------------------------------------------------- lesson plans
+    # A topic per Subject for every week in play (incl. weekNo == -1 and the
+    # current week) so classroom / lesson-plan pages show topics.
+    try:
+        if lessonPlan.query.count() == 0:
+            subjects = Subject.query.all()
+            if not subjects:
+                raise RuntimeError("no subjects available for lesson plans")
+            topic_bank = [
+                "Introduction & Key Concepts", "Core Skills Practice",
+                "Exam Technique Workshop", "Consolidation & Review",
+                "Applied Problem Solving", "Past Paper Walkthrough",
+                "Foundations & Recap", "Extension & Challenge",
+            ]
+            added = 0
+            for subj in subjects:
+                for wk in weeks:
+                    if lessonPlan.query.filter_by(
+                            subjectID=subj.subjectID, weekNo=wk).first():
+                        continue
+                    idx = (subj.subjectID + (wk if wk > 0 else 0))
+                    topic = topic_bank[idx % len(topic_bank)]
+                    label = "Permanent" if wk == -1 else f"Week {wk}"
+                    db.session.add(lessonPlan(
+                        subj.subjectID, wk,
+                        f"{subj.title}: {topic} ({label})"))
+                    added += 1
+            db.session.commit()
+            counts["lesson_plans"] = lessonPlan.query.count()
+            print(f"[lesson_plans] seeded {added} topic rows")
+        else:
+            skipped.append("lesson_plans")
+            print("[lesson_plans] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[lesson_plans] section failed (continuing): {e}")
+
+    # ----------------------------------------------------------------- files
+    # Lesson files (lessonID set, subjectID None) + subject resources
+    # (subjectID set, lessonID None, classtype scope). type is one of
+    # starter/main/homework/notes; studentview controls student visibility.
+    try:
+        if Files.query.count() == 0:
+            lessons = Lesson.query.all()
+            subjects = Subject.query.all()
+            if not lessons or not subjects:
+                raise RuntimeError("no lessons/subjects available for files")
+            added = 0
+            # --- lesson-specific files: a starter / main / homework per lesson
+            #     for the current week.
+            file_kinds = [
+                ("starter", "Starter_Questions", True),
+                ("main", "Main_Worksheet", True),
+                ("homework", "Homework_Sheet", True),
+                ("notes", "Tutor_Notes", False),  # hidden from students
+            ]
+            for lesson in lessons:
+                for ftype, stem, studentview in file_kinds:
+                    fname = (f"{stem}_L{lesson.lessonID}"
+                             f"_W{current_week}.pdf")
+                    f = Files(lessonID=lesson.lessonID, weekNo=current_week,
+                              filename=fname, type=ftype,
+                              associatedTopic="Weekly topic",
+                              subjectID=None, studentview=studentview,
+                              classtype=None)
+                    db.session.add(f)
+                    added += 1
+            # --- subject resources: a couple per subject, scope "all" so they
+            #     show on both weekday and weekend lessons. Cover current week
+            #     and the permanent (-1) week.
+            for subj in subjects:
+                for wk in (current_week, -1):
+                    for ftype, stem in (("main", "Revision_Pack"),
+                                        ("notes", "Reference_Notes")):
+                        folder = (subj.tier.replace(" ", "-").upper() + "-"
+                                  + subj.title.replace(" ", "-").upper())
+                        fname = f"{stem}_{folder}_W{wk}.pdf"
+                        f = Files(lessonID=None, weekNo=wk, filename=fname,
+                                  type=ftype, associatedTopic="",
+                                  subjectID=subj.subjectID, studentview=True,
+                                  classtype="all")
+                        db.session.add(f)
+                        added += 1
+            db.session.commit()
+            counts["files"] = Files.query.count()
+            print(f"[files] seeded {added} file rows")
+        else:
+            skipped.append("files")
+            print("[files] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[files] section failed (continuing): {e}")
+
+    # --------------------------------------------------------------- feedback
+    # view_feedback reads every row; correct/student_good/tutor_good drive the
+    # display. Keep content benign.
+    try:
+        if Feedback.query.count() == 0:
+            students = Students.query.limit(6).all()
+            if not students:
+                raise RuntimeError("no students available for feedback")
+            samples = [
+                ("Excellent working shown throughout. Keep it up!", True,
+                 True, None),
+                ("Good effort - remember to check your units next time.",
+                 True, None, True),
+                ("A few slips in the algebra; review the worked example.",
+                 False, None, None),
+                ("Clear, well-structured answers. Strong exam technique.",
+                 True, True, True),
+                ("Homework not fully attempted - please complete section B.",
+                 False, False, None),
+                ("Great improvement since last week's assessment.",
+                 True, None, None),
+            ]
+            added = 0
+            for i, stu in enumerate(students):
+                text, correct, student_good, tutor_good = samples[
+                    i % len(samples)]
+                fname = f"feedback/demo/{stu.id}_response_{i + 1}.pdf"
+                fb = Feedback(filename=fname, studentID=stu.id,
+                              feedback=text, correct=correct)
+                fb.student_good = student_good
+                fb.tutor_good = tutor_good
+                db.session.add(fb)
+                added += 1
+            db.session.commit()
+            counts["feedback"] = Feedback.query.count()
+            print(f"[feedback] seeded {added} rows")
+        else:
+            skipped.append("feedback")
+            print("[feedback] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[feedback] section failed (continuing): {e}")
+
+    # -------------------------------------------------------------- documents
+    # A few shared (individual=False) docs plus one per-user doc linked through
+    # individualDocument.
+    try:
+        if Document.query.count() == 0:
+            added = 0
+            shared_docs = [
+                ("Safeguarding Policy", False, False),
+                ("Student Code of Conduct", False, False),
+                ("Fire Evacuation Procedure", False, False),
+                ("Parental Consent Form", False, True),  # requires signature
+            ]
+            for title, individual, sign in shared_docs:
+                doc = Document(title=title,
+                               data={"sections": [
+                                   {"heading": title,
+                                    "body": "This is demo content for the "
+                                            f"'{title}' document."}]},
+                               individual=individual, sign=sign)
+                db.session.add(doc)
+                added += 1
+            db.session.flush()
+
+            # one per-user document for the first few users
+            users = User.query.limit(3).all()
+            if users:
+                indiv = Document(title="Individual Learning Plan",
+                                 data={"sections": [
+                                     {"heading": "Targets",
+                                      "body": "Personalised targets (demo)."}]},
+                                 individual=True, sign=True)
+                db.session.add(indiv)
+                db.session.flush()
+                for u in users:
+                    if not individualDocument.query.filter_by(
+                            userID=u.id, docID=indiv.id).first():
+                        db.session.add(individualDocument(userID=u.id,
+                                                          docID=indiv.id))
+                added += 1
+            db.session.commit()
+            counts["documents"] = Document.query.count()
+            counts["individual_documents"] = individualDocument.query.count()
+            print(f"[documents] seeded {added} documents "
+                  f"(+{counts['individual_documents']} user links)")
+        else:
+            skipped.append("documents")
+            print("[documents] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[documents] section failed (continuing): {e}")
+
+    # ------------------------------------------------------------------ exams
+    # A couple of exams (active, current academic year) with papers and some
+    # student registrations, plus exam_student metadata rows.
+    exam_ids = []
+    try:
+        if Exams.query.count() == 0:
+            exam_defs = [
+                ("GCSE", "Maths", "Edexcel", "1MA1", "Higher", "Summer"),
+                ("A-Level", "Biology", "AQA", "7402", "", "Summer"),
+            ]
+            for tier, title, board, code, option, series in exam_defs:
+                exam = Exams(tier=tier, title=title, examBoard=board,
+                             code=code, Option=option, examSeries=series,
+                             AcademicYear=academic_year)
+                exam.active = True
+                db.session.add(exam)
+                db.session.flush()
+                exam_ids.append(exam.examID)
+            db.session.commit()
+            counts["exams"] = Exams.query.count()
+            print(f"[exams] seeded {len(exam_ids)} exams")
+        else:
+            skipped.append("exams")
+            exam_ids = [e.examID for e in Exams.query.all()]
+            print("[exams] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[exams] section failed (continuing): {e}")
+        exam_ids = [e.examID for e in Exams.query.all()]
+
+    # exam papers
+    try:
+        if ExamPapers.query.count() == 0 and exam_ids:
+            base_date = datetime.date.today() + datetime.timedelta(days=30)
+            added = 0
+            for i, ex_id in enumerate(exam_ids):
+                for paper_no in (1, 2):
+                    p_date = base_date + datetime.timedelta(
+                        days=i * 3 + paper_no)
+                    paper = ExamPapers(
+                        examID=ex_id, paperNo=paper_no,
+                        paperCode=f"{ex_id}P{paper_no}",
+                        duration=90, total=80, date=p_date,
+                        extra_info="Calculator allowed" if paper_no == 2
+                        else "Non-calculator",
+                        startTime=datetime.time(9, 0))
+                    db.session.add(paper)
+                    added += 1
+            db.session.commit()
+            counts["exam_papers"] = ExamPapers.query.count()
+            print(f"[exam_papers] seeded {added} papers")
+        elif ExamPapers.query.count() > 0:
+            skipped.append("exam_papers")
+            print("[exam_papers] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[exam_papers] section failed (continuing): {e}")
+
+    # studentExam registrations + exam_student metadata
+    try:
+        if studentExam.query.count() == 0 and exam_ids:
+            students = Students.query.limit(12).all()
+            added_reg = 0
+            for i, stu in enumerate(students):
+                ex_id = exam_ids[i % len(exam_ids)]
+                if not studentExam.query.filter_by(
+                        studentID=stu.id, examID=ex_id).first():
+                    se = studentExam()
+                    se.studentID = stu.id
+                    se.examID = ex_id
+                    db.session.add(se)
+                    added_reg += 1
+            db.session.commit()
+            counts["student_exams"] = studentExam.query.count()
+            print(f"[student_exams] seeded {added_reg} registrations")
+        elif studentExam.query.count() > 0:
+            skipped.append("student_exams")
+            print("[student_exams] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[student_exams] section failed (continuing): {e}")
+
+    try:
+        if exam_student.query.count() == 0:
+            # mark a handful of students as exam candidates with metadata
+            students = Students.query.limit(6).all()
+            added = 0
+            for i, stu in enumerate(students):
+                if exam_student.query.filter_by(studentID=stu.id).first():
+                    continue
+                es = exam_student()
+                es.studentID = stu.id
+                es.uci = f"UCI{stu.id:07d}"
+                es.uln = f"{1000000000 + stu.id}"
+                es.candidate_number = f"{1000 + i}"
+                es.access_arrangements = ("25% extra time"
+                                          if i % 3 == 0 else "None")
+                es.message = ""
+                es.paid = (i % 2 == 0)
+                es.paid_amount = 45 if i % 2 == 0 else 0
+                es.reference_required = False
+                es.approved = True
+                es.active = True
+                es.notes = "Demo exam candidate."
+                db.session.add(es)
+                # flag the student record too so get_exam_students() finds them
+                stu.exam_student = True
+                added += 1
+            db.session.commit()
+            counts["exam_student_meta"] = exam_student.query.count()
+            print(f"[exam_student_meta] seeded {added} candidate rows")
+        else:
+            skipped.append("exam_student_meta")
+            print("[exam_student_meta] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[exam_student_meta] section failed (continuing): {e}")
+
+    # ------------------------------------------------------- forum messages
+    # A few threads (replyTo == -1) with replies, tied to lessons. Content is
+    # deliberately safe/benign. seed_demo() may have added the first thread on
+    # lesson[0]; we top up further lessons so more forums are populated.
+    try:
+        lessons = Lesson.query.limit(4).all()
+        tutor_user = User.query.filter_by(role="tutor").first()
+        student_user = User.query.filter_by(role="student").first()
+        if lessons and tutor_user:
+            now = datetime.datetime.utcnow()
+            added = 0
+            for lesson in lessons:
+                # skip lessons that already have any forum activity
+                if Messages.query.filter_by(lessonID=lesson.lessonID).first():
+                    continue
+                root = Messages(
+                    lessonID=lesson.lessonID, userID=tutor_user.id,
+                    time=now - datetime.timedelta(hours=3),
+                    message="Welcome to the class forum. Post any questions "
+                            "about this week's work here.",
+                    replyTo=-1, deleted=False)
+                db.session.add(root)
+                db.session.flush()
+                added += 1
+                if student_user:
+                    reply = Messages(
+                        lessonID=lesson.lessonID, userID=student_user.id,
+                        time=now - datetime.timedelta(hours=2),
+                        message="Thanks! Could you re-share the worksheet "
+                                "from last lesson?",
+                        replyTo=root.messageID, deleted=False)
+                    db.session.add(reply)
+                    db.session.flush()
+                    added += 1
+                    reply2 = Messages(
+                        lessonID=lesson.lessonID, userID=tutor_user.id,
+                        time=now - datetime.timedelta(hours=1),
+                        message="Of course - it's now in the Files section.",
+                        replyTo=root.messageID, deleted=False)
+                    db.session.add(reply2)
+                    added += 1
+            db.session.commit()
+            if added:
+                counts["forum_messages"] = Messages.query.count()
+                print(f"[forum_messages] seeded {added} messages")
+            else:
+                skipped.append("forum_messages")
+                print("[forum_messages] already present, skipping")
+        else:
+            print("[forum_messages] no lessons/tutor available, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[forum_messages] section failed (continuing): {e}")
+
+    # ------------------------------------------------ user / bookable events
+    # Link some events to individual users (UserEvents). seed_demo() created
+    # Events + RoleEvent already, so we only add the user-specific links here.
+    try:
+        if UserEvents.query.count() == 0:
+            events = Events.query.all()
+            users = User.query.limit(4).all()
+            added = 0
+            if events and users:
+                for i, u in enumerate(users):
+                    ev = events[i % len(events)]
+                    if not UserEvents.query.filter_by(
+                            userID=u.id, eventID=ev.id).first():
+                        db.session.add(UserEvents(u.id, ev.id))
+                        added += 1
+            db.session.commit()
+            if added:
+                counts["user_events"] = UserEvents.query.count()
+                print(f"[user_events] seeded {added} links")
+            else:
+                print("[user_events] no events/users available, skipping")
+        else:
+            skipped.append("user_events")
+            print("[user_events] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[user_events] section failed (continuing): {e}")
+
+    # bookable event + bookings
+    try:
+        if BookableEvent.query.count() == 0:
+            ev_date = datetime.date.today() + datetime.timedelta(days=10)
+            event = BookableEvent(
+                name="Parents' Evening Consultations",
+                date=ev_date, start_time=datetime.time(16, 0),
+                end_time=datetime.time(19, 0), duration=15,
+                location="Soho Centre - Main Hall",
+                description="Book a 15-minute slot with your child's tutor.",
+                bookable=True)
+            db.session.add(event)
+            db.session.flush()
+            slots = [
+                (datetime.time(16, 0), "Sam Taylor", "sam.taylor@demo-parent.ateam"),
+                (datetime.time(16, 15), "Alex Patel", "alex.patel@demo-parent.ateam"),
+                (datetime.time(16, 30), "Jordan Khan", "jordan.khan@demo-parent.ateam"),
+            ]
+            for i, (t, name, email) in enumerate(slots):
+                db.session.add(Booking(
+                    event_id=event.id, start_time=t, name=name, email=email,
+                    phone=f"07700 900{100 + i}"))
+            db.session.commit()
+            counts["bookable_events"] = BookableEvent.query.count()
+            counts["bookings"] = Booking.query.count()
+            print(f"[bookable_events] seeded 1 event + "
+                  f"{counts['bookings']} bookings")
+        else:
+            skipped.append("bookable_events")
+            print("[bookable_events] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[bookable_events] section failed (continuing): {e}")
+
+    # ------------------------------------------------------------ staff hours
+    # Manual "other hours" entries: a mix of approved and pending (approved is
+    # False/None for pending -> shown on approve-hours page). NOTE: the schema
+    # has no real `rejected` column (it is mis-declared), so we never set it.
+    try:
+        if staffHours.query.count() == 0:
+            tutors = Staff.query.filter_by(role="tutor").all()
+            if not tutors:
+                raise RuntimeError("no tutors available for staff hours")
+            descriptions = [
+                "Marking mock exam papers", "Resource preparation",
+                "Parent phone calls", "Department meeting",
+                "1:1 catch-up session", "Report writing",
+            ]
+            added = 0
+            for i, tutor in enumerate(tutors):
+                for j in range(2):  # one approved, one pending per tutor
+                    entry = staffHours(
+                        staffID=tutor.id,
+                        date=datetime.date.today()
+                        - datetime.timedelta(days=(i + j + 1) * 2),
+                        hours=1.5 + (j * 0.5),
+                        description=descriptions[(i + j) % len(descriptions)],
+                        approved=(j == 0))
+                    db.session.add(entry)
+                    added += 1
+            db.session.commit()
+            counts["staff_hours"] = staffHours.query.count()
+            print(f"[staff_hours] seeded {added} entries "
+                  "(half approved, half pending)")
+        else:
+            skipped.append("staff_hours")
+            print("[staff_hours] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[staff_hours] section failed (continuing): {e}")
+
+    # ------------------------------------------------------- UCAS references
+    try:
+        if UCASReference.query.count() == 0:
+            refs = [
+                ("Aisha Begum", "Biology, Chemistry, Maths", "Medicine",
+                 "AAA predicted at A-Level",
+                 "Two weeks shadowing at a local GP practice",
+                 "A long-standing passion for the biological sciences and a "
+                 "desire to help others.",
+                 "Netball captain; volunteers at a care home."),
+                ("Daniel Osei", "Maths, Physics, Computer Science",
+                 "Computer Science",
+                 "A*AA predicted at A-Level",
+                 "Summer coding internship at a fintech startup",
+                 "Fascinated by algorithms and building software that "
+                 "solves real problems.",
+                 "Runs the school coding club; competitive chess player."),
+                ("Freya Wilson", "English, History, Geography", "Law",
+                 "AAB predicted at A-Level",
+                 "Work experience at a local solicitors' office",
+                 "Enjoys constructing arguments and a strong sense of "
+                 "justice drew me to law.",
+                 "Debating society; Duke of Edinburgh Gold Award."),
+            ]
+            added = 0
+            for name, subjects, course, quals, work, reason, hobbies in refs:
+                ref = UCASReference(
+                    name=name, subjects=subjects, course=course,
+                    qualifications=quals, work_experience=work,
+                    reason=reason, hobbies=hobbies,
+                    extra_info="Reference drafted by tutor (demo).",
+                    completed_reference="")
+                db.session.add(ref)
+                added += 1
+            db.session.commit()
+            counts["ucas_references"] = UCASReference.query.count()
+            print(f"[ucas_references] seeded {added} references")
+        else:
+            skipped.append("ucas_references")
+            print("[ucas_references] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[ucas_references] section failed (continuing): {e}")
+
+    # ---------------------------------------------------------- marketplace
+    try:
+        if Product.query.count() == 0:
+            products = [
+                ("£10 Amazon Voucher", 500,
+                 "Redeem your points for a gift voucher.", False),
+                ("A-Team Hoodie", 800,
+                 "Branded hoodie in your choice of size.", False),
+                ("Revision Guide Bundle", 300,
+                 "Set of subject revision guides.", True),
+                ("Cinema Tickets (x2)", 650,
+                 "Two tickets to a cinema of your choice.", False),
+                ("Premium Stationery Set", 200,
+                 "Notebooks, pens and highlighters.", False),
+            ]
+            added = 0
+            for name, reward, desc, sold in products:
+                p = Product(name=name, reward=reward, description=desc)
+                p.sold = sold
+                p.completed = False
+                p.approved = True
+                db.session.add(p)
+                added += 1
+            db.session.commit()
+            counts["products"] = Product.query.count()
+            print(f"[products] seeded {added} products")
+        else:
+            skipped.append("products")
+            print("[products] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[products] section failed (continuing): {e}")
+
+    # ----------------------------------------------- game questions + scores
+    try:
+        if gameQuestions.query.count() == 0:
+            questions = [
+                ("What is 7 x 8?", "56", "54", "48", "64"),
+                ("What is the chemical symbol for water?",
+                 "H2O", "CO2", "O2", "HO"),
+                ("What is the capital of France?",
+                 "Paris", "London", "Rome", "Madrid"),
+                ("What is 15% of 200?", "30", "25", "35", "20"),
+                ("Which planet is closest to the Sun?",
+                 "Mercury", "Venus", "Earth", "Mars"),
+            ]
+            added = 0
+            for q, correct, a2, a3, a4 in questions:
+                gq = gameQuestions()
+                gq.question = q
+                gq.correctAnswer = correct
+                gq.answer2 = a2
+                gq.answer3 = a3
+                gq.answer4 = a4
+                db.session.add(gq)
+                added += 1
+            db.session.commit()
+            counts["game_questions"] = gameQuestions.query.count()
+            print(f"[game_questions] seeded {added} questions")
+        else:
+            skipped.append("game_questions")
+            print("[game_questions] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[game_questions] section failed (continuing): {e}")
+
+    try:
+        if GameScores.query.count() == 0:
+            scores = [
+                ("olivia.demo@demo-student.ateam", "Olivia S.", 950),
+                ("george.demo@demo-student.ateam", "George J.", 870),
+                ("amelia.demo@demo-student.ateam", "Amelia T.", 810),
+                ("noah.demo@demo-student.ateam", "Noah B.", 760),
+                ("isla.demo@demo-student.ateam", "Isla W.", 720),
+            ]
+            added = 0
+            for email, name, score in scores:
+                gs = GameScores()
+                gs.email = email
+                gs.name = name
+                gs.score = score
+                gs.image = None
+                db.session.add(gs)
+                added += 1
+            db.session.commit()
+            counts["game_scores"] = GameScores.query.count()
+            print(f"[game_scores] seeded {added} leaderboard scores")
+        else:
+            skipped.append("game_scores")
+            print("[game_scores] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[game_scores] section failed (continuing): {e}")
+
+    # ------------------------------------------------ exam rooms + seating
+    # Room, a dated arrangement for it, and a seating plan for the students
+    # registered to the first exam on that date.
+    try:
+        if ExamRoom.query.count() == 0:
+            rooms = [
+                ("Main Hall", 8, 6),
+                ("Room 12", 5, 4),
+            ]
+            for name, rows, cols in rooms:
+                if not ExamRoom.query.filter_by(name=name).first():
+                    db.session.add(ExamRoom(name, rows, cols))
+            db.session.commit()
+            counts["exam_rooms"] = ExamRoom.query.count()
+            print(f"[exam_rooms] seeded {counts['exam_rooms']} rooms")
+        else:
+            skipped.append("exam_rooms")
+            print("[exam_rooms] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[exam_rooms] section failed (continuing): {e}")
+
+    try:
+        if SeatingArrangement.query.count() == 0:
+            room = ExamRoom.query.first()
+            paper = ExamPapers.query.order_by(ExamPapers.date).first()
+            if room and paper:
+                seat_date = paper.date
+                # room arrangement for that date (if not present)
+                if not RoomArrangements.query.filter_by(
+                        date=seat_date, room_id=room.id).first():
+                    db.session.add(RoomArrangements(
+                        date=seat_date, room_id=room.id,
+                        actual_rows=room.max_rows,
+                        actual_columns=room.max_columns))
+                # seat the students registered to that exam
+                regs = studentExam.query.filter_by(
+                    examID=paper.examID).all()
+                added = 0
+                cols = room.max_columns
+                for idx, reg in enumerate(regs):
+                    row = idx // cols + 1
+                    col = idx % cols + 1
+                    if row > room.max_rows:
+                        break
+                    db.session.add(SeatingArrangement(
+                        student_id=reg.studentID, exam_id=paper.examID,
+                        room_id=room.id, row=row, column=col, date=seat_date))
+                    added += 1
+                db.session.commit()
+                counts["seating_arrangements"] = SeatingArrangement.query.count()
+                counts["room_arrangements"] = RoomArrangements.query.count()
+                print(f"[seating] seeded {added} seats "
+                      f"(+{counts['room_arrangements']} room arrangements)")
+            else:
+                print("[seating] no room/exam paper available, skipping")
+        else:
+            skipped.append("seating_arrangements")
+            print("[seating] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[seating] section failed (continuing): {e}")
+
+    # ------------------------------------------------- enquiries + mailing
+    try:
+        if Enquiry.query.count() == 0:
+            centres = Centre.query.all()
+            admin_user = User.query.filter_by(role="admin").first()
+            if not centres or not admin_user:
+                raise RuntimeError("no centres/admin available for enquiries")
+            enquiries = [
+                ("Sam Taylor", "Ella Taylor", "9", "Booked trial Lesson",
+                 "Interested in GCSE Maths support on Saturdays."),
+                ("Alex Patel", "Zara Patel", "12", "Will book a trial lesson",
+                 "Looking for A-Level Biology tuition."),
+                ("Jordan Khan", "Yusuf Khan", "10", "Pending",
+                 "Asked about pricing for two subjects."),
+                ("Chris Owusu", "Ama Owusu", "11", "Complete",
+                 "Enrolled after a successful trial lesson."),
+            ]
+            added = 0
+            for i, (caller, student, yr, result, info) in enumerate(enquiries):
+                centre = centres[i % len(centres)]
+                enq = Enquiry(
+                    callerName=caller, studentName=student, year_group=yr,
+                    location=centre.centreID,
+                    parent_email=f"{caller.split()[0].lower()}@demo-parent.ateam",
+                    contact_number=f"07700 900{200 + i}",
+                    enquiry_info=info, result=result,
+                    userID=admin_user.id, escalated=False)
+                db.session.add(enq)
+                added += 1
+            db.session.commit()
+            counts["enquiries"] = Enquiry.query.count()
+            print(f"[enquiries] seeded {added} enquiries")
+        else:
+            skipped.append("enquiries")
+            print("[enquiries] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[enquiries] section failed (continuing): {e}")
+
+    try:
+        if MailingList.query.count() == 0:
+            emails = [
+                "newsletter1@demo-parent.ateam",
+                "newsletter2@demo-parent.ateam",
+                "newsletter3@demo-parent.ateam",
+                "prospective.parent@demo.ateam",
+            ]
+            for em in emails:
+                ml = MailingList()
+                ml.email = em
+                db.session.add(ml)
+            db.session.commit()
+            counts["mailing_list"] = MailingList.query.count()
+            print(f"[mailing_list] seeded {counts['mailing_list']} entries")
+        else:
+            skipped.append("mailing_list")
+            print("[mailing_list] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[mailing_list] section failed (continuing): {e}")
+
+    # -------------------------------------------- point system (staff perf)
+    try:
+        if PointSystem.query.count() == 0:
+            point_defs = [
+                ("Perfect attendance", 50),
+                ("Homework completed", 20),
+                ("Top of the class", 100),
+                ("Helping a peer", 30),
+                ("Excellent effort", 25),
+            ]
+            for reason, amount in point_defs:
+                ps = PointSystem()
+                ps.reason = reason
+                ps.amount = amount
+                db.session.add(ps)
+            db.session.commit()
+            counts["point_system"] = PointSystem.query.count()
+            print(f"[point_system] seeded {counts['point_system']} rules")
+        else:
+            skipped.append("point_system")
+            print("[point_system] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[point_system] section failed (continuing): {e}")
+
+    # staff reviews
+    try:
+        if StaffReviews.query.count() == 0:
+            tutors = Staff.query.filter_by(role="tutor").all()
+            added = 0
+            for i, tutor in enumerate(tutors[:5]):
+                rev = StaffReviews()
+                rev.staffID = tutor.id
+                rev.date = datetime.date.today() - datetime.timedelta(
+                    days=14 + i)
+                rev.PunctualityScore = 8 + (i % 3)
+                rev.PunctualityComments = "Reliably on time."
+                rev.LessonQualityScore = 7 + (i % 4)
+                rev.LessonQualityComments = "Well-planned, engaging lessons."
+                rev.LessonPreparednessScore = 8 + (i % 2)
+                rev.LessonPreparednessComments = "Materials ready in advance."
+                rev.ProfessionalismScore = 9
+                rev.ProfessionalismComments = "Professional with students and "
+                rev.TestScoresAverage = 68.5 + i
+                rev.TestScoresComments = "Class results above target."
+                rev.extraComments = "A valued member of the team."
+                db.session.add(rev)
+                added += 1
+            db.session.commit()
+            counts["staff_reviews"] = StaffReviews.query.count()
+            print(f"[staff_reviews] seeded {added} reviews")
+        else:
+            skipped.append("staff_reviews")
+            print("[staff_reviews] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[staff_reviews] section failed (continuing): {e}")
+
+    # staff strikes (a couple, tastefully minor)
+    try:
+        if StaffStrikes.query.count() == 0:
+            tutors = Staff.query.filter_by(role="tutor").all()
+            added = 0
+            for i, tutor in enumerate(tutors[:2]):
+                st = StaffStrikes()
+                st.staffID = tutor.id
+                st.date = datetime.date.today() - datetime.timedelta(
+                    days=30 + i)
+                st.description = ("Late submission of weekly register "
+                                  "(demo record).")
+                db.session.add(st)
+                added += 1
+            db.session.commit()
+            counts["staff_strikes"] = StaffStrikes.query.count()
+            print(f"[staff_strikes] seeded {added} strikes")
+        else:
+            skipped.append("staff_strikes")
+            print("[staff_strikes] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[staff_strikes] section failed (continuing): {e}")
+
+    # ------------------------------------------------------- tutor-subjects
+    # Link each tutor to 1-3 subjects. seed_demo() links tutors during core
+    # seeding; we only top up if the table is empty (fresh core-only DBs where
+    # the tutor section may have partially run still get covered because we
+    # skip-per-row below).
+    try:
+        if TutorSubject.query.count() == 0:
+            tutors = Staff.query.filter_by(role="tutor").all()
+            subjects = Subject.query.all()
+            if not tutors or not subjects:
+                raise RuntimeError("no tutors/subjects for tutor-subject link")
+            added = 0
+            for i, tutor in enumerate(tutors):
+                n = 1 + (i % 3)  # 1..3 subjects
+                for k in range(n):
+                    subj = subjects[(i + k) % len(subjects)]
+                    if not TutorSubject.query.filter_by(
+                            tutorID=tutor.id,
+                            subjectID=subj.subjectID).first():
+                        db.session.add(TutorSubject(tutor.id, subj.subjectID))
+                        added += 1
+            db.session.commit()
+            counts["tutor_subjects"] = TutorSubject.query.count()
+            print(f"[tutor_subjects] seeded {added} links")
+        else:
+            skipped.append("tutor_subjects")
+            print("[tutor_subjects] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[tutor_subjects] section failed (continuing): {e}")
+
+    # --------------------------------------------------------- little alerts
+    try:
+        if LittleAlerts.query.count() == 0:
+            users = User.query.limit(6).all()
+            messages = [
+                "You have a new grade available.",
+                "Your timetable was updated.",
+                "A new document needs your signature.",
+                "Homework is due tomorrow.",
+                "You earned points this week!",
+            ]
+            added = 0
+            for i, u in enumerate(users):
+                la = LittleAlerts()
+                la.userID = u.id
+                la.message = messages[i % len(messages)]
+                la.viewed = (i % 3 == 0)
+                db.session.add(la)
+                added += 1
+            db.session.commit()
+            counts["little_alerts"] = LittleAlerts.query.count()
+            print(f"[little_alerts] seeded {added} alerts")
+        else:
+            skipped.append("little_alerts")
+            print("[little_alerts] already present, skipping")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[little_alerts] section failed (continuing): {e}")
+
+    # -------------------------------------------------------------- summary
+    print("\n=== seed_extras summary ===")
+    if counts:
+        for key in sorted(counts):
+            print(f"  {key:22}: {counts[key]}")
+    else:
+        print("  (nothing new seeded)")
+    if skipped:
+        print("  skipped (already populated): " + ", ".join(sorted(skipped)))
     print()
