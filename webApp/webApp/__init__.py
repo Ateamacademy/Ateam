@@ -2818,6 +2818,52 @@ def make_exams():
     
     return render_template("make_exams.html", exams = exams, AcademicYear = AcademicYear, AcademicYears = AcademicYears, examBoards=examBoards, tiers=tiers, academicYears=academicYears, examSeriesList=examSeriesList)
 
+
+@app.route('/add_exam', methods=['POST'])
+@login_required
+def add_exam():
+    # Creates a new exam + its papers from the "Make a New Exam" form. The form
+    # posted to this endpoint but it did not exist, so adding an exam silently
+    # failed — this implements it, mirroring update_papers' paper handling.
+    check_maintenance()
+    data = request.get_json() or {}
+    try:
+        new_exam = Exams(
+            tier=data.get('tier'),
+            title=data.get('title'),
+            examBoard=data.get('examBoard'),
+            code=data.get('examCode'),
+            Option=data.get('option'),
+            examSeries=data.get('examSeries'),
+            AcademicYear=data.get('academicYear'),
+        )
+        db.session.add(new_exam)
+        db.session.commit()  # assigns examID (autoincrement)
+
+        for paper in data.get('papers', []):
+            date_str = paper.get('date')
+            paper_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else None
+            db.session.add(ExamPapers(
+                examID=new_exam.examID,
+                paperNo=paper.get('paperNumber'),
+                paperCode=paper.get('paperCode'),
+                duration=paper.get('duration'),
+                total=paper.get('total'),
+                date=paper_date,
+                extra_info=paper.get('extra_info'),
+                startTime=paper.get('startTime'),
+            ))
+        db.session.commit()
+
+        db.session.add(log(role=getUserRole(current_user.id), message=f" ({getUserName(current_user.id)}): added a new exam {getExam(new_exam.examID)}", date=datetime.utcnow()))
+        db.session.commit()
+        return jsonify({'status': 'success', 'examID': new_exam.examID})
+    except Exception as e:
+        db.session.rollback()
+        print(e)
+        return jsonify({'status': 'error', 'message': str(e)}), 400
+
+
 @app.route('/make_new_exam_student')
 @login_required
 def make_new_exam_student(): 

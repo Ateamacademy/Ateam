@@ -41,7 +41,7 @@
                 initialView: 'dayGridMonth',
                 events: examData.map(function(paper) {
                     return {
-                        title: paper.title + ' - ' + paper.paperCode,
+                        title: paper.examBoard + ' ' + paper.tier + ' ' + paper.title + ' (' + paper.paperCode + ')',
                         start: paper.date + 'T' + paper.startTime,
                         extendedProps: { ...paper }
                     };
@@ -57,7 +57,7 @@
                                 
                                 examsOnDate.forEach(exam => {
                                     modalBody += `<li class="list-group-item">
-                                        <b>${exam.title} (${exam.paperCode})</b> - Duration: ${exam.duration} mins
+                                        <b>${exam.examBoard} ${exam.tier} ${exam.title} (${exam.paperCode})</b> - Duration: ${exam.duration} mins
                                         <br>Registered Students: ${exam.registered_students.join(', ')}
                                     </li>`;
                                 });
