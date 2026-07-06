@@ -15,6 +15,7 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.exc import SQLAlchemyError
 from Schema import *
 from functions import *
+from seating import plan_seating
 from predicted_paper_generation import *
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, current_user, logout_user, login_required, UserMixin, LoginManager, AnonymousUserMixin
@@ -2822,9 +2823,10 @@ def make_exams():
 @app.route('/add_exam', methods=['POST'])
 @login_required
 def add_exam():
-    # Creates a new exam + its papers from the "Make a New Exam" form. The form
-    # posted to this endpoint but it did not exist, so adding an exam silently
-    # failed — this implements it, mirroring update_papers' paper handling.
+    # Creates a new exam + its papers from the "Make a New Exam" form. Parses the
+    # paper date and uses .get() so a missing/blank field can't 500 the request —
+    # the previous handler passed the raw date string straight to the Date column,
+    # which is what made "add a new exam" fail.
     check_maintenance()
     data = request.get_json() or {}
     try:
@@ -3103,7 +3105,8 @@ def exam_calendar():
                 'registered_students': student_ids  # Add registered students
             })
 
-    return render_template("exam_room_allocation.html", exam_data=exam_data)
+    centres = [{'id': c.centreID, 'name': c.name} for c in Centre.query.order_by(Centre.name).all()]
+    return render_template("exam_room_allocation.html", exam_data=exam_data, centres=centres)
 
 @app.route("/approveHours")
 @login_required
@@ -3561,14 +3564,17 @@ def manage_exam_rooms():
         name = request.form.get('name')
         max_rows = int(request.form.get('max_rows'))
         max_columns = int(request.form.get('max_columns'))
-        new_room = ExamRoom(name=name, max_rows=max_rows, max_columns=max_columns)
+        centre_id = _resolve_centre_id(request.form.get('centreID'))
+        new_room = ExamRoom(name=name, max_rows=max_rows, max_columns=max_columns, centreID=centre_id)
         db.session.add(new_room)
         db.session.commit()
         flash("Exam room added successfully!", "success")
         return redirect(url_for('manage_exam_rooms'))
-    
+
     rooms = ExamRoom.query.all()
-    return render_template('exam_rooms.html', rooms=rooms)
+    centres = Centre.query.order_by(Centre.name).all()
+    centre_names = {c.centreID: c.name for c in centres}
+    return render_template('exam_rooms.html', rooms=rooms, centres=centres, centre_names=centre_names)
 
 # Route to edit an existing exam room
 @app.route('/edit_exam_room', methods=['GET', 'POST'])
@@ -3580,12 +3586,14 @@ def edit_exam_rooms():
         room.name = request.form.get('name')
         room.max_rows = int(request.form.get('max_rows'))
         room.max_columns = int(request.form.get('max_columns'))
-        
+        room.centreID = _resolve_centre_id(request.form.get('centreID'))
+
         db.session.commit()
         flash('Exam room updated successfully!', 'success')
         return redirect('/exam_rooms')
 
-    return render_template('edit_exam_room.html', room=room)
+    centres = Centre.query.order_by(Centre.name).all()
+    return render_template('edit_exam_room.html', room=room, centres=centres)
 
 @app.route('/files_to_print', methods = ['GET', 'POST'])
 @login_required
@@ -6170,37 +6178,6 @@ def create_alert():
 
     return ""
 
-@app.route("/add_exam", methods = ['POST', 'GET'])
-@login_required
-def add_exam():
-    check_maintenance()
-    #role_required("admin", "ACTION: Adding an Exam")
-    data = request.get_json()
-
-    tier = data['tier']
-    title = data['title']
-    examBoard = data['examBoard']
-    examCode= data['examCode']
-    option = data['option']
-    examSeries = data['examSeries']
-    academicYear = data['academicYear']
-    papers = data['papers']
-    
-    
-    with db.session.no_autoflush:
-        exam = Exams(tier = tier, title = title, examBoard = examBoard, code = examCode, Option = option, examSeries = examSeries, AcademicYear=academicYear)
-        db.session.add(exam)
-        db.session.commit()
-
-        for paper in papers: 
-            db.session.add(ExamPapers(examID = exam.examID, paperNo = paper['paperNumber'], paperCode = paper['paperCode'], duration = paper['duration'], total = paper['total'], date = paper['date'], extra_info = paper['extra_info'], startTime = paper['startTime']))
-            db.session.commit()
-
-        db.session.add(log(role = getUserRole(current_user.id), message=" (" + getUserName(current_user.id) + "):  has just created an exam for " + examBoard + " " + tier + " " + title + " " + option + " with " + str(len(papers)) + " papers " ,  date=datetime.utcnow()))
-
-
-    return ""
-
 @app.route("/send_grades", methods = ['POST', 'GET'])
 @login_required
 def send_grades(): 
@@ -7564,81 +7541,244 @@ def get_room_arrangements():
 
     return jsonify(arrangements)
 
-@app.route('/get_seating_arrangements', methods=['GET'])
-def get_seating_arrangements():
-    # exam_id = request.args.get('exam_id')
-    date = request.args.get('date')
+def _resolve_centre_id(raw):
+    """Parse a centre id from a request value; '', 'all' or bad input -> None (all centres)."""
+    if raw is None:
+        return None
+    raw = str(raw).strip()
+    if raw == "" or raw.lower() == "all":
+        return None
+    try:
+        return int(raw)
+    except (TypeError, ValueError):
+        return None
 
-    exam_papers = ExamPapers.query.filter_by(date=date).all()
-    
-    if not exam_papers:
-        return jsonify({'error': 'No exams scheduled on this date'}), 404
 
-    registered_students = []
-    # Get all students registered for any paper on this date
-    for paper in exam_papers:
-        tempExamID = paper.examID
-        temp_registered_students = studentExam.query.filter_by(examID=tempExamID).all()
-        
-        for student in temp_registered_students:
-            registered_students.append(student)
+def _centre_name(centre_id):
+    if not centre_id:
+        return None
+    centre = Centre.query.filter_by(centreID=centre_id).first()
+    return centre.name if centre else None
 
-    allocated_students = SeatingArrangement.query.filter_by(date=date).all()
-    allocated_student_ids = {seat.student_id for seat in allocated_students}
-    
-    unallocated_students = [
-        {'id': s.studentID, 'name': getStudent(s.studentID)}
-        for s in registered_students if s.studentID not in allocated_student_ids
-    ]
 
-    # Get room arrangements for this date
-    rooms = RoomArrangements.query.filter_by(date=date).all()
-    room_data = []
-    
-    for room in rooms:
-        seats = SeatingArrangement.query.filter_by(room_id=room.room_id, date=date).all()
-        room_data.append({
-            'room_id': room.room_id,
-            'room_name': room.exam_room.name,
-            'rows': room.actual_rows or room.exam_room.max_rows,
-            'columns': room.actual_columns or room.exam_room.max_columns,
-            'seats': [{'row': s.row, 'column': s.column, 'student_id': s.student_id, 'name': s.student.name} for s in seats]
+# Access-arrangement text that actually means "no arrangement" (legacy data stores
+# the literal string "None"), so those candidates aren't wrongly held back.
+_NO_ACCESS = ("", "none", "n/a", "na", "-", "no", "nil", "null")
+
+
+def _has_access(text):
+    return (text or "").strip().lower() not in _NO_ACCESS
+
+
+def _gather_seating_context(date_str, centre_id=None):
+    """Collect the rooms + candidates for one exam date (optionally a single centre).
+
+    Returns (rooms, students, seat_map):
+      rooms    - [{room_id, room_name, centreID, centre, rows, columns}]
+      students - one dict per candidate registered that day, with candidate number,
+                 board, exam_id, access-arrangement text and an `access` flag
+      seat_map - {student_id: {room_id, row, column}} for already-saved seats in scope
+    """
+    date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+
+    # Rooms (honouring any per-date row/column override), filtered to the centre.
+    rooms = []
+    room_query = ExamRoom.query
+    if centre_id:
+        room_query = room_query.filter_by(centreID=centre_id)
+    for room in room_query.all():
+        override = RoomArrangements.query.filter_by(room_id=room.id, date=date_obj).first()
+        rooms.append({
+            'room_id': room.id,
+            'room_name': room.name,
+            'centreID': room.centreID,
+            'centre': _centre_name(room.centreID),
+            'rows': (override.actual_rows if override and override.actual_rows else room.max_rows),
+            'columns': (override.actual_columns if override and override.actual_columns else room.max_columns),
         })
 
+    # Candidates registered for any paper sat on this date (one row per candidate).
+    papers = ExamPapers.query.filter_by(date=date_obj).all()
+    students = []
+    seen = set()
+    for paper in papers:
+        exam = Exams.query.filter_by(examID=paper.examID).first()
+        board = exam.examBoard if exam else None
+        title = exam.title if exam else None
+        for reg in studentExam.query.filter_by(examID=paper.examID).all():
+            sid = reg.studentID
+            if sid in seen:
+                continue
+            seen.add(sid)
+            profile = exam_student.query.filter_by(studentID=sid).first()
+            access_txt = (profile.access_arrangements if profile else None) or ""
+            s_centre = profile.centreID if profile else None
+            if centre_id and s_centre != centre_id:
+                continue
+            students.append({
+                'id': sid,
+                'name': getStudent(sid),
+                'candidate_number': profile.candidate_number if profile else None,
+                'board': board,
+                'title': title,
+                'exam_id': paper.examID,
+                'access_arrangements': access_txt,
+                'access': _has_access(access_txt),
+                'centreID': s_centre,
+                'centre': _centre_name(s_centre),
+            })
+
+    # Saved seats for the date, limited to the rooms in scope.
+    room_ids = {r['room_id'] for r in rooms}
+    seat_map = {}
+    for seat in SeatingArrangement.query.filter_by(date=date_obj).all():
+        if room_ids and seat.room_id not in room_ids:
+            continue
+        seat_map[seat.student_id] = {'room_id': seat.room_id, 'row': seat.row, 'column': seat.column}
+
+    return rooms, students, seat_map
+
+
+@app.route('/get_seating_arrangements', methods=['GET'])
+@login_required
+def get_seating_arrangements():
+    date = request.args.get('date')
+    if not date:
+        return jsonify({'error': 'A date is required'}), 400
+    centre_id = _resolve_centre_id(request.args.get('centre'))
+
+    try:
+        rooms, students, seat_map = _gather_seating_context(date, centre_id)
+    except (ValueError, TypeError):
+        return jsonify({'error': 'Invalid date'}), 400
+
+    # Mark each candidate's allocation status + attach saved seat coordinates.
+    for s in students:
+        placed = seat_map.get(s['id'])
+        s['allocated'] = placed is not None
+        s['seat'] = placed
+
+    # Build per-room seat lists for rendering the grids.
+    student_by_id = {s['id']: s for s in students}
+    room_by_id = {r['room_id']: r for r in rooms}
+    for room in rooms:
+        room['seats'] = []
+    for sid, placed in seat_map.items():
+        room = room_by_id.get(placed['room_id'])
+        if room is None:
+            continue
+        s = student_by_id.get(sid)
+        room['seats'].append({
+            'row': placed['row'], 'column': placed['column'], 'student_id': sid,
+            'name': s['name'] if s else getStudent(sid),
+            'candidate_number': (s['candidate_number'] if s else getCandidateNumber(sid)),
+            'board': s['board'] if s else None,
+            'exam_id': s['exam_id'] if s else None,
+            'access': s['access'] if s else False,
+            'access_arrangements': s['access_arrangements'] if s else "",
+        })
+
+    return jsonify({'rooms': rooms, 'students': students})
+
+
+@app.route('/auto_assign_seating', methods=['POST'])
+@login_required
+def auto_assign_seating():
+    data = request.get_json() or {}
+    date = data.get('date')
+    if not date:
+        return jsonify({'error': 'A date is required'}), 400
+    centre_id = _resolve_centre_id(data.get('centre'))
+
+    try:
+        rooms, students, _ = _gather_seating_context(date, centre_id)
+        date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+    except (ValueError, TypeError):
+        return jsonify({'error': 'Invalid date'}), 400
+
+    if not rooms:
+        return jsonify({'error': 'No exam rooms for this centre. Add rooms first.'}), 400
+
+    # Group by board, sort by candidate number, balance across the fewest rooms.
+    # Access-arrangement candidates are deliberately left for the officer to place.
+    result = plan_seating(students, rooms)
+
+    room_ids = [r['room_id'] for r in rooms]
+    if room_ids:
+        SeatingArrangement.query.filter(
+            SeatingArrangement.date == date_obj,
+            SeatingArrangement.room_id.in_(room_ids),
+        ).delete(synchronize_session=False)
+
+    for seat in result['seats']:
+        db.session.add(SeatingArrangement(
+            student_id=seat['student_id'],
+            exam_id=seat['exam_id'],
+            room_id=seat['room_id'],
+            row=seat['row'],
+            column=seat['column'],
+            date=date_obj,
+        ))
+    db.session.commit()
+
+    access_students = [s for s in students if s['access']]
     return jsonify({
-        'rooms': room_data,
-        'unallocated_students': unallocated_students
+        'status': 'success',
+        'seated': len(result['seats']),
+        'unplaced': result['unplaced'],
+        'access_count': len(access_students),
     })
 
 
 @app.route('/save_seating_arrangement', methods=['POST'])
+@login_required
 def save_seating_arrangement():
-    data = request.json
+    data = request.get_json()
     if not data:
-        return jsonify({"error": "Invalid data"}), 400
-    
-    exam_id = data[0]['exam_id']
-    date = data[0]['date']
+        return jsonify({'error': 'Invalid data'}), 400
 
-    if not exam_id or not date:
-        return jsonify({"error": "Exam ID and Date are required"}), 400
+    # Accept the current layout {date, centre, seats:[...]}. (The old client posted
+    # a bare list of seats; keep that working too.)
+    if isinstance(data, list):
+        seats = data
+        date = seats[0].get('date') if seats else None
+        centre_id = None
+    else:
+        seats = data.get('seats', [])
+        date = data.get('date')
+        centre_id = _resolve_centre_id(data.get('centre'))
 
-    # Delete old arrangements for this date
-    SeatingArrangement.query.filter_by(exam_id=exam_id, date=date).delete()
+    if not date:
+        return jsonify({'error': 'A date is required'}), 400
+    try:
+        date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+    except (ValueError, TypeError):
+        return jsonify({'error': 'Invalid date'}), 400
 
-    for seat in data:
-        new_seat = SeatingArrangement(
-            exam_id=exam_id,
-            date=date,
+    # Scope the wipe to the centre's rooms so saving one centre's plan can't clear
+    # another centre's seats for the same day.
+    q = SeatingArrangement.query.filter(SeatingArrangement.date == date_obj)
+    if centre_id:
+        scope_room_ids = [r.id for r in ExamRoom.query.filter_by(centreID=centre_id).all()]
+        q = q.filter(SeatingArrangement.room_id.in_(scope_room_ids or [-1]))
+    q.delete(synchronize_session=False)
+
+    saved = 0
+    for seat in seats:
+        if seat.get('student_id') is None or seat.get('room_id') is None or seat.get('exam_id') is None:
+            continue
+        db.session.add(SeatingArrangement(
             student_id=seat['student_id'],
+            exam_id=seat['exam_id'],
             room_id=seat['room_id'],
-            row=seat['row'],
-            column=seat['column']
-        )
-        db.session.add(new_seat)
+            row=seat.get('row', 0),
+            column=seat.get('column', 0),
+            date=date_obj,
+        ))
+        saved += 1
 
     db.session.commit()
-    return jsonify({"message": "Seating arrangement saved successfully!"})
+    return jsonify({'status': 'success', 'saved': saved})
 
 
 
@@ -7650,11 +7790,13 @@ def edit_exam_room(room_id):
         room.name = request.form.get('name')
         room.max_rows = int(request.form.get('max_rows'))
         room.max_columns = int(request.form.get('max_columns'))
+        room.centreID = _resolve_centre_id(request.form.get('centreID'))
         db.session.commit()
         flash("Exam room updated successfully!", "success")
         return redirect(url_for('manage_exam_rooms'))
-    
-    return render_template('edit_exam_room.html', room=room)
+
+    centres = Centre.query.order_by(Centre.name).all()
+    return render_template('edit_exam_room.html', room=room, centres=centres)
 
 @app.route('/exam_rooms/delete/<int:room_id>', methods=['POST'])
 @login_required

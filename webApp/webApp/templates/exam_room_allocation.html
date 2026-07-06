@@ -1,97 +1,331 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+{% extends 'base_page.html' %}
 
-    <title>Exam Calendar with Room Arrangements</title>
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.css' rel='stylesheet' />
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.js'></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
+{% block middleContent %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.css' rel='stylesheet' />
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.js'></script>
 
-    <div class="container mt-4">
-        <h1>Exam Calendar</h1>
-        <div id="calendar"></div>
+<style>
+    .seat-wrap { padding: 4px 6px; }
+    #calendar { max-width: 1000px; margin-bottom: 1rem; }
+    .fc .fc-daygrid-event { white-space: normal; cursor: pointer; }
 
-        <!-- Modal -->
-        <div class="modal fade" id="examModal" tabindex="-1" aria-labelledby="examModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="examModalLabel">Exam Details and Room Arrangements</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span>&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body" id="modalBody">
-                        <!-- Exam details and room arrangements will be injected here -->
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
+    .planner-toolbar { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center;
+        justify-content: space-between; margin-bottom: 1rem; }
+    .planner-actions .btn { margin-left: .25rem; }
+
+    .planner-body { display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
+    .unassigned-panel { flex: 0 0 260px; max-width: 300px; }
+    .rooms-panel { flex: 1 1 480px; min-width: 320px; display: flex; flex-wrap: wrap;
+        gap: 1rem; align-content: flex-start; }
+
+    .drop-list { min-height: 60px; border: 1px dashed #d1d3e2; border-radius: .5rem;
+        padding: .4rem; background: #f8f9fc; }
+    .drop-list.dragover, .seat-cell.dragover { background: #eaf0ff; border-color: #4e73df; }
+
+    .chip { display: block; border-radius: .4rem; padding: .3rem .45rem; margin: .3rem 0;
+        font-size: .78rem; line-height: 1.15; color: #fff; cursor: grab; user-select: none;
+        box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+    .chip .cand { font-weight: 700; }
+    .chip .nm { display: block; font-weight: 500; opacity: .95; }
+    .chip.access { background: #fff8ec !important; color: #7a5200; border: 1px solid #f6c23e; }
+    .chip .tag { display: inline-block; font-size: .62rem; text-transform: uppercase;
+        letter-spacing: .03em; background: rgba(255,255,255,.28); border-radius: .3rem;
+        padding: 0 .25rem; margin-left: .25rem; }
+    .chip.access .tag { background: #f6c23e; color: #493700; }
+
+    .room-card { border: 1px solid #e3e6f0; border-radius: .6rem; overflow: hidden;
+        background: #fff; box-shadow: 0 .1rem .5rem rgba(0,0,0,.05); }
+    .room-card h6 { margin: 0; padding: .5rem .75rem; background: #4e73df; color: #fff;
+        font-size: .85rem; display: flex; justify-content: space-between; gap: .5rem; }
+    .room-card h6 .cap { font-weight: 400; opacity: .85; }
+    .seat-grid { border-collapse: separate; border-spacing: 4px; margin: 6px auto; }
+    .seat-cell { width: 92px; height: 52px; vertical-align: top; border: 1px solid #e3e6f0;
+        border-radius: .4rem; background: #f8f9fc; }
+    .seat-cell .chip { margin: 0; }
+
+    .legend { font-size: .72rem; color: #6e707e; margin-bottom: .4rem; }
+    .legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+        margin-right: 3px; vertical-align: middle; }
+    #plannerMsg { font-size: .85rem; }
+    .muted-empty { color: #b7b9cc; font-size: .75rem; text-align: center; padding: .5rem; }
+</style>
+
+<div class="container-fluid py-2">
+    <div class="planner-toolbar">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Exam Seating</h1>
+            <small class="text-muted">Pick a date on the calendar, then auto-assign or drag candidates between seats.</small>
+        </div>
+        <div class="form-inline">
+            <label class="mr-2 mb-0 font-weight-bold small">Centre</label>
+            <select id="centreSelect" class="form-control form-control-sm">
+                <option value="all">All centres</option>
+                {% for c in centres %}
+                <option value="{{ c.id }}">{{ c.name }}</option>
+                {% endfor %}
+            </select>
+            <a href="/exam_rooms" class="btn btn-sm btn-outline-secondary ml-2">Manage rooms</a>
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const examData = {{ exam_data | tojson }};
-            const calendarEl = document.getElementById('calendar');
-            const calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                events: examData.map(function(paper) {
-                    return {
-                        title: paper.examBoard + ' ' + paper.tier + ' ' + paper.title + ' (' + paper.paperCode + ')',
-                        start: paper.date + 'T' + paper.startTime,
-                        extendedProps: { ...paper }
-                    };
-                }),
-                dateClick: function(info) {
-                    const examsOnDate = examData.filter(paper => paper.date === info.dateStr);
-                    
-                    if (examsOnDate.length > 0) {
-                        fetch(`/get_seating_arrangements?date=${info.dateStr}`)
-                            .then(response => response.json())
-                            .then(roomArrangements => {
-                                let modalBody = `<h4>Exams on ${info.dateStr}</h4><ul class="list-group">`;
-                                
-                                examsOnDate.forEach(exam => {
-                                    modalBody += `<li class="list-group-item">
-                                        <b>${exam.examBoard} ${exam.tier} ${exam.title} (${exam.paperCode})</b> - Duration: ${exam.duration} mins
-                                        <br>Registered Students: ${exam.registered_students.join(', ')}
-                                    </li>`;
-                                });
-                                
-                                modalBody += `</ul><hr><h4>Room Arrangements</h4>`;
+    <div id="calendar"></div>
 
-                                roomArrangements.forEach(room => {
-                                    modalBody += `<h5>${room.room_name} (ID: ${room.room_id})</h5><table class="table table-bordered">`;
-                                    
-                                    for (let row = 0; row < room.rows; row++) {
-                                        modalBody += '<tr>';
-                                        for (let col = 0; col < room.columns; col++) {
-                                            const student = examsOnDate[0].registered_students.shift();
-                                            modalBody += `<td>${student || ''}</td>`;
-                                        }
-                                        modalBody += '</tr>';
-                                    }
-                                    modalBody += '</table>';
-                                });
+    <div id="planner" style="display:none;">
+        <hr>
+        <div class="planner-toolbar">
+            <h4 class="mb-0">Seating for <span id="plannerDate" class="text-primary"></span></h4>
+            <div class="planner-actions">
+                <button id="autoBtn" class="btn btn-sm btn-primary"><i class="fas fa-magic"></i> Auto-assign</button>
+                <button id="saveBtn" class="btn btn-sm btn-success"><i class="fas fa-save"></i> Save</button>
+                <button id="clearBtn" class="btn btn-sm btn-outline-danger">Clear</button>
+            </div>
+        </div>
+        <div id="plannerMsg" class="alert alert-info py-2" style="display:none;"></div>
 
-                                document.getElementById('modalBody').innerHTML = modalBody;
-                                $('#examModal').modal('show');
-                            });
-                    } else {
-                        alert("No exams scheduled for this date.");
-                    }
-                }
-            });
-            calendar.render();
+        <div class="planner-body">
+            <aside class="unassigned-panel">
+                <div class="legend">
+                    <span class="swatch" style="background:#f6c23e;"></span>Access arrangement &nbsp;·&nbsp; drag a chip onto a seat
+                </div>
+                <h6 class="font-weight-bold small text-uppercase text-muted">Unassigned</h6>
+                <div id="unassignedStandard" class="drop-list" data-drop="unassigned"></div>
+
+                <h6 class="font-weight-bold small text-uppercase text-muted mt-3">
+                    Access arrangements <span class="badge badge-warning">place by hand</span>
+                </h6>
+                <div id="unassignedAccess" class="drop-list" data-drop="unassigned"></div>
+            </aside>
+
+            <main id="rooms" class="rooms-panel"></main>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var examData = {{ exam_data | tojson }};
+
+    // ---- state ---------------------------------------------------------------
+    var currentDate = null;
+    var students = [];               // all candidates registered that day (in scope)
+    var rooms = [];                  // rooms in scope
+    var seatOf = {};                 // studentId -> {room_id,row,column}
+    var studentById = {};
+
+    var BOARD_COLORS = ['#4e73df','#1cc88a','#36b9cc','#f6c23e','#e74a3b','#6f42c1','#fd7e14','#20c9a6'];
+    function boardColor(b){
+        if(!b) return '#858796';
+        var h=0; for(var i=0;i<b.length;i++){ h=(h*31+b.charCodeAt(i))>>>0; }
+        return BOARD_COLORS[h % BOARD_COLORS.length];
+    }
+    function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, function(c){
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+    function centreVal(){ return document.getElementById('centreSelect').value; }
+    function msg(text, kind){
+        var el=document.getElementById('plannerMsg');
+        el.className='alert py-2 alert-'+(kind||'info'); el.innerHTML=text; el.style.display='';
+    }
+
+    // ---- data ----------------------------------------------------------------
+    function loadDate(dateStr){
+        currentDate = dateStr;
+        document.getElementById('plannerDate').textContent = dateStr;
+        document.getElementById('planner').style.display = '';
+        document.getElementById('plannerMsg').style.display = 'none';
+        fetch('/get_seating_arrangements?date=' + encodeURIComponent(dateStr) +
+              '&centre=' + encodeURIComponent(centreVal()))
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                rooms = data.rooms || [];
+                students = data.students || [];
+                studentById = {}; seatOf = {};
+                students.forEach(function(s){ studentById[s.id] = s; });
+                rooms.forEach(function(room){
+                    (room.seats || []).forEach(function(seat){
+                        seatOf[seat.student_id] = { room_id: room.room_id, row: seat.row, column: seat.column };
+                        if(!studentById[seat.student_id]){
+                            // seated candidate that fell outside the current scope; keep enough to render
+                            studentById[seat.student_id] = {
+                                id: seat.student_id, name: seat.name, candidate_number: seat.candidate_number,
+                                board: seat.board, exam_id: seat.exam_id, access: seat.access,
+                                access_arrangements: seat.access_arrangements
+                            };
+                        }
+                    });
+                });
+                render();
+            })
+            .catch(function(){ msg('Could not load seating for this date.', 'danger'); });
+    }
+
+    // ---- rendering -----------------------------------------------------------
+    function chipHTML(s){
+        var access = s.access ? ' access' : '';
+        var cand = s.candidate_number ? esc(s.candidate_number) : '—';
+        var tag = s.access
+            ? '<span class="tag" title="'+esc(s.access_arrangements||'Access arrangement')+'">access</span>'
+            : (s.board ? '<span class="tag">'+esc(s.board)+'</span>' : '');
+        var style = s.access ? '' : 'background:'+boardColor(s.board)+';';
+        return '<div class="chip'+access+'" draggable="true" data-sid="'+s.id+'" style="'+style+'" '+
+               'title="'+esc(s.name)+(s.board?(' · '+esc(s.board)):'')+'">'+
+               '<span class="cand">'+cand+'</span>'+tag+
+               '<span class="nm">'+esc(s.name)+'</span></div>';
+    }
+
+    function render(){
+        var std = document.getElementById('unassignedStandard');
+        var acc = document.getElementById('unassignedAccess');
+        std.innerHTML=''; acc.innerHTML='';
+
+        var unassigned = students.filter(function(s){ return !seatOf[s.id]; });
+        var us = unassigned.filter(function(s){ return !s.access; });
+        var ua = unassigned.filter(function(s){ return s.access; });
+        std.innerHTML = us.length ? us.map(chipHTML).join('') : '<div class="muted-empty">All seated</div>';
+        acc.innerHTML = ua.length ? ua.map(chipHTML).join('') : '<div class="muted-empty">None</div>';
+
+        var host = document.getElementById('rooms');
+        if(!rooms.length){
+            host.innerHTML = '<div class="alert alert-warning w-100">No rooms for this centre. '+
+                '<a href="/exam_rooms">Add exam rooms</a> and set their centre.</div>';
+            wireDnD(); return;
+        }
+        // occupancy lookup
+        var cellAt = {};
+        Object.keys(seatOf).forEach(function(sid){
+            var p=seatOf[sid]; cellAt[p.room_id+':'+p.row+':'+p.column]=sid;
         });
-    </script>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
-</html>
+        host.innerHTML = rooms.map(function(room){
+            var used = Object.keys(seatOf).filter(function(sid){ return seatOf[sid].room_id===room.room_id; }).length;
+            var cap = room.rows * room.columns;
+            var grid = '<table class="seat-grid"><tbody>';
+            for(var r=0;r<room.rows;r++){
+                grid += '<tr>';
+                for(var c=0;c<room.columns;c++){
+                    var sid = cellAt[room.room_id+':'+r+':'+c];
+                    var inner = sid!=null ? chipHTML(studentById[sid]) : '';
+                    grid += '<td class="seat-cell" data-room="'+room.room_id+'" data-row="'+r+'" data-col="'+c+'">'+inner+'</td>';
+                }
+                grid += '</tr>';
+            }
+            grid += '</tbody></table>';
+            var centre = room.centre ? ' · '+esc(room.centre) : '';
+            return '<div class="room-card"><h6><span>'+esc(room.room_name)+centre+
+                '</span><span class="cap">'+used+' / '+cap+'</span></h6><div class="seat-wrap">'+grid+'</div></div>';
+        }).join('');
+        wireDnD();
+    }
+
+    // ---- drag & drop ---------------------------------------------------------
+    var dragSid = null;
+    function wireDnD(){
+        document.querySelectorAll('#planner .chip').forEach(function(chip){
+            chip.addEventListener('dragstart', function(e){
+                dragSid = parseInt(chip.getAttribute('data-sid'),10);
+                e.dataTransfer.effectAllowed='move';
+                try{ e.dataTransfer.setData('text/plain', String(dragSid)); }catch(err){}
+            });
+        });
+        document.querySelectorAll('#planner .seat-cell, #planner .drop-list').forEach(function(zone){
+            zone.addEventListener('dragover', function(e){ e.preventDefault(); zone.classList.add('dragover'); });
+            zone.addEventListener('dragleave', function(){ zone.classList.remove('dragover'); });
+            zone.addEventListener('drop', function(e){
+                e.preventDefault(); zone.classList.remove('dragover');
+                if(dragSid==null) return;
+                if(zone.getAttribute('data-drop')==='unassigned'){
+                    delete seatOf[dragSid];              // send back to the pool
+                } else {
+                    dropOnCell(dragSid, parseInt(zone.getAttribute('data-room'),10),
+                               parseInt(zone.getAttribute('data-row'),10),
+                               parseInt(zone.getAttribute('data-col'),10));
+                }
+                dragSid=null; render();
+            });
+        });
+    }
+    function dropOnCell(sid, room_id, row, col){
+        var fromSeat = seatOf[sid] ? {room_id:seatOf[sid].room_id,row:seatOf[sid].row,column:seatOf[sid].column} : null;
+        // who currently sits in the target cell?
+        var occupant = null;
+        Object.keys(seatOf).forEach(function(k){
+            var p=seatOf[k];
+            if(p.room_id===room_id && p.row===row && p.column===col) occupant=parseInt(k,10);
+        });
+        if(occupant===sid) return;
+        seatOf[sid] = {room_id:room_id, row:row, column:col};
+        if(occupant!=null){
+            if(fromSeat) seatOf[occupant]=fromSeat;   // swap
+            else delete seatOf[occupant];             // bump to unassigned
+        }
+    }
+
+    // ---- actions -------------------------------------------------------------
+    function autoAssign(){
+        if(!currentDate) return;
+        msg('Auto-assigning…','info');
+        fetch('/auto_assign_seating',{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({date:currentDate, centre:centreVal()})})
+            .then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+            .then(function(res){
+                if(!res.ok){ msg(res.j.error||'Auto-assign failed.','danger'); return; }
+                var parts = ['Seated <b>'+res.j.seated+'</b> candidate(s)'];
+                if(res.j.access_count) parts.push('<b>'+res.j.access_count+'</b> access-arrangement candidate(s) left for you to place');
+                if(res.j.unplaced && res.j.unplaced.length) parts.push('<b>'+res.j.unplaced.length+'</b> without a seat (not enough capacity)');
+                msg(parts.join(' · '), res.j.unplaced && res.j.unplaced.length ? 'warning':'success');
+                loadDate(currentDate);
+            })
+            .catch(function(){ msg('Auto-assign failed.','danger'); });
+    }
+    function buildSeatPayload(){
+        return Object.keys(seatOf).map(function(sid){
+            var p=seatOf[sid]; var s=studentById[sid]||{};
+            return {student_id:parseInt(sid,10), room_id:p.room_id, row:p.row, column:p.column, exam_id:s.exam_id};
+        });
+    }
+    function save(){
+        if(!currentDate) return;
+        fetch('/save_seating_arrangement',{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({date:currentDate, centre:centreVal(), seats:buildSeatPayload()})})
+            .then(function(r){ return r.json(); })
+            .then(function(j){ msg('Saved '+(j.saved!=null?j.saved:'')+' seat(s).','success'); })
+            .catch(function(){ msg('Save failed.','danger'); });
+    }
+    function clearAll(){
+        if(!currentDate) return;
+        if(!confirm('Clear all seat allocations for this date & centre?')) return;
+        seatOf={}; render();
+        fetch('/save_seating_arrangement',{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({date:currentDate, centre:centreVal(), seats:[]})})
+            .then(function(r){ return r.json(); })
+            .then(function(){ msg('Cleared.','info'); });
+    }
+
+    // ---- calendar ------------------------------------------------------------
+    document.addEventListener('DOMContentLoaded', function(){
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            height: 560,
+            events: examData.map(function(paper){
+                return {
+                    title: paper.examBoard + ' ' + paper.tier + ' ' + paper.title + ' (' + paper.paperCode + ')',
+                    start: paper.date + (paper.startTime && paper.startTime.indexOf(':')>-1 ? 'T'+paper.startTime : ''),
+                    color: boardColor(paper.examBoard),
+                    extendedProps: { ...paper }
+                };
+            }),
+            dateClick: function(info){ loadDate(info.dateStr); },
+            eventClick: function(info){ loadDate(info.event.startStr.substring(0,10)); }
+        });
+        calendar.render();
+
+        document.getElementById('autoBtn').addEventListener('click', autoAssign);
+        document.getElementById('saveBtn').addEventListener('click', save);
+        document.getElementById('clearBtn').addEventListener('click', clearAll);
+        document.getElementById('centreSelect').addEventListener('change', function(){
+            if(currentDate) loadDate(currentDate);
+        });
+    });
+})();
+</script>
+{% endblock %}

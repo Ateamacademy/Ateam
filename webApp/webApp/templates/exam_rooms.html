@@ -1,37 +1,53 @@
-<head>
-    <title> View Exam Rooms </title>
-
-</head>
-
 {% extends "base_page.html" %}
 
 {% block middleContent %}
-<h1 class="my-4">Manage Exam Rooms</h1>
+<h1 class="h3 my-4 text-gray-800">Manage Exam Rooms</h1>
 
 <div class="mb-3">
-    <button class="btn btn-primary" data-toggle="modal" data-target="#addRoomModal">Add Room</button>
+    <button class="btn btn-primary" data-toggle="modal" data-target="#addRoomModal">
+        <i class="fas fa-plus"></i> Add Room
+    </button>
+    <a href="/exam_room_allocation" class="btn btn-outline-primary ml-2">
+        <i class="fas fa-chair"></i> Seating planner
+    </a>
 </div>
 
 <!-- Existing Rooms List -->
-<div id="rooms-list">
-    <h2>Existing Rooms</h2>
+<div id="rooms-list" class="card shadow mb-4">
+    <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">Existing Rooms</h6></div>
+    <div class="card-body">
     {% if rooms %}
-        <ul class="list-group">
+        <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead><tr><th>Room</th><th>Capacity</th><th>Centre</th><th></th></tr></thead>
+            <tbody>
             {% for room in rooms %}
-                <li class="list-group-item" id="room-{{ room.id }}">
-                    <strong>{{ room.name }}</strong> ({{ room.max_rows }} rows x {{ room.max_columns }} columns)
-                    <!-- <button class="btn btn-info btn-sm float-right ml-2" data-toggle="modal" data-target="#assignRoomModal" data-room-id="{{ room.id }}">Assign Exam</button> -->
-                    <a href="/edit_exam_room?room_id={{room.id}}"> <button class="btn btn-primary btn-sm float-right ml-2"> Edit room </button> </a>
-
-                </li>
+                <tr id="room-{{ room.id }}">
+                    <td><strong>{{ room.name }}</strong></td>
+                    <td>{{ room.max_rows }} &times; {{ room.max_columns }}
+                        <span class="text-muted">({{ room.max_rows * room.max_columns }} seats)</span></td>
+                    <td>
+                        {% if room.centreID and centre_names.get(room.centreID) %}
+                            <span class="badge badge-info">{{ centre_names.get(room.centreID) }}</span>
+                        {% else %}
+                            <span class="badge badge-secondary">Unassigned</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right">
+                        <a href="/edit_exam_room?room_id={{ room.id }}" class="btn btn-outline-primary btn-sm">Edit</a>
+                    </td>
+                </tr>
             {% endfor %}
-        </ul>
+            </tbody>
+        </table>
+        </div>
     {% else %}
-        <p>No rooms available. Please create a room.</p>
+        <p class="mb-0 text-muted">No rooms available. Please create a room.</p>
     {% endif %}
+    </div>
 </div>
 
-<!-- Modal to Add Room -->
+<!-- Modal to Add Room (posts straight to the server) -->
 <div class="modal fade" id="addRoomModal" tabindex="-1" role="dialog" aria-labelledby="addRoomModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -41,121 +57,40 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <form id="addRoomForm">
+            <form method="POST" action="/exam_rooms">
+                <div class="modal-body">
                     <div class="form-group">
                         <label for="room-name">Room Name</label>
-                        <input type="text" id="room-name" class="form-control" required>
+                        <input type="text" name="name" id="room-name" class="form-control" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col">
+                            <label for="room-rows">Max Rows</label>
+                            <input type="number" name="max_rows" id="room-rows" class="form-control" required min="1">
+                        </div>
+                        <div class="form-group col">
+                            <label for="room-columns">Max Columns</label>
+                            <input type="number" name="max_columns" id="room-columns" class="form-control" required min="1">
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="room-rows">Max Rows</label>
-                        <input type="number" id="room-rows" class="form-control" required min="1">
+                        <label for="room-centre">Centre</label>
+                        <select name="centreID" id="room-centre" class="form-control">
+                            <option value="">— Unassigned —</option>
+                            {% for c in centres %}
+                            <option value="{{ c.centreID }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">The seating planner only seats a centre's own candidates in its rooms.</small>
                     </div>
-                    <div class="form-group">
-                        <label for="room-columns">Max Columns</label>
-                        <input type="number" id="room-columns" class="form-control" required min="1">
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Create Room</button>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
-
-<!-- Modal to View Room -->
-<div class="modal fade" id="viewRoomModal" tabindex="-1" role="dialog" aria-labelledby="viewRoomModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="viewRoomModalLabel">Room Layout</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="room-layout"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal to Assign Room -->
-<div class="modal fade" id="assignRoomModal" tabindex="-1" role="dialog" aria-labelledby="assignRoomModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="assignRoomModalLabel">Assign Students to Room</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <h5 id="exam-name"></h5>
-                <div id="seating-plan"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Room creation form submission
-        const addRoomForm = document.getElementById('addRoomForm');
-        addRoomForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            const roomName = document.getElementById('room-name').value;
-            const rows = parseInt(document.getElementById('room-rows').value);
-            const columns = parseInt(document.getElementById('room-columns').value);
-
-            // Create new room HTML element
-            const roomList = document.getElementById('rooms-list').querySelector('ul');
-            const newRoom = document.createElement('li');
-            newRoom.classList.add('list-group-item');
-            newRoom.innerHTML = `
-                <strong>${roomName}</strong> (${rows} rows x ${columns} columns)
-                <button class="btn btn-info btn-sm float-right ml-2" data-toggle="modal" data-target="#assignRoomModal" data-room-id="new">Assign Exam</button>
-            `;
-            roomList.appendChild(newRoom);
-
-            // Close the modal
-            $('#addRoomModal').modal('hide');
-        });
-
-        // Assign room modal opening
-        $('#assignRoomModal').on('show.bs.modal', function(event) {
-            const button = $(event.relatedTarget); // Button that triggered the modal
-            const roomId = button.data('room-id');
-            const modal = $(this);
-
-            // Get the exam details and dynamically generate the seating plan
-            const examName = "Sample Exam"; // You would retrieve this dynamically in your actual setup
-            const numStudents = 10; // Assume 10 students for this example
-            const rows = 3; // Example row count
-            const columns = 4; // Example column count
-
-            modal.find('#exam-name').text(`Exam: ${examName}`);
-            
-            // Generate the seating grid
-            const seatingPlan = document.getElementById('seating-plan');
-            seatingPlan.innerHTML = '';
-            for (let row = 0; row < rows; row++) {
-                const rowDiv = document.createElement('div');
-                rowDiv.classList.add('row');
-                for (let col = 0; col < columns; col++) {
-                    const seatDiv = document.createElement('div');
-                    seatDiv.classList.add('col');
-                    seatDiv.classList.add('border');
-                    seatDiv.classList.add('text-center');
-                    seatDiv.style.padding = '10px';
-                    seatDiv.style.margin = '5px';
-                    seatDiv.innerText = String.fromCharCode(65 + row) + (col + 1); // A1, B1, etc.
-                    rowDiv.appendChild(seatDiv);
-                }
-                seatingPlan.appendChild(rowDiv);
-            }
-        });
-    });
-</script>
 
 {% endblock %}

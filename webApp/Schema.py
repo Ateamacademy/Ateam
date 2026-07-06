@@ -1351,6 +1351,9 @@ class exam_student(db.Model):
     approved = Column(Boolean, default = True)
     active = Column(Boolean, default = True)
     notes = Column(String, default = "")
+    # The exam centre where this candidate sits their exams. Used by the seating
+    # planner to only seat a centre's own candidates (Birmingham vs London/Manchester).
+    centreID = Column(Integer, ForeignKey('centres.centreID'))
 
 def get_exam_students():
     # Join Students and ExamStudent, but only for those students where exam_student is True
@@ -1401,7 +1404,8 @@ def get_exam_students():
             'approved': exam_stud.approved,
             'candidate_number': exam_stud.candidate_number,
             'notes' : exam_stud.notes,
-            'message' : exam_stud.message
+            'message' : exam_stud.message,
+            'centreID' : exam_stud.centreID
 
             # Add more examStudent fields as necessary
         }
@@ -2626,11 +2630,14 @@ class ExamRoom(db.Model):
     name = db.Column(db.String, unique=True, nullable=False)
     max_rows = db.Column(db.Integer, nullable=False)
     max_columns = db.Column(db.Integer, nullable=False)
+    # Which centre this room belongs to, so the planner can filter rooms per centre.
+    centreID = db.Column(db.Integer, db.ForeignKey('centres.centreID'), nullable=True)
 
-    def __init__(self, name, max_rows, max_columns):
+    def __init__(self, name, max_rows, max_columns, centreID=None):
         self.name = name
         self.max_rows = max_rows
         self.max_columns = max_columns
+        self.centreID = centreID
 
 class RoomArrangements(db.Model):
     __tablename__ = 'room_arrangements'

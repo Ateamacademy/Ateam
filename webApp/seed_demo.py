@@ -1064,8 +1064,10 @@ def seed_extras():
 
     try:
         if exam_student.query.count() == 0:
-            # mark a handful of students as exam candidates with metadata
-            students = Students.query.limit(6).all()
+            # mark students as exam candidates with metadata, spread across centres
+            students = Students.query.limit(12).all()
+            centre_ids = [c.centreID for c in Centre.query.order_by(Centre.centreID).all()]
+            real_access = ["25% extra time", "Separate room", "Reader / scribe"]
             added = 0
             for i, stu in enumerate(students):
                 if exam_student.query.filter_by(studentID=stu.id).first():
@@ -1074,9 +1076,11 @@ def seed_extras():
                 es.studentID = stu.id
                 es.uci = f"UCI{stu.id:07d}"
                 es.uln = f"{1000000000 + stu.id}"
-                es.candidate_number = f"{1000 + i}"
-                es.access_arrangements = ("25% extra time"
-                                          if i % 3 == 0 else "None")
+                es.candidate_number = f"{1001 + i}"
+                # ~1 in 4 candidates has an access arrangement; the rest are blank
+                es.access_arrangements = (real_access[(i // 4) % len(real_access)]
+                                          if i % 4 == 0 else "")
+                es.centreID = centre_ids[i % len(centre_ids)] if centre_ids else None
                 es.message = ""
                 es.paid = (i % 2 == 0)
                 es.paid_amount = 45 if i % 2 == 0 else 0
@@ -1410,6 +1414,52 @@ def seed_extras():
     except Exception as e:  # noqa: BLE001
         db.session.rollback()
         print(f"[exam_rooms] section failed (continuing): {e}")
+
+    # ---- centre backfill (runs every boot; idempotent per row) ---------------
+    # Databases seeded before rooms/candidates had a centre get sensible values,
+    # and every centre is guaranteed at least two rooms, so the seating planner's
+    # per-centre auto-assign has somewhere to seat people.
+    try:
+        centre_ids = [c.centreID for c in Centre.query.order_by(Centre.centreID).all()]
+        if centre_ids:
+            fixed_rooms = 0
+            for i, room in enumerate(ExamRoom.query.order_by(ExamRoom.id).all()):
+                if getattr(room, "centreID", None) is None:
+                    room.centreID = centre_ids[i % len(centre_ids)]
+                    fixed_rooms += 1
+            if fixed_rooms:
+                db.session.commit()
+
+            made_rooms = 0
+            for cid in centre_ids:
+                cobj = Centre.query.filter_by(centreID=cid).first()
+                cname = cobj.name if cobj else f"Centre {cid}"
+                have = ExamRoom.query.filter_by(centreID=cid).count()
+                n = have + 1
+                while have < 2:
+                    rname = f"{cname} Room {n}"
+                    if not ExamRoom.query.filter_by(name=rname).first():
+                        db.session.add(ExamRoom(rname, 5, 5, cid))
+                        made_rooms += 1
+                        have += 1
+                    n += 1
+            if made_rooms:
+                db.session.commit()
+
+            fixed_cands = 0
+            for i, es in enumerate(exam_student.query.order_by(exam_student.studentID).all()):
+                if getattr(es, "centreID", None) is None:
+                    es.centreID = centre_ids[i % len(centre_ids)]
+                    fixed_cands += 1
+            if fixed_cands:
+                db.session.commit()
+
+            if fixed_rooms or made_rooms or fixed_cands:
+                print(f"[centre_backfill] rooms_tagged:{fixed_rooms} "
+                      f"rooms_created:{made_rooms} candidates_tagged:{fixed_cands}")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[centre_backfill] section failed (continuing): {e}")
 
     try:
         if SeatingArrangement.query.count() == 0:

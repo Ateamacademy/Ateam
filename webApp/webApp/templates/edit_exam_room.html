@@ -21,6 +21,15 @@
                 <label for="max_columns">Columns:</label>
                 <input type="number" id="max_columns" name="max_columns" class="form-control" value="{{ room.max_columns }}" required min="1">
             </div>
+            <div class="form-group">
+                <label for="centreID">Centre:</label>
+                <select id="centreID" name="centreID" class="form-control">
+                    <option value="">— Unassigned —</option>
+                    {% for c in centres %}
+                    <option value="{{ c.centreID }}" {% if room.centreID == c.centreID %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <button type="submit" class="btn btn-primary">Update Room</button>
             <a href="/exam_rooms" class="btn btn-secondary">Cancel</a>
         </form>

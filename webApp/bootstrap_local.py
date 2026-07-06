@@ -30,10 +30,44 @@ def _grant_all_permissions(obj):
             setattr(obj, column.name, True)
 
 
+# Columns added after the initial deploy. db.create_all() creates missing *tables*
+# but never alters an existing one, so on an already-provisioned database (e.g.
+# Render's) these have to be added by hand. Idempotent: only adds what's missing.
+_ADDED_COLUMNS = {
+    "exam_rooms": [("centreID", "INTEGER")],
+    "exam_student": [("centreID", "INTEGER")],
+}
+
+
+def _ensure_columns():
+    from sqlalchemy import inspect as sa_inspect, text
+    try:
+        inspector = sa_inspect(db.engine)
+    except Exception as exc:
+        print(f"[migrate] could not inspect schema (skipped): {exc}")
+        return
+    for table, columns in _ADDED_COLUMNS.items():
+        try:
+            if not inspector.has_table(table):
+                continue
+            existing = {c["name"] for c in inspector.get_columns(table)}
+            for name, coltype in columns:
+                if name not in existing:
+                    db.session.execute(
+                        text(f'ALTER TABLE {table} ADD COLUMN "{name}" {coltype}')
+                    )
+                    db.session.commit()
+                    print(f"[migrate] added {table}.{name}")
+        except Exception as exc:
+            db.session.rollback()
+            print(f"[migrate] {table} column check failed (non-fatal): {exc}")
+
+
 def main():
     with app.app_context():
         db.create_all()
         print("Tables created.")
+        _ensure_columns()
 
         # admin role
         admin_role = Roles.query.filter_by(name="admin").first()
