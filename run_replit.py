@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Replit entrypoint for the A-Team webApp (Flask).
 
-Replit's PostgreSQL add-on provides DATABASE_URL automatically. Set SECRET_KEY
-(and MAIL_NOREPLY_PASSWORD / MAIL_EXAMS_PASSWORD if outbound email is needed)
-in the Secrets pane. On the first run, bootstrap the database:
+Just import this repo into Replit, add the PostgreSQL tool (Tools pane -> it
+sets DATABASE_URL automatically), and press Run. On first start this creates the
+database tables and an admin login so you can sign in immediately with:
 
-    python3 webApp/bootstrap_local.py
+    admin@local  /  AdminLocal1
 
-then log in with admin@local / AdminLocal1. See README-REPLIT.md for details.
+Optional Secrets: SECRET_KEY (else a per-run key is used, so sessions reset on
+restart), MAIL_NOREPLY_PASSWORD / MAIL_EXAMS_PASSWORD (only for outbound email).
+See README-REPLIT.md for details.
 """
 import os
 import sys
@@ -20,6 +22,20 @@ os.chdir(APP_DIR)  # the app resolves file paths relative to this directory
 
 from webApp import app  # noqa: E402
 
+
+def _bootstrap_db() -> None:
+    """Create tables + an admin login on first run. Idempotent; safe every start."""
+    if not os.environ.get("DATABASE_URL"):
+        print("[run_replit] DATABASE_URL not set — add the PostgreSQL tool in Replit.")
+        return
+    try:
+        import bootstrap_local  # webApp/bootstrap_local.py
+        bootstrap_local.main()
+    except Exception as exc:  # non-fatal: the app can still serve static pages
+        print(f"[run_replit] DB bootstrap skipped/failed (non-fatal): {exc}")
+
+
 if __name__ == "__main__":
+    _bootstrap_db()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")),
             debug=False, use_reloader=False)
