@@ -288,3 +288,47 @@ label { font-weight: 600; color: var(--ink); }
 .alert-success { background: #e6f8f1; border-color: #bfeee0; color: #0f7a5a; border-radius: var(--radius-sm); }
 .alert-danger { background: #ffeef1; border-color: #ffd3da; color: #c73952; border-radius: var(--radius-sm); }
 .alert-info { background: var(--brand-50); border-color: var(--brand-100); color: var(--brand-800); border-radius: var(--radius-sm); }
+.alert-warning { background: #fff6e2; border-color: #ffe6b0; color: #a9791a; border-radius: var(--radius-sm); }
+
+/* ---- Page-specific polish (dashboards, charts, timetable) ---------------- */
+/* Solid colour cards used on the dashboards — keep them vivid but modern. */
+.card.bg-primary, .bg-gradient-primary { background: linear-gradient(135deg, var(--brand-500), var(--brand-700)) !important; }
+.card.bg-success, .bg-gradient-success { background: linear-gradient(135deg, #21c197, #0f9d74) !important; }
+.card.bg-info,    .bg-gradient-info    { background: linear-gradient(135deg, #7a94ff, #5b6ef0) !important; }
+.card.bg-warning, .bg-gradient-warning { background: linear-gradient(135deg, #ffcc5f, #f4a836) !important; }
+.card.bg-danger,  .bg-gradient-danger  { background: linear-gradient(135deg, #ff7a8b, #f5566c) !important; }
+.card.bg-secondary { background: #eceaf6 !important; color: var(--ink) !important; }
+.card.bg-dark { background: linear-gradient(135deg, #3a3563, var(--brand-900)) !important; }
+.card[class*="bg-"] .text-white-50 { color: rgba(255,255,255,0.75) !important; }
+
+/* Chart containers */
+.chart-area, .chart-bar { position: relative; height: 20rem; }
+.chart-pie { position: relative; height: 15rem; }
+
+/* Sidebar collapse toggles */
+#sidebarToggle, #sidebarToggleTop {
+  background: var(--brand-50) !important;
+  color: var(--brand-600) !important;
+  border-radius: 12px;
+}
+#sidebarToggle:hover, #sidebarToggleTop:hover { background: var(--brand-100) !important; }
+#sidebarToggleTop i, .topbar .fa-bars { color: var(--brand-600); }
+
+/* Timetable status blocks (softer, rounded) */
+.time-entry .approved { background-color: #12b886 !important; border-color: #12b886 !important; border-radius: 8px !important; }
+.time-entry .register { background-color: #f4b740 !important; border-color: #f4b740 !important; border-radius: 8px !important; }
+.timetable .header, .timetable .time-label { color: var(--ink-muted); }
+
+/* DataTables controls */
+.dataTables_wrapper .dataTables_length select,
+.dataTables_wrapper .dataTables_filter input { border-radius: 10px; border: 1px solid var(--line); }
+.page-item.active .page-link { background: var(--brand-600); border-color: var(--brand-600); }
+.page-link { color: var(--brand-600); }
+
+/* Icon circles (alerts/notifications dropdowns) */
+.icon-circle.bg-primary { background: var(--brand-600) !important; }
+.icon-circle.bg-success { background: #12b886 !important; }
+.icon-circle.bg-warning { background: #f4b740 !important; }
+
+/* Page headings SB Admin 2 uses */
+.h3.mb-0.text-gray-800, h1.h3 { color: var(--ink); font-weight: 800; }

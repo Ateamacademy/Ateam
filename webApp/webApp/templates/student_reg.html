@@ -11,13 +11,37 @@
 
     <script src="static\javascript\js\countrypicker.js"></script>
     <link rel="stylesheet" href="static\css\student_reg.css" >
-    
+    <link rel="stylesheet" href="static/css/ateam-modern.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   </head>
   <style>
-    body {
-      background-color: blue;
+    :root{
+      --brand-600:#6d53ec;--brand-700:#5b41d6;--brand-100:#ede9fe;--brand-400:#a78bfa;
+      --canvas:#f6f5fb;--ink:#1e1b39;--ink-muted:#6e6b8f;--ink-faint:#9c99b8;--line:#ece9f6;
     }
-
+    body{background:var(--canvas)!important;color:var(--ink);
+      font-family:'Plus Jakarta Sans',ui-sans-serif,system-ui,sans-serif!important;padding:8px 12px;}
+    #myCarousel{max-width:780px;margin:28px auto;}
+    #regForm{background:#fff;border-radius:22px;box-shadow:0 12px 40px -18px rgba(46,35,103,.22);
+      padding:34px 30px;height:auto!important;}
+    #regForm h1{font-size:1.85rem;font-weight:800;letter-spacing:-0.02em;color:var(--ink);margin-bottom:4px;}
+    #regForm h2{font-size:1.15rem;font-weight:700;color:var(--ink);margin:6px 0 18px;}
+    #regForm label{font-weight:600;color:var(--ink);}
+    #regForm input:not([type=checkbox]):not([type=radio]):not([type=file]),
+    #regForm select,#regForm textarea{
+      width:100%;min-height:46px;border:1px solid var(--line);border-radius:13px;
+      padding:0 15px;font-size:.95rem;color:var(--ink);background:#fff;
+      font-family:inherit;transition:.15s;}
+    #regForm textarea{padding:12px 15px;}
+    #regForm input::placeholder{color:var(--ink-faint);}
+    #regForm input:focus,#regForm select:focus,#regForm textarea:focus{
+      outline:none;border-color:var(--brand-400);box-shadow:0 0 0 3px var(--brand-100);}
+    #regForm p{margin-bottom:14px;}
+    .step{height:11px;width:11px;background:#e2ddf3;border-radius:50%;display:inline-block;
+      margin:0 4px;opacity:1;transition:.2s;}
+    .step.active{background:var(--brand-600);transform:scale(1.15);}
+    .step.finish{background:#12b886;}
+    #regForm .btn-lg{border-radius:13px;font-weight:700;padding:.6rem 1.4rem;}
   </style>
   <body> 
    
