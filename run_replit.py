@@ -20,6 +20,12 @@ APP_DIR = os.path.join(BASE, "webApp")
 sys.path.insert(0, APP_DIR)
 os.chdir(APP_DIR)  # the app resolves file paths relative to this directory
 
+# Some hosts (older Render, Heroku) hand out the deprecated "postgres://" URL
+# scheme; SQLAlchemy needs "postgresql://". Normalise before the app reads it.
+_db_url = os.environ.get("DATABASE_URL", "")
+if _db_url.startswith("postgres://"):
+    os.environ["DATABASE_URL"] = "postgresql://" + _db_url[len("postgres://"):]
+
 from webApp import app  # noqa: E402
 
 

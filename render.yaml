@@ -1,0 +1,36 @@
+# Render Blueprint for the A-Team Academy Flask app.
+#
+# One-time setup: in Render -> New -> Blueprint, connect the Ateamacademy/Ateam
+# repo. Render reads this file and provisions:
+#   - a free PostgreSQL database (ateam-db)
+#   - a web service (ateam-academy) that auto-deploys on every push to main
+#
+# The web service binds to Render's $PORT, and run_replit.py creates the tables
+# + an admin login (admin@local / AdminLocal1) on first boot. See RENDER.md.
+
+databases:
+  - name: ateam-db
+    databaseName: ateam
+    plan: free
+    region: frankfurt   # closest free region to the UK
+
+services:
+  - type: web
+    name: ateam-academy
+    runtime: python
+    plan: free
+    region: frankfurt
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: python3 run_replit.py
+    envVars:
+      # Render injects the database connection string here automatically.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ateam-db
+          property: connectionString
+      # Signs Flask sessions; generated once and kept stable across restarts.
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: "3.11.9"
