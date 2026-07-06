@@ -2,9 +2,10 @@
 <html lang="en">
 
 <head>
-    <title>A-Team Academy Log in</title>
-    <link rel="stylesheet" href="static/css/login.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>A-Team Academy — Log in</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-3HHJ0RP8MJ"></script>
     <script>
@@ -13,41 +14,109 @@
         gtag('js', new Date());
         gtag('config', 'G-3HHJ0RP8MJ');
     </script>
+    <style>
+        :root{
+            --brand-600:#6d53ec; --brand-700:#5b41d6; --brand-900:#2e2367;
+            --brand-50:#f5f3ff; --brand-100:#ede9fe; --canvas:#f6f5fb;
+            --ink:#1e1b39; --ink-muted:#6e6b8f; --ink-faint:#9c99b8; --line:#ece9f6;
+        }
+        *{box-sizing:border-box;margin:0;padding:0;font-family:'Plus Jakarta Sans',ui-sans-serif,system-ui,sans-serif;}
+        body{min-height:100vh;display:grid;grid-template-columns:1fr;background:var(--canvas);color:var(--ink);}
+        @media(min-width:900px){ body{grid-template-columns:1.05fr 1fr;} }
+
+        /* Brand panel */
+        .brand{position:relative;overflow:hidden;display:none;color:#fff;
+            background:linear-gradient(135deg,var(--brand-600),var(--brand-700) 45%,var(--brand-900));
+            padding:56px;flex-direction:column;justify-content:space-between;}
+        @media(min-width:900px){ .brand{display:flex;} }
+        .brand .glow{position:absolute;border-radius:999px;filter:blur(60px);}
+        .brand .glow.a{width:280px;height:280px;background:rgba(255,255,255,.14);top:-70px;right:-60px;}
+        .brand .glow.b{width:320px;height:320px;background:rgba(167,139,250,.35);bottom:-110px;left:-60px;}
+        .brand .top{display:flex;align-items:center;gap:12px;position:relative;z-index:1;}
+        .brand .logo{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.15);
+            display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
+        .brand .logo img{width:28px;border-radius:6px;}
+        .brand .name{font-weight:800;font-size:1.15rem;}
+        .brand .mid{position:relative;z-index:1;max-width:440px;}
+        .brand .pill{display:inline-block;background:rgba(255,255,255,.12);padding:6px 14px;border-radius:999px;
+            font-size:.78rem;font-weight:600;backdrop-filter:blur(6px);}
+        .brand h2{font-size:2rem;font-weight:800;line-height:1.2;margin-top:20px;letter-spacing:-0.02em;}
+        .brand p{margin-top:12px;color:rgba(255,255,255,.82);font-size:.95rem;line-height:1.6;}
+        .brand .foot{position:relative;z-index:1;font-size:.78rem;color:rgba(255,255,255,.6);}
+
+        /* Form panel */
+        .panel{display:flex;align-items:center;justify-content:center;padding:40px 24px;}
+        .card{width:100%;max-width:380px;}
+        .card .m-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px;}
+        @media(min-width:900px){ .card .m-logo{display:none;} }
+        .card .m-logo img{width:36px;border-radius:8px;}
+        .card .m-logo span{font-weight:800;font-size:1.1rem;}
+        .card h1{font-size:1.9rem;font-weight:800;letter-spacing:-0.02em;}
+        .card .sub{color:var(--ink-muted);margin-top:6px;font-size:.95rem;}
+        form{margin-top:26px;display:flex;flex-direction:column;gap:16px;}
+        .field label{display:block;font-weight:600;font-size:.85rem;margin-bottom:6px;}
+        .field input{width:100%;height:48px;border:1px solid var(--line);border-radius:14px;
+            padding:0 16px;font-size:.95rem;color:var(--ink);background:#fff;transition:.15s;}
+        .field input::placeholder{color:var(--ink-faint);}
+        .field input:focus{outline:none;border-color:var(--brand-400,#a78bfa);box-shadow:0 0 0 3px var(--brand-100);}
+        button.submit{height:50px;border:none;border-radius:14px;background:var(--brand-600);color:#fff;
+            font-weight:700;font-size:.98rem;cursor:pointer;box-shadow:0 8px 24px -12px rgba(46,35,103,.4);transition:.15s;}
+        button.submit:hover{background:var(--brand-700);box-shadow:0 16px 40px -16px rgba(46,35,103,.5);}
+        .signup-row{margin-top:22px;text-align:center;color:var(--ink-muted);font-size:.9rem;}
+        .signup-row a{color:var(--brand-600);font-weight:700;text-decoration:none;}
+        .signup-row a:hover{text-decoration:underline;}
+    </style>
 </head>
 
 <body>
-
-    <div class="Title">
-        <img src='static/images/logo.png' style="border-radius:10px; opacity: 0.9" />
-        <h1>A-Team Academy</h1>
-        <p>Please log in to your account to view work and classes</p>
+    <!-- Brand panel -->
+    <div class="brand">
+        <span class="glow a"></span>
+        <span class="glow b"></span>
+        <div class="top">
+            <div class="logo"><img src="static/images/logo.png" alt=""></div>
+            <div class="name">A-Team Academy</div>
+        </div>
+        <div class="mid">
+            <span class="pill">✦ Your learning universe</span>
+            <h2>Everything your centre needs, in one place.</h2>
+            <p>Students, timetables, attendance, results and finance — one calm,
+               connected workspace for your whole team.</p>
+        </div>
+        <div class="foot">Secure access for staff, tutors, students and parents.</div>
     </div>
 
-    <div class="main">
-        <input type="checkbox" id="chk" aria-hidden="true">
+    <!-- Form panel -->
+    <div class="panel">
+        <div class="card">
+            <div class="m-logo"><img src="static/images/logo.png" alt=""><span>A-Team Academy</span></div>
+            <h1>Welcome back</h1>
+            <p class="sub">Please log in to view your work and classes.</p>
 
-        <div class="signup">
-            <label for="chk" aria-hidden="true">Sign up as a new Student</label>
-            <a href="student_reg"> <button>Sign up</button> </a>
-        </div>
-
-        <div class="login">
             <form method="POST">
-                <label for="chk" aria-hidden="true">Login</label>
-                <input type="email" name="email" placeholder="Email" required="">
-                <input type="password" name="password" placeholder="Password" required="">
-                <button>Login</button>
+                <div class="field">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" name="email" placeholder="you@example.com" required>
+                </div>
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input id="password" type="password" name="password" placeholder="••••••••••••" required>
+                </div>
+                <button class="submit" type="submit">Log in</button>
             </form>
+
+            <div class="signup-row">
+                New student? <a href="student_reg">Create an account</a>
+            </div>
         </div>
     </div>
 
-    <!-- JavaScript alert for error message -->
     {% if error %}
     <script>
         alert("{{ error }}");
     </script>
     {% endif %}
-    
+
 </body>
 
 </html>
