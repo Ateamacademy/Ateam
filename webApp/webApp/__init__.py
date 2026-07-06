@@ -1512,18 +1512,24 @@ def Classroom_View():
     students2 = []
     unregisteredStudents = []
     
-    subjectID = Lesson.query.filter_by(lessonID=lessonID).first().subjectID
-    topic = lessonPlan.query.filter_by(subjectID=subjectID, weekNo=weekNo).first().topic
-    
     lessonInfo = Lesson.query.filter_by(lessonID = lessonID).first()
+    if lessonInfo is None:
+        abort(404, "That lesson could not be found.")
+    subjectID = lessonInfo.subjectID
+
+    # A lesson plan for this subject/week may not exist yet — don't 500 if so.
+    planEntry = lessonPlan.query.filter_by(subjectID=subjectID, weekNo=weekNo).first()
+    topic = planEntry.topic if planEntry else ""
+
     startTime = lessonInfo.startTime
     endTime = lessonInfo.endTime
-    centre = Centre.query.filter_by(centreID = lessonInfo.centreID).first().name
+    centreEntry = Centre.query.filter_by(centreID = lessonInfo.centreID).first()
+    centre = centreEntry.name if centreEntry else ""
     subject = Subject.query.filter_by(subjectID = subjectID).first()
     tutor = Staff.query.filter_by(id=lessonInfo.tutorID).first()
     days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
-    
-    info = {"startTime" : startTime, "endTime" : endTime, "centre" : centre, "centreid": lessonInfo.centreID, "subject" : subject.tier + " " + subject.title, "tutor" : tutor.firstName + " " + tutor.secondName, "tutorID" : tutor.id, "weekNo" : lessonInfo.weekNo, "day" : lessonInfo.day}
+
+    info = {"startTime" : startTime, "endTime" : endTime, "centre" : centre, "centreid": lessonInfo.centreID, "subject" : (subject.tier + " " + subject.title) if subject else "", "tutor" : (tutor.firstName + " " + tutor.secondName) if tutor else "", "tutorID" : tutor.id if tutor else None, "weekNo" : lessonInfo.weekNo, "day" : lessonInfo.day}
     
     if change_lesson_centre:
         centreList = Centre.query.all()
