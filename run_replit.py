@@ -40,6 +40,16 @@ def _bootstrap_db() -> None:
     except Exception as exc:  # non-fatal: the app can still serve static pages
         print(f"[run_replit] DB bootstrap skipped/failed (non-fatal): {exc}")
 
+    # Optional realistic (fake) demo data, so the app looks populated. Enabled
+    # via SEED_DEMO=1. Idempotent — seed_demo() skips if students already exist.
+    if os.environ.get("SEED_DEMO") == "1":
+        try:
+            import seed_demo  # webApp/seed_demo.py
+            with app.app_context():
+                seed_demo.seed_demo()
+        except Exception as exc:
+            print(f"[run_replit] demo seed skipped/failed (non-fatal): {exc}")
+
 
 if __name__ == "__main__":
     _bootstrap_db()

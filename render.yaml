@@ -34,3 +34,7 @@ services:
         generateValue: true
       - key: PYTHON_VERSION
         value: "3.11.9"
+      # Load realistic (fake) demo data on first boot so the app looks populated.
+      # Idempotent — skipped once the database already has students.
+      - key: SEED_DEMO
+        value: "1"
