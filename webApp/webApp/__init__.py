@@ -16,6 +16,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from Schema import *
 from functions import *
 from seating import plan_seating
+from clashes import group_clashes, time_range_str
 from predicted_paper_generation import *
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, current_user, logout_user, login_required, UserMixin, LoginManager, AnonymousUserMixin
@@ -3107,6 +3108,77 @@ def exam_calendar():
 
     centres = [{'id': c.centreID, 'name': c.name} for c in Centre.query.order_by(Centre.name).all()]
     return render_template("exam_room_allocation.html", exam_data=exam_data, centres=centres)
+
+
+def _gather_clash_entries(centre_id=None, student_id=None):
+    """One entry per (candidate, dated paper) registration, for clash detection.
+
+    Everything is bulk-loaded up front (and scoped to one student when
+    student_id is given) so the loop below never queries per row.
+    """
+    exams_by_id = {e.examID: e for e in Exams.query.all()}
+    centre_names = {c.centreID: c.name for c in Centre.query.all()}
+
+    reg_query = studentExam.query
+    profile_query = exam_student.query
+    if student_id is not None:
+        reg_query = reg_query.filter_by(studentID=student_id)
+        profile_query = profile_query.filter_by(studentID=student_id)
+    regs_by_exam = {}
+    for reg in reg_query.all():
+        regs_by_exam.setdefault(reg.examID, []).append(reg.studentID)
+    profiles = {p.studentID: p for p in profile_query.all()}
+
+    entries = []
+    names = {}
+    for paper in ExamPapers.query.all():
+        if paper.date is None:
+            continue  # unscheduled papers can't clash
+        exam = exams_by_id.get(paper.examID)
+        exam_label = f"{exam.examBoard} {exam.tier} {exam.title}" if exam else f"Exam {paper.examID}"
+        for sid in regs_by_exam.get(paper.examID, []):
+            profile = profiles.get(sid)
+            s_centre = profile.centreID if profile else None
+            if centre_id and s_centre != centre_id:
+                continue
+            if sid not in names:
+                names[sid] = getStudent(sid)
+            entries.append({
+                'student_id': sid,
+                'name': names[sid],
+                'candidate_number': profile.candidate_number if profile else None,
+                'centre': centre_names.get(s_centre),
+                'exam_id': paper.examID,
+                'exam': exam_label,
+                'paper_code': paper.paperCode,
+                'paper_no': paper.paperNo,
+                'date': paper.date,
+                'start': paper.startTime,
+                'duration': paper.duration,
+            })
+    return entries
+
+
+@app.route('/exam_clashes')
+@login_required
+def exam_clashes():
+    check_maintenance()
+    centre_id = _resolve_centre_id(request.args.get('centre'))
+
+    clash_list = group_clashes(_gather_clash_entries(centre_id))
+    for clash in clash_list:
+        clash['date_str'] = clash['date'].strftime('%a %d %b %Y')
+        for p in clash['papers']:
+            p['time_str'] = time_range_str(clash['date'], p['start'], p['duration'])
+
+    overlap_count = sum(1 for c in clash_list if c['severity'] == 'overlap')
+    centres = Centre.query.order_by(Centre.name).all()
+    return render_template('exam_clashes.html',
+                           clashes=clash_list,
+                           overlap_count=overlap_count,
+                           same_day_count=len(clash_list) - overlap_count,
+                           centres=centres,
+                           selected_centre=centre_id)
 
 @app.route("/approveHours")
 @login_required
@@ -7057,7 +7129,21 @@ def assign_exams():
         db.session.commit()
         db.session.add(log(role = getUserRole(current_user.id), message=f" ({getUserName(current_user.id)}):  has just added  { ', '.join([getExam(examID) for examID in examIDs])} to {getStudent(studentID)}",  date=datetime.utcnow()))
         db.session.commit()
-        return jsonify({'message': 'Exams assigned successfully'}), 200
+
+        # Warn the officer immediately if this assignment creates timetable
+        # clashes (overlapping or same-day papers) for the student.
+        clash_msgs = []
+        try:
+            for clash in group_clashes(_gather_clash_entries(student_id=int(studentID))):
+                papers = "  vs  ".join(
+                    f"{p['exam']} {p['paper_code']} ({time_range_str(clash['date'], p['start'], p['duration'])})"
+                    for p in clash['papers'])
+                kind = "OVERLAP" if clash['severity'] == 'overlap' else "same day"
+                clash_msgs.append(f"{clash['date'].strftime('%d %b %Y')} ({kind}): {papers}")
+        except Exception as clash_err:  # warnings must never block the save
+            print(f"clash check failed (non-fatal): {clash_err}")
+
+        return jsonify({'message': 'Exams assigned successfully', 'clashes': clash_msgs}), 200
     except Exception as e:
         db.session.rollback()
         print(e)
@@ -7642,34 +7728,46 @@ def _gather_seating_context(date_str, centre_id=None):
 
     # Candidates registered for any paper sat on this date (one row per candidate).
     papers = ExamPapers.query.filter_by(date=date_obj).all()
+    paper_exam_ids = list({p.examID for p in papers})
+    exams_by_id = ({e.examID: e for e in
+                    Exams.query.filter(Exams.examID.in_(paper_exam_ids)).all()}
+                   if paper_exam_ids else {})
+
+    reg_pairs = []          # (paper, studentID) for every registration that day
+    exams_of_student = {}   # sid -> distinct examIDs that day; 2+ = clash to check
+                            # (same exam's own papers on one day is normal, so we
+                            #  count exams — matching the clashes page's rule)
+    for paper in papers:
+        for reg in studentExam.query.filter_by(examID=paper.examID).all():
+            reg_pairs.append((paper, reg.studentID))
+            exams_of_student.setdefault(reg.studentID, set()).add(paper.examID)
+    exams_today = {sid: len(ids) for sid, ids in exams_of_student.items()}
+
     students = []
     seen = set()
-    for paper in papers:
-        exam = Exams.query.filter_by(examID=paper.examID).first()
-        board = exam.examBoard if exam else None
-        title = exam.title if exam else None
-        for reg in studentExam.query.filter_by(examID=paper.examID).all():
-            sid = reg.studentID
-            if sid in seen:
-                continue
-            seen.add(sid)
-            profile = exam_student.query.filter_by(studentID=sid).first()
-            access_txt = (profile.access_arrangements if profile else None) or ""
-            s_centre = profile.centreID if profile else None
-            if centre_id and s_centre != centre_id:
-                continue
-            students.append({
-                'id': sid,
-                'name': getStudent(sid),
-                'candidate_number': profile.candidate_number if profile else None,
-                'board': board,
-                'title': title,
-                'exam_id': paper.examID,
-                'access_arrangements': access_txt,
-                'access': _has_access(access_txt),
-                'centreID': s_centre,
-                'centre': _centre_name(s_centre),
-            })
+    for paper, sid in reg_pairs:
+        if sid in seen:
+            continue
+        seen.add(sid)
+        exam = exams_by_id.get(paper.examID)
+        profile = exam_student.query.filter_by(studentID=sid).first()
+        access_txt = (profile.access_arrangements if profile else None) or ""
+        s_centre = profile.centreID if profile else None
+        if centre_id and s_centre != centre_id:
+            continue
+        students.append({
+            'id': sid,
+            'name': getStudent(sid),
+            'candidate_number': profile.candidate_number if profile else None,
+            'board': exam.examBoard if exam else None,
+            'title': exam.title if exam else None,
+            'exam_id': paper.examID,
+            'access_arrangements': access_txt,
+            'access': _has_access(access_txt),
+            'centreID': s_centre,
+            'centre': _centre_name(s_centre),
+            'exams_today': exams_today.get(sid, 1),
+        })
 
     # Saved seats for the date, limited to the rooms in scope.
     room_ids = {r['room_id'] for r in rooms}
@@ -7679,7 +7777,7 @@ def _gather_seating_context(date_str, centre_id=None):
             continue
         seat_map[seat.student_id] = {'room_id': seat.room_id, 'row': seat.row, 'column': seat.column}
 
-    return rooms, students, seat_map
+    return rooms, students, seat_map, exams_today
 
 
 @app.route('/get_seating_arrangements', methods=['GET'])
@@ -7691,7 +7789,7 @@ def get_seating_arrangements():
     centre_id = _resolve_centre_id(request.args.get('centre'))
 
     try:
-        rooms, students, seat_map = _gather_seating_context(date, centre_id)
+        rooms, students, seat_map, exams_today = _gather_seating_context(date, centre_id)
     except (ValueError, TypeError):
         return jsonify({'error': 'Invalid date'}), 400
 
@@ -7719,6 +7817,9 @@ def get_seating_arrangements():
             'exam_id': s['exam_id'] if s else None,
             'access': s['access'] if s else False,
             'access_arrangements': s['access_arrangements'] if s else "",
+            # counted over ALL of the day's registrations (not just the current
+            # centre scope), so out-of-scope seated chips keep their clash flag
+            'exams_today': exams_today.get(sid, 1),
         })
 
     return jsonify({'rooms': rooms, 'students': students})
@@ -7734,7 +7835,7 @@ def auto_assign_seating():
     centre_id = _resolve_centre_id(data.get('centre'))
 
     try:
-        rooms, students, _ = _gather_seating_context(date, centre_id)
+        rooms, students, _, _ = _gather_seating_context(date, centre_id)
         date_obj = datetime.strptime(date, '%Y-%m-%d').date()
     except (ValueError, TypeError):
         return jsonify({'error': 'Invalid date'}), 400

@@ -642,7 +642,13 @@
         })
         .then(response => response.json())
         .then(data => {
-            alert('Exams updated successfully!');
+            if (data.clashes && data.clashes.length) {
+                alert('Exams updated — WARNING, this student now has timetable clashes:\n\n'
+                      + data.clashes.join('\n')
+                      + '\n\nSee the Exam Clashes page for the full list.');
+            } else {
+                alert('Exams updated successfully!');
+            }
             $('#examModal').modal('hide');
             // Optionally, reload the page or update the UI
         })

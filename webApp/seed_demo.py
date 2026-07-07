@@ -1515,6 +1515,35 @@ def seed_extras():
         db.session.rollback()
         print(f"[venue_migration] section failed (continuing): {e}")
 
+    # ---- demo clash (runs ONCE, marked by a SeedFlag) -------------------------
+    # Register one candidate for both demo exams and overlap their first papers,
+    # so the Exam Clashes page has something real to show. One-shot: once the
+    # officer resolves it (moves a paper / drops an entry), it never comes back.
+    try:
+        _CLASH_FLAG = "clash_demo_v1"
+        if not SeedFlag.query.get(_CLASH_FLAG):
+            exams = Exams.query.order_by(Exams.examID).limit(2).all()
+            if len(exams) == 2:
+                paper_a = ExamPapers.query.filter_by(examID=exams[0].examID, paperNo=1).first()
+                paper_b = ExamPapers.query.filter_by(examID=exams[1].examID, paperNo=1).first()
+                reg_a = studentExam.query.filter_by(examID=exams[0].examID).first()
+                if paper_a and paper_b and paper_a.date and paper_a.startTime and reg_a:
+                    # second exam's paper starts an hour into the first one
+                    paper_b.date = paper_a.date
+                    paper_b.startTime = (datetime.datetime.combine(paper_a.date, paper_a.startTime)
+                                         + datetime.timedelta(minutes=60)).time()
+                    if not studentExam.query.filter_by(studentID=reg_a.studentID,
+                                                       examID=exams[1].examID).first():
+                        db.session.add(studentExam(studentID=reg_a.studentID,
+                                                   examID=exams[1].examID))
+                    print(f"[clash_demo] candidate {reg_a.studentID} now sits both exams "
+                          f"on {paper_a.date} (overlapping)")
+            db.session.add(SeedFlag(_CLASH_FLAG))
+            db.session.commit()
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[clash_demo] section failed (continuing): {e}")
+
     try:
         if SeatingArrangement.query.count() == 0:
             room = ExamRoom.query.first()

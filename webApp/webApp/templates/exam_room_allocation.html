@@ -32,6 +32,7 @@
         letter-spacing: .03em; background: rgba(255,255,255,.28); border-radius: .3rem;
         padding: 0 .25rem; margin-left: .25rem; }
     .chip.access .tag { background: #f6c23e; color: #493700; }
+    .chip .tag.clash-tag { background: #e74a3b; color: #fff; }
 
     .room-card { border: 1px solid #e3e6f0; border-radius: .6rem; overflow: hidden;
         background: #fff; box-shadow: 0 .1rem .5rem rgba(0,0,0,.05); }
@@ -65,6 +66,7 @@
                 {% endfor %}
             </select>
             <a href="/exam_rooms" class="btn btn-sm btn-outline-secondary ml-2">Manage rooms</a>
+            <a href="/exam_clashes" class="btn btn-sm btn-outline-danger ml-2">Clashes</a>
         </div>
     </div>
 
@@ -153,7 +155,8 @@
                             studentById[seat.student_id] = {
                                 id: seat.student_id, name: seat.name, candidate_number: seat.candidate_number,
                                 board: seat.board, exam_id: seat.exam_id, access: seat.access,
-                                access_arrangements: seat.access_arrangements
+                                access_arrangements: seat.access_arrangements,
+                                exams_today: seat.exams_today
                             };
                         }
                     });
@@ -170,10 +173,14 @@
         var tag = s.access
             ? '<span class="tag" title="'+esc(s.access_arrangements||'Access arrangement')+'">access</span>'
             : (s.board ? '<span class="tag">'+esc(s.board)+'</span>' : '');
+        var clashTag = (s.exams_today && s.exams_today > 1)
+            ? '<span class="tag clash-tag" title="Sits '+s.exams_today+' different exams this day — check the clashes page">'+
+              s.exams_today+' exams</span>'
+            : '';
         var style = s.access ? '' : 'background:'+boardColor(s.board)+';';
         return '<div class="chip'+access+'" draggable="true" data-sid="'+s.id+'" style="'+style+'" '+
                'title="'+esc(s.name)+(s.board?(' · '+esc(s.board)):'')+'">'+
-               '<span class="cand">'+cand+'</span>'+tag+
+               '<span class="cand">'+cand+'</span>'+tag+clashTag+
                '<span class="nm">'+esc(s.name)+'</span></div>';
     }
 
