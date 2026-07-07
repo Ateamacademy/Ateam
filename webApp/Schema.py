@@ -2639,6 +2639,16 @@ class ExamRoom(db.Model):
         self.max_columns = max_columns
         self.centreID = centreID
 
+class SeedFlag(db.Model):
+    # One-shot markers for data migrations run by the seeder, so a backfill can
+    # run exactly once and never fight later hand-edits (renames/deletes).
+    __tablename__ = 'seed_flags'
+    name = db.Column(db.String, primary_key=True)
+
+    def __init__(self, name):
+        self.name = name
+
+
 class RoomArrangements(db.Model):
     __tablename__ = 'room_arrangements'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

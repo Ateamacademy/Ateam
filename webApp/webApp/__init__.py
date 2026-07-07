@@ -3574,7 +3574,8 @@ def manage_exam_rooms():
     rooms = ExamRoom.query.all()
     centres = Centre.query.order_by(Centre.name).all()
     centre_names = {c.centreID: c.name for c in centres}
-    return render_template('exam_rooms.html', rooms=rooms, centres=centres, centre_names=centre_names)
+    return render_template('exam_rooms.html', rooms=rooms, centres=centres,
+                           centre_names=centre_names, is_admin=current_user.is_admin())
 
 # Route to edit an existing exam room
 @app.route('/edit_exam_room', methods=['GET', 'POST'])
@@ -6744,10 +6745,10 @@ def send_grade_boundaries():
 @login_required
 def create_centre():
     if current_user.is_admin():
-        name = request.form.get('name')
+        name = (request.form.get('name') or '').strip()[:30]
         capacity = request.form.get('capacity')
         room_number = request.form.get('room_number', 0)
-        address = request.form.get('address', '')
+        address = (request.form.get('address') or '')[:100]
         admin_id = request.form.get('admin_id', 1)
         alias = request.form.get('alias', '')
 
@@ -6759,9 +6760,43 @@ def create_centre():
         db.session.add(log(role = getUserRole(current_user.id), message=" (" + getUserName(current_user.id) + "):  has just created the centre: " + name,   date=datetime.utcnow()))
         db.session.commit()
 
-        return redirect(url_for('centre_overview'))
-    else: 
+        return redirect(_safe_next('centre_overview'))
+    else:
         abort(400, )
+
+
+@app.route('/edit_centre', methods=['POST'])
+@login_required
+def edit_centre():
+    # Rename / re-address a centre. Centres could only ever be created, never
+    # edited, which left mis-named centres stuck in every dropdown.
+    if not current_user.is_admin():
+        abort(403)
+    try:
+        centre_id = int(request.form.get('centreID'))
+    except (TypeError, ValueError):
+        abort(400)
+    centre = Centre.query.get_or_404(centre_id)
+
+    old_name = centre.name
+    # clamp to the column sizes (String(30)/String(100)) so Postgres can't 500
+    name = (request.form.get('name') or '').strip()[:30]
+    if name:
+        centre.name = name
+    if request.form.get('address') is not None:
+        centre.address = request.form.get('address').strip()[:100]
+    capacity = request.form.get('capacity')
+    if capacity:
+        try:
+            centre.capacity = int(capacity)
+        except ValueError:
+            pass
+    db.session.commit()
+
+    db.session.add(log(role=getUserRole(current_user.id), message=f" ({getUserName(current_user.id)}): updated centre '{old_name}' -> '{centre.name}'", date=datetime.utcnow()))
+    db.session.commit()
+    flash('Centre updated.', 'success')
+    return redirect(_safe_next('centre_overview'))
 
 @app.route('/register_trial_session', methods=['POST'])
 @login_required
@@ -7561,6 +7596,14 @@ def _centre_name(centre_id):
     return centre.name if centre else None
 
 
+def _safe_next(default_endpoint):
+    """Post-action redirect target: only same-site paths, else the default page."""
+    nxt = request.form.get('next') or ''
+    if nxt.startswith('/') and not nxt.startswith('//'):
+        return nxt
+    return url_for(default_endpoint)
+
+
 # Access-arrangement text that actually means "no arrangement" (legacy data stores
 # the literal string "None"), so those candidates aren't wrongly held back.
 _NO_ACCESS = ("", "none", "n/a", "na", "-", "no", "nil", "null")
@@ -7801,10 +7844,16 @@ def edit_exam_room(room_id):
 @app.route('/exam_rooms/delete/<int:room_id>', methods=['POST'])
 @login_required
 def delete_exam_room(room_id):
+    # destructive (removes saved seating plans too) — admins only
+    if not current_user.is_admin():
+        abort(403)
     room = ExamRoom.query.get_or_404(room_id)
+    # clear dependent seating first so the FK doesn't block the delete
+    SeatingArrangement.query.filter_by(room_id=room.id).delete()
+    RoomArrangements.query.filter_by(room_id=room.id).delete()
     db.session.delete(room)
     db.session.commit()
-    flash("Exam room deleted successfully!", "danger")
+    flash("Exam room deleted.", "danger")
     return redirect(url_for('manage_exam_rooms'))
 
 @app.route('/start_breakout_rooms', methods = ['POST', 'GET'])

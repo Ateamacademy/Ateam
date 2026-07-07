@@ -33,8 +33,14 @@
                             <span class="badge badge-secondary">Unassigned</span>
                         {% endif %}
                     </td>
-                    <td class="text-right">
+                    <td class="text-right text-nowrap">
                         <a href="/edit_exam_room?room_id={{ room.id }}" class="btn btn-outline-primary btn-sm">Edit</a>
+                        {% if is_admin %}
+                        <form method="POST" action="/exam_rooms/delete/{{ room.id }}" class="d-inline"
+                              onsubmit="return confirm('Delete this room? Any saved seats in it are removed too.');">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                        </form>
+                        {% endif %}
                     </td>
                 </tr>
             {% endfor %}
@@ -46,6 +52,46 @@
     {% endif %}
     </div>
 </div>
+
+<!-- Exam centres: rename / re-address existing centres, or add a new one -->
+{% if is_admin %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">Exam Centres</h6></div>
+    <div class="card-body">
+        <p class="small text-muted mb-3">These are the centre options rooms can be assigned to.
+            Rename one if it's wrong, or add the venue you actually use.</p>
+        {% for c in centres %}
+        <form method="POST" action="/edit_centre" class="form-row align-items-center mb-2">
+            <input type="hidden" name="centreID" value="{{ c.centreID }}">
+            <input type="hidden" name="next" value="/exam_rooms">
+            <div class="col-sm-3 mb-1">
+                <input type="text" name="name" class="form-control form-control-sm" value="{{ c.name }}" maxlength="30" required>
+            </div>
+            <div class="col-sm-5 mb-1">
+                <input type="text" name="address" class="form-control form-control-sm"
+                       value="{{ c.address or '' }}" placeholder="Address" maxlength="100">
+            </div>
+            <div class="col-auto mb-1">
+                <button type="submit" class="btn btn-sm btn-primary">Save</button>
+            </div>
+        </form>
+        {% endfor %}
+        <hr>
+        <form method="POST" action="/create_centre" class="form-row align-items-center">
+            <input type="hidden" name="next" value="/exam_rooms">
+            <div class="col-sm-3 mb-1">
+                <input type="text" name="name" class="form-control form-control-sm" placeholder="New centre name" maxlength="30" required>
+            </div>
+            <div class="col-sm-5 mb-1">
+                <input type="text" name="address" class="form-control form-control-sm" placeholder="Address (optional)" maxlength="100">
+            </div>
+            <div class="col-auto mb-1">
+                <button type="submit" class="btn btn-sm btn-success">Add centre</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
 
 <!-- Modal to Add Room (posts straight to the server) -->
 <div class="modal fade" id="addRoomModal" tabindex="-1" role="dialog" aria-labelledby="addRoomModalLabel" aria-hidden="true">

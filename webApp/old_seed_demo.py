@@ -77,7 +77,6 @@ from Schema import (
     ExamRoom,
     RoomArrangements,
     SeatingArrangement,
-    SeedFlag,
     Enquiry,
     MailingList,
     PointSystem,
@@ -1416,104 +1415,51 @@ def seed_extras():
         db.session.rollback()
         print(f"[exam_rooms] section failed (continuing): {e}")
 
-    # ---- exam venue migration (runs ONCE, marked by a SeedFlag) --------------
-    # Exams are sat at dedicated venues (Cov Rd, Church), not at the demo
-    # teaching centres (Soho/Ilford). One time only: create the venue centres,
-    # move exam rooms/candidates off the demo teaching centres onto them, and
-    # give each venue two rooms to plan with. The flag makes this a one-shot so
-    # later hand-edits (renaming a centre, deleting a room) are never fought or
-    # resurrected by a redeploy.
+    # ---- centre backfill (runs every boot; idempotent per row) ---------------
+    # Databases seeded before rooms/candidates had a centre get sensible values,
+    # and every centre is guaranteed at least two rooms, so the seating planner's
+    # per-centre auto-assign has somewhere to seat people.
     try:
-        _VENUE_FLAG = "venue_migration_v1"
-        if SeedFlag.query.get(_VENUE_FLAG):
-            raise StopIteration  # already migrated; skip the whole section
+        centre_ids = [c.centreID for c in Centre.query.order_by(Centre.centreID).all()]
+        if centre_ids:
+            fixed_rooms = 0
+            for i, room in enumerate(ExamRoom.query.order_by(ExamRoom.id).all()):
+                if getattr(room, "centreID", None) is None:
+                    room.centreID = centre_ids[i % len(centre_ids)]
+                    fixed_rooms += 1
+            if fixed_rooms:
+                db.session.commit()
 
-        VENUES = [("Cov Rd", "Coventry Road, Birmingham"),
-                  ("Church", "Church Road, Birmingham")]
-        # demo teaching centre (exact seeded name) -> exam venue
-        DEMO_REMAP = {"Soho Centre": "Cov Rd", "Ilford Centre": "Church"}
+            made_rooms = 0
+            for cid in centre_ids:
+                cobj = Centre.query.filter_by(centreID=cid).first()
+                cname = cobj.name if cobj else f"Centre {cid}"
+                have = ExamRoom.query.filter_by(centreID=cid).count()
+                n = have + 1
+                while have < 2:
+                    rname = f"{cname} Room {n}"
+                    if not ExamRoom.query.filter_by(name=rname).first():
+                        db.session.add(ExamRoom(rname, 5, 5, cid))
+                        made_rooms += 1
+                        have += 1
+                    n += 1
+            if made_rooms:
+                db.session.commit()
 
-        venue_ids = {}
-        for vname, vaddr in VENUES:
-            c = Centre.query.filter_by(name=vname).first()
-            if not c:
-                c = Centre(name=vname, capacity=60, room_number=1, address=vaddr)
-                db.session.add(c)
-                db.session.flush()
-            venue_ids[vname] = c.centreID
-        db.session.commit()
-        venue_id_list = [venue_ids[vname] for vname, _ in VENUES]
+            fixed_cands = 0
+            for i, es in enumerate(exam_student.query.order_by(exam_student.studentID).all()):
+                if getattr(es, "centreID", None) is None:
+                    es.centreID = centre_ids[i % len(centre_ids)]
+                    fixed_cands += 1
+            if fixed_cands:
+                db.session.commit()
 
-        # Move exam rooms + candidates from the demo teaching centres to venues.
-        # Only rows tagged to the exact seeded demo names are touched, so real
-        # (hand-entered) centres are never remapped.
-        moved = 0
-        for old_name, new_name in DEMO_REMAP.items():
-            old = Centre.query.filter_by(name=old_name).first()
-            if not old:
-                continue
-            new_id = venue_ids[new_name]
-            for room in ExamRoom.query.filter_by(centreID=old.centreID).all():
-                room.centreID = new_id
-                # auto-generated names carried the old centre name; follow it
-                if room.name.startswith(old_name + " Room"):
-                    renamed = room.name.replace(old_name, new_name, 1)
-                    if not ExamRoom.query.filter_by(name=renamed).first():
-                        room.name = renamed
-                moved += 1
-            for es in exam_student.query.filter_by(centreID=old.centreID).all():
-                es.centreID = new_id
-                moved += 1
-        if moved:
-            db.session.commit()
-
-        # Untagged rooms/candidates get spread across the venues.
-        fixed_rooms = 0
-        for i, room in enumerate(ExamRoom.query.order_by(ExamRoom.id).all()):
-            if getattr(room, "centreID", None) is None:
-                room.centreID = venue_id_list[i % len(venue_id_list)]
-                fixed_rooms += 1
-        if fixed_rooms:
-            db.session.commit()
-
-        fixed_cands = 0
-        for i, es in enumerate(exam_student.query.order_by(exam_student.studentID).all()):
-            if getattr(es, "centreID", None) is None:
-                es.centreID = venue_id_list[i % len(venue_id_list)]
-                fixed_cands += 1
-        if fixed_cands:
-            db.session.commit()
-
-        # Guarantee rooms only where candidates actually sit exams, so teaching
-        # centres don't get phantom exam rooms recreated for them.
-        cand_centre_ids = sorted({es.centreID for es in exam_student.query.all()
-                                  if getattr(es, "centreID", None)})
-        made_rooms = 0
-        for cid in cand_centre_ids:
-            cobj = Centre.query.filter_by(centreID=cid).first()
-            cname = cobj.name if cobj else f"Centre {cid}"
-            have = ExamRoom.query.filter_by(centreID=cid).count()
-            n = have + 1
-            while have < 2:
-                rname = f"{cname} Room {n}"
-                if not ExamRoom.query.filter_by(name=rname).first():
-                    db.session.add(ExamRoom(rname, 5, 5, cid))
-                    made_rooms += 1
-                    have += 1
-                n += 1
-        if made_rooms:
-            db.session.commit()
-
-        # Mark done so this never runs again (hand-edits stay untouched forever).
-        db.session.add(SeedFlag(_VENUE_FLAG))
-        db.session.commit()
-        print(f"[venue_migration] done: moved:{moved} rooms_tagged:{fixed_rooms} "
-              f"rooms_created:{made_rooms} candidates_tagged:{fixed_cands}")
-    except StopIteration:
-        pass  # venue migration already ran once; nothing to do
+            if fixed_rooms or made_rooms or fixed_cands:
+                print(f"[centre_backfill] rooms_tagged:{fixed_rooms} "
+                      f"rooms_created:{made_rooms} candidates_tagged:{fixed_cands}")
     except Exception as e:  # noqa: BLE001
         db.session.rollback()
-        print(f"[venue_migration] section failed (continuing): {e}")
+        print(f"[centre_backfill] section failed (continuing): {e}")
 
     try:
         if SeatingArrangement.query.count() == 0:

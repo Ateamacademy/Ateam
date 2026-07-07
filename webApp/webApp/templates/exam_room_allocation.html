@@ -68,6 +68,7 @@
         </div>
     </div>
 
+    <div id="dateChips" class="mb-2"></div>
     <div id="calendar"></div>
 
     <div id="planner" style="display:none;">
@@ -129,6 +130,10 @@
     // ---- data ----------------------------------------------------------------
     function loadDate(dateStr){
         currentDate = dateStr;
+        document.querySelectorAll('#dateChips button').forEach(function(b){
+            b.className = 'btn btn-sm mr-1 mb-1 ' +
+                (b.getAttribute('data-d') === dateStr ? 'btn-primary' : 'btn-outline-primary');
+        });
         document.getElementById('plannerDate').textContent = dateStr;
         document.getElementById('planner').style.display = '';
         document.getElementById('plannerMsg').style.display = 'none';
@@ -302,22 +307,57 @@
 
     // ---- calendar ------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', function(){
+        // Only real ISO dates — undated papers come through as "--/--/--".
+        var dated = examData.filter(function(p){ return /^\d{4}-\d{2}-\d{2}$/.test(p.date || ''); });
+
+        // Land the officer on the nearest exam day instead of a (possibly empty)
+        // current month with a hidden planner.
+        var examDates = dated.map(function(p){ return p.date; })
+            .filter(function(d, i, a){ return a.indexOf(d) === i; }).sort();
+        var now = new Date();  // local date, not UTC — matters just after midnight
+        var today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') +
+                    '-' + String(now.getDate()).padStart(2, '0');
+        var upcoming = examDates.filter(function(d){ return d >= today; });
+        var target = upcoming.length ? upcoming[0]
+                   : (examDates.length ? examDates[examDates.length - 1] : null);
+
         var calendarEl = document.getElementById('calendar');
-        var calendar = new FullCalendar.Calendar(calendarEl, {
+        var options = {
             initialView: 'dayGridMonth',
             height: 560,
-            events: examData.map(function(paper){
+            events: dated.map(function(paper){
                 return {
                     title: paper.examBoard + ' ' + paper.tier + ' ' + paper.title + ' (' + paper.paperCode + ')',
-                    start: paper.date + (paper.startTime && paper.startTime.indexOf(':')>-1 ? 'T'+paper.startTime : ''),
+                    start: paper.date + (/^\d{2}:\d{2}/.test(paper.startTime || '') ? 'T'+paper.startTime : ''),
                     color: boardColor(paper.examBoard),
                     extendedProps: { ...paper }
                 };
             }),
             dateClick: function(info){ loadDate(info.dateStr); },
             eventClick: function(info){ loadDate(info.event.startStr.substring(0,10)); }
-        });
+        };
+        if (target) options.initialDate = target;
+        var calendar = new FullCalendar.Calendar(calendarEl, options);
         calendar.render();
+
+        // Quick-jump chips for every exam day (upcoming first; past ones if none).
+        var chipHost = document.getElementById('dateChips');
+        var chipDates = upcoming.length ? upcoming.slice(0, 10) : examDates.slice(-5);
+        if (chipDates.length) {
+            chipHost.innerHTML = '<span class="small text-muted mr-2">Exam days:</span>' +
+                chipDates.map(function(d){
+                    return '<button type="button" class="btn btn-sm btn-outline-primary mr-1 mb-1" data-d="'+d+'">'+d+'</button>';
+                }).join('');
+            chipHost.addEventListener('click', function(e){
+                var d = e.target.getAttribute && e.target.getAttribute('data-d');
+                if (d){ calendar.gotoDate(d); loadDate(d); }
+            });
+        } else {
+            chipHost.innerHTML = '<div class="alert alert-warning py-2 mb-2">No exams have dates yet — ' +
+                'add papers with dates on the <a href="/make_exams">exams page</a> and they\'ll appear here.</div>';
+        }
+
+        if (target) loadDate(target);   // planner is never empty on arrival
 
         document.getElementById('autoBtn').addEventListener('click', autoAssign);
         document.getElementById('saveBtn').addEventListener('click', save);
