@@ -1563,6 +1563,22 @@ def seed_extras():
         db.session.rollback()
         print(f"[venue_times] section failed (continuing): {e}")
 
+    # ---- exam entry fees (runs ONCE, marked by a SeedFlag) --------------------
+    # Give the demo exams realistic entry fees so the registration form's
+    # automatic quote has something to show. One-shot: officer edits stick.
+    try:
+        _PRICES_FLAG = "exam_prices_v1"
+        if not SeedFlag.query.get(_PRICES_FLAG):
+            for exam in Exams.query.all():
+                if getattr(exam, "price", None) is None:
+                    exam.price = 62.0 if (exam.tier or "").upper().startswith("A") else 48.0
+            db.session.add(SeedFlag(_PRICES_FLAG))
+            db.session.commit()
+            print("[exam_prices] demo entry fees set")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[exam_prices] section failed (continuing): {e}")
+
     try:
         if SeatingArrangement.query.count() == 0:
             room = ExamRoom.query.first()

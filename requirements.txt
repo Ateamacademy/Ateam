@@ -29,3 +29,4 @@ reportlab
 pdf2image
 pdfminer.six
 Pillow
+stripe

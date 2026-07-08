@@ -2799,8 +2799,8 @@ def make_exams():
         for paper in paperList: 
             papers.append({"number" : paper.paperNo, "paperCode" : paper.paperCode, "duration" : paper.duration, "total" : paper.total, "date" : paper.date})
 
-        exams.append({"id" : exam.examID, 
-                      "name" : exam.examBoard + " " + exam.tier + " " + exam.title + " (" + exam.code + ") " + exam.examSeries, 
+        exams.append({"id" : exam.examID,
+                      "name" : exam.examBoard + " " + exam.tier + " " + exam.title + " (" + exam.code + ") " + exam.examSeries,
                       "tier" : exam.tier,
                       "title" : exam.title,
                       "examBoard" : exam.examBoard,
@@ -2808,7 +2808,8 @@ def make_exams():
                       "Option" : exam.Option,
                       "examSeries" : exam.examSeries,
                       "AcademicYear" : exam.AcademicYear,
-                      "papers" : papers, 
+                      "price" : exam.price,
+                      "papers" : papers,
                       "studentNo" : len(getStudentsForExam(exam.examID))
                       })
         
@@ -2840,6 +2841,7 @@ def add_exam():
             examSeries=data.get('examSeries'),
             AcademicYear=data.get('academicYear'),
         )
+        new_exam.price = _parse_price(data.get('price'))
         db.session.add(new_exam)
         db.session.commit()  # assigns examID (autoincrement)
 
@@ -3474,7 +3476,8 @@ def iframe():
         label = " ".join(part for part in [exam.tier, exam.title, exam.examBoard, exam.Option] if part)
         if exam.code:
             label += f" ({exam.code})"
-        exam_options.append({'examID': exam.examID, 'tier': exam.tier or 'Other', 'label': label})
+        exam_options.append({'examID': exam.examID, 'tier': exam.tier or 'Other',
+                             'label': label, 'price': exam.price})
     centres = [{'id': c.centreID, 'name': c.name} for c in Centre.query.order_by(Centre.name).all()]
     return render_template('iframe_exam_student.html', exam_options=exam_options, centres=centres)
 
@@ -5160,21 +5163,34 @@ def register_potential_exam_student():
                     return None
 
             wanted_ids = {i for i in (_pick_id(p) for p in picks) if i is not None}
-            exams_by_id = ({e.examID: e for e in Exams.query.filter(Exams.examID.in_(wanted_ids)).all()}
+            # only exams we actually offer right now: inactive/soft-deleted ones
+            # must not be resolvable (or priceable) through a crafted POST
+            exams_by_id = ({e.examID: e for e in
+                            Exams.query.filter(Exams.examID.in_(wanted_ids),
+                                               Exams.active != False).all()}  # noqa: E712
                            if wanted_ids else {})
+            seen_exam_ids = set()
             for pick in picks:
                 exam = exams_by_id.get(_pick_id(pick))
                 if exam:
+                    if exam.examID in seen_exam_ids:
+                        continue  # the same entry can only be sat (and charged) once
+                    seen_exam_ids.add(exam.examID)
                     label = " ".join(p for p in [exam.tier, exam.title, exam.examBoard, exam.Option] if p)
                     if exam.code:
                         label += f" ({exam.code})"
-                    requested.append({'examID': exam.examID, 'label': label})
+                    requested.append({'examID': exam.examID, 'label': label, 'price': exam.price})
                     continue
                 label = str(pick.get('label') or '').strip()[:200]
                 if label:  # "my exam isn't listed" free-text row
-                    requested.append({'examID': None, 'label': label})
+                    requested.append({'examID': None, 'label': label, 'price': None})
         except (ValueError, TypeError):
             pass
+
+        # The quote is computed HERE from our own prices — never from the client.
+        priced_picks = [r for r in requested if r.get('price') is not None]
+        quoted_total = round(sum(r['price'] for r in priced_picks), 2) if priced_picks else None
+        quote_has_tbc = any(r.get('price') is None for r in requested)
 
         # Readable summary for the officer's review screens (the old free-text
         # 'subjects' box becomes the notes line; old-form posts still work).
@@ -5245,8 +5261,37 @@ def register_potential_exam_student():
                                     message = message,
                                     centreID = centre_id,
                                     requested_exams = (json.dumps(requested) if requested else None),
+                                    quoted_total = quoted_total,
                                     approved = False))
         db.session.commit()
+
+        # Prepayment: when Stripe is configured, hand back a Checkout link so
+        # fees are paid up-front — no manual invoices or payment links needed.
+        # A payment failure must never block the registration itself.
+        checkout_url = None
+        stripe_key = os.environ.get('STRIPE_SECRET_KEY')
+        if stripe_key and priced_picks:
+            try:
+                import stripe as _stripe
+                _stripe.api_key = stripe_key
+                checkout = _stripe.checkout.Session.create(
+                    mode='payment',
+                    line_items=[{
+                        'price_data': {
+                            'currency': 'gbp',
+                            'product_data': {'name': f"Exam entry: {r['label']}"[:120]},
+                            'unit_amount': int(round(r['price'] * 100)),
+                        },
+                        'quantity': 1,
+                    } for r in priced_picks],
+                    customer_email=studentEmail,
+                    metadata={'student_id': str(studentEntry.id)},
+                    success_url=request.url_root.rstrip('/') + '/register_exam_interest?payment=success',
+                    cancel_url=request.url_root.rstrip('/') + '/register_exam_interest?payment=cancelled',
+                )
+                checkout_url = checkout.url
+            except Exception as stripe_err:
+                print(f"stripe checkout failed (non-fatal): {stripe_err}")
         
         db.session.add(log(role = "anonymous", message= f"Student Registration: {firstName} {secondName} has just been registered as a potential exam Student", date=datetime.utcnow()))
         db.session.commit()
@@ -5263,7 +5308,10 @@ def register_potential_exam_student():
             'parent_email': parentEmail,
             'contact_no': contactNo,
             'subjects': subjects,
-            'access_arrangements': accessArrangements
+            'access_arrangements': accessArrangements,
+            'quoted_total': quoted_total,
+            'quote_has_tbc': quote_has_tbc,
+            'checkout_url': checkout_url
             }
 
         return jsonify(response), 200
@@ -5272,6 +5320,60 @@ def register_potential_exam_student():
         db.session.rollback()  # keep the session usable for the next request
         print(e)
         return jsonify({'error': str(e)}), 400
+
+
+@app.route('/stripe_webhook', methods=['POST'])
+def stripe_webhook():
+    # Stripe tells us a checkout completed; mark the candidate paid. Only
+    # signature-verified events are trusted (no auth header — Stripe calls this).
+    secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
+    if not secret:
+        return jsonify({'error': 'webhook not configured'}), 503
+    try:
+        import stripe as _stripe
+        event = _stripe.Webhook.construct_event(
+            request.get_data(), request.headers.get('Stripe-Signature', ''), secret)
+    except Exception:
+        return jsonify({'error': 'invalid signature'}), 400
+
+    event_type = event.get('type')
+    session_obj = (event.get('data') or {}).get('object') or {}
+    student_id = (session_obj.get('metadata') or {}).get('student_id')
+    try:
+        profile = exam_student.query.filter_by(studentID=int(student_id)).first() if student_id else None
+    except (TypeError, ValueError):
+        profile = None
+
+    if event_type in ('checkout.session.completed', 'checkout.session.async_payment_succeeded') and profile:
+        # Delayed methods (e.g. Bacs) complete the session BEFORE the money
+        # settles — only fulfil when Stripe says the payment is actually paid.
+        # async_payment_succeeded is the settle event for those methods.
+        if event_type == 'checkout.session.completed' and session_obj.get('payment_status') != 'paid':
+            return jsonify({'status': 'ok'}), 200
+
+        amount_pounds = round((session_obj.get('amount_total') or 0) / 100, 2)
+        # Stripe redelivers events on timeout — don't double-record.
+        if profile.paid and profile.paid_total == amount_pounds:
+            return jsonify({'status': 'ok'}), 200
+
+        profile.paid = True
+        profile.paid_total = amount_pounds                 # exact, with pence
+        profile.paid_amount = int(round(amount_pounds))    # legacy integer field
+        db.session.commit()
+
+        note = ""
+        if profile.quoted_total is not None and abs(amount_pounds - profile.quoted_total) >= 0.01:
+            note = f" (quoted was £{profile.quoted_total:.2f} — please check)"
+        db.session.add(log(role='system', message=f"Stripe payment received: £{amount_pounds:.2f} exam fees for {getStudent(profile.studentID)}{note}", date=datetime.utcnow()))
+        db.session.commit()
+
+    elif event_type == 'checkout.session.async_payment_failed' and profile:
+        # The candidate was never marked paid (payment_status guard above) —
+        # just leave the officer a trace of the failed collection.
+        db.session.add(log(role='system', message=f"Stripe payment FAILED for {getStudent(profile.studentID)} — fees still outstanding", date=datetime.utcnow()))
+        db.session.commit()
+
+    return jsonify({'status': 'ok'}), 200
 
 
 @app.route("/register_exam_student", methods=['POST', 'GET'])
@@ -7081,7 +7183,9 @@ def update_exam(exam_id):
     exam.Option = data['Option']
     exam.examSeries = data['examSeries']
     exam.AcademicYear = data['AcademicYear']
-    
+    if 'price' in data:  # old callers that don't send it leave the fee alone
+        exam.price = _parse_price(data.get('price'))
+
     db.session.commit()
     
     db.session.add(log(role = getUserRole(current_user.id), message=f" ({getUserName(current_user.id)}):  has just updated the exam {getExam} ",  date=datetime.utcnow()))
@@ -7805,6 +7909,15 @@ def _centre_name(centre_id):
         return None
     centre = Centre.query.filter_by(centreID=centre_id).first()
     return centre.name if centre else None
+
+
+def _parse_price(raw):
+    """GBP price from a form value: 2dp, non-negative. Anything else -> None."""
+    try:
+        value = round(float(raw), 2)
+    except (TypeError, ValueError):
+        return None
+    return value if value >= 0 else None
 
 
 def _safe_next(default_endpoint):

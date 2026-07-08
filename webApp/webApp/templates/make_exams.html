@@ -69,6 +69,7 @@
             option  = document.getElementById("option").value;
             examSeries = document.getElementById("examSeries").value;
             academicYear = document.getElementById("academicYear").value;
+            price = document.getElementById("price").value || null;
 
             papers = []
 
@@ -89,7 +90,7 @@
                 url: '/add_exam',
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({"tier" : tier, "title" : title, "examBoard" : examBoard, "examCode": examCode, "option" : option, "examSeries" : examSeries, "academicYear" : academicYear, "papers" : papers}),
+                data: JSON.stringify({"tier" : tier, "title" : title, "examBoard" : examBoard, "examCode": examCode, "option" : option, "examSeries" : examSeries, "academicYear" : academicYear, "price" : price, "papers" : papers}),
                 success: function(response) {
                     setTimeout(function() {alert("the excam has been added"); location.reload();}, 1000);
                 },
@@ -113,6 +114,7 @@
                                 <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Exam Code: </div> <div class="col"> <input placeholder = "8MA0" id = "examCode">  </div> </div>
                                 <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Option: </div> <div class="col"> <input placeholder = "Higher" id = "option">  </div> </div>
                                 <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Exam Series: </div> <div class="col"> <input placeholder = "Summer/November/Mocks" id = "examSeries"> </div> </div>
+                                <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Entry Fee (&pound;): </div> <div class="col"> <input type="number" step="0.01" min="0" placeholder = "48.00" id = "price"> </div> </div>
                                 <div class="row ml-2 mb-1 "> <div class = "col-lg-2"> Academic Year: </div> <div class="col"> <select id = "academicYear"> {% for year in AcademicYears %} <option value="{{ year }}" {% if year == AcademicYear %} selected {% endif %}> {{ year }} </option> {% endfor %} </select> </div> </div>
 
                                 <div class="text-xs font-weight-bold text-primary text-uppercase mb-3 mt-3"> Add Papers </div>
@@ -343,6 +345,10 @@
                     <label for="edit-academicYear">Academic Year</label>
                     <input type="text" class="form-control" id="edit-academicYear">
                 </div>
+                <div class="form-group">
+                    <label for="edit-price">Entry Fee (&pound;)</label>
+                    <input type="number" step="0.01" min="0" class="form-control" id="edit-price">
+                </div>
                 <!-- Hidden exam ID to track which exam is being edited -->
                 <input type="hidden" id="edit-examId">
             </div>
@@ -395,6 +401,7 @@
         document.getElementById('edit-option').value = exam.Option;
         document.getElementById('edit-examSeries').value = exam.examSeries;
         document.getElementById('edit-academicYear').value = exam.AcademicYear;
+        document.getElementById('edit-price').value = (exam.price != null) ? exam.price : '';
         document.getElementById('edit-examId').value = examId; // Hidden exam ID
     
         // Show the modal
@@ -410,7 +417,8 @@
             code: document.getElementById('edit-examCode').value,
             Option: document.getElementById('edit-option').value,
             examSeries: document.getElementById('edit-examSeries').value,
-            AcademicYear: document.getElementById('edit-academicYear').value
+            AcademicYear: document.getElementById('edit-academicYear').value,
+            price: document.getElementById('edit-price').value || null
         };
     
         $.ajax({

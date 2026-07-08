@@ -1349,6 +1349,12 @@ class exam_student(db.Model):
     # ([{"examID": 3, "label": "GCSE Mathematics Edexcel..."}]) so approval can
     # register the actual exams instead of an officer re-parsing free text.
     requested_exams = Column(String)
+    # Auto-calculated fee (GBP) quoted at registration from the picked exams'
+    # prices. paid/paid_amount keep recording what was actually received.
+    quoted_total = Column(Float)
+    # Exact amount (GBP, 2dp) collected via Stripe — the legacy paid_amount
+    # column is Integer and cannot hold pence.
+    paid_total = Column(Float)
 
 def get_exam_students():
     # Join Students and ExamStudent, but only for those students where exam_student is True
@@ -1400,7 +1406,9 @@ def get_exam_students():
             'candidate_number': exam_stud.candidate_number,
             'notes' : exam_stud.notes,
             'message' : exam_stud.message,
-            'centreID' : exam_stud.centreID
+            'centreID' : exam_stud.centreID,
+            'quoted_total' : exam_stud.quoted_total,
+            'paid_total' : exam_stud.paid_total
 
             # Add more examStudent fields as necessary
         }
@@ -2363,6 +2371,9 @@ class Exams(db.Model):
     examSeries = Column(String(20))     #either Summer or November or Mock
     AcademicYear = Column(String(9))
     active = Column(Boolean, default = True)
+    # Entry fee in GBP; drives the automatic quote (and prepayment) on the
+    # public registration form. None = price on enquiry.
+    price = Column(Float)
 
 
     def __init__(self, tier, title, examBoard, code, Option, examSeries, AcademicYear):

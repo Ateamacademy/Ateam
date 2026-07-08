@@ -103,6 +103,12 @@
                                         <input type="number" id="paidAmount_{{ student[0].id }}" value="{{ student[1].paid_amount }}"
                                                {% if not student[1].paid %} disabled {% endif %}
                                                onchange="updatePaidAmount({{ student[0].id }})">
+                                        {% if student[1].quoted_total %}
+                                        <div class="small text-muted">quoted &pound;{{ '%.2f' | format(student[1].quoted_total) }}</div>
+                                        {% endif %}
+                                        {% if student[1].paid_total %}
+                                        <div class="small text-success">Stripe paid &pound;{{ '%.2f' | format(student[1].paid_total) }}</div>
+                                        {% endif %}
                                     </td>
                             
                                     <!-- UCAS Reference Checkbox and Modal Trigger -->
@@ -249,6 +255,12 @@
                             <input type="number" id="paidAmount_{{ student[0].id }}" value="{{ student[1].paid_amount }}"
                                    {% if not student[1].paid %} disabled {% endif %}
                                    onchange="updatePaidAmount({{ student[0].id }})">
+                            {% if student[1].quoted_total %}
+                            <div class="small text-muted">quoted &pound;{{ '%.2f' | format(student[1].quoted_total) }}</div>
+                            {% endif %}
+                            {% if student[1].paid_total %}
+                            <div class="small text-success">Stripe paid &pound;{{ '%.2f' | format(student[1].paid_total) }}</div>
+                            {% endif %}
                         </td>
                 
                         <!-- UCAS Reference Checkbox and Modal Trigger -->
