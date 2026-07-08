@@ -2946,8 +2946,9 @@ def exam_students():
         exams=sorted(sorted(sorted(sorted(exams_dict, key = lambda x :x['code']), key = lambda x :x['title']), key = lambda x :x['tier']), key = lambda x :x['examSeries']),
         ucasReferences=ucasReferences,
         student_exam_map=student_exam_map,
-        user_files_map=user_files_map, 
-        user_id_map = user_id_map
+        user_files_map=user_files_map,
+        user_id_map = user_id_map,
+        centres = Centre.query.order_by(Centre.name).all()
 
     )
     
@@ -6947,6 +6948,19 @@ def edit_centre():
             centre.capacity = int(capacity)
         except ValueError:
             pass
+    # Morning/afternoon exam session start times ("" clears them).
+    for field in ('am_start', 'pm_start'):
+        value = request.form.get(field)
+        if value is None:
+            continue  # field absent from this form: leave as-is
+        value = value.strip()
+        if not value:
+            setattr(centre, field, None)
+        else:
+            try:
+                setattr(centre, field, datetime.strptime(value, '%H:%M').time())
+            except ValueError:
+                pass  # ignore malformed times rather than failing the save
     db.session.commit()
 
     db.session.add(log(role=getUserRole(current_user.id), message=f" ({getUserName(current_user.id)}): updated centre '{old_name}' -> '{centre.name}'", date=datetime.utcnow()))
@@ -7233,6 +7247,33 @@ def assign_exams():
         print(e)
         return jsonify({'error': str(e)}), 500
     
+@app.route('/updateStudentCentre/<int:student_id>', methods=['POST'])
+@login_required
+def update_student_centre(student_id):
+    # The officer picks which candidate sits where; the timetable email's
+    # address and session times follow from this. Same permission as the page
+    # hosting the dropdown, plus an explicit block on student/parent logins —
+    # a view permission on their role must never grant writes to officer data.
+    if current_user.is_student() or getUserRole(current_user.id) == 'parent':
+        abort(403)
+    permission_required(current_user.id, 'view_all_student_information', fatal=True)
+
+    data = request.get_json() or {}
+    profile = exam_student.query.filter_by(studentID=student_id).first()
+    if not profile:
+        return jsonify({'error': 'Exam student not found'}), 404
+
+    centre_id = _resolve_centre_id(data.get('centreID'))
+    if centre_id is not None and Centre.query.filter_by(centreID=centre_id).first() is None:
+        return jsonify({'error': 'Unknown centre'}), 400
+    profile.centreID = centre_id
+    db.session.commit()
+
+    db.session.add(log(role=getUserRole(current_user.id), message=f" ({getUserName(current_user.id)}): set {getStudent(student_id)}'s exam centre to {_centre_name(profile.centreID) or 'unassigned'}", date=datetime.utcnow()))
+    db.session.commit()
+    return jsonify({'message': 'Centre updated', 'centre': _centre_name(profile.centreID)}), 200
+
+
 @app.route('/updateCandidateNumber/<int:student_id>', methods=['POST'])
 def update_candidate_number(student_id):
     data = request.get_json()

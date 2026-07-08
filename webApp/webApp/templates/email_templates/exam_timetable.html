@@ -13,12 +13,26 @@
 
     <p>Candidates are expected to arrive at least 15 minutes prior to each exam with ID presented at the time of registration, as well as the correct stationary. Mobile phones, AirPods, Bluetooth devices, and smartwatches are not allowed into the exam room (you can leave them with the exam officer who will guide you on the day).</p>
 
+    {% if centre_name %}
+    <p>
+        <b>All exams will take place at the {{ centre_name }} centre:</b><br><br>
+        {{ centre_address if centre_address else 'Address to be confirmed — we will contact you with directions.' }}
+    </p>
+    {% if centre_am_start or centre_pm_start %}
+    <p>
+        <b>Session start times at this centre:</b>
+        {% if centre_am_start %}morning exams start at {{ centre_am_start }}{% endif %}{% if centre_am_start and centre_pm_start %}, {% endif %}{% if centre_pm_start %}afternoon exams start at {{ centre_pm_start }}{% endif %}.
+        The times shown in your timetable below already reflect this.
+    </p>
+    {% endif %}
+    {% else %}
     <p>
         <b>All exams will take place at the Yardley Centre:</b><br><br>
         1772 Coventry Road<br>
         Birmingham<br>
         B26 1PB
     </p>
+    {% endif %}
 
     <p>Failure to turn up on time or altogether for the exams can impact your overall performance. If you have any further questions, please email examsofficer@ateamacademy.co.uk.</p>
 

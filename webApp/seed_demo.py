@@ -1544,6 +1544,25 @@ def seed_extras():
         db.session.rollback()
         print(f"[clash_demo] section failed (continuing): {e}")
 
+    # ---- venue session times (runs ONCE, marked by a SeedFlag) ----------------
+    # Different centres start their exam sessions at different times; give the
+    # demo venues distinct AM/PM starts so the timetable email demonstrates the
+    # per-centre override. One-shot: officer edits via /edit_centre stick.
+    try:
+        _TIMES_FLAG = "venue_times_v1"
+        if not SeedFlag.query.get(_TIMES_FLAG):
+            for vname, am, pm in [("Cov Rd", datetime.time(9, 0), datetime.time(13, 0)),
+                                  ("Church", datetime.time(9, 30), datetime.time(13, 30))]:
+                c = Centre.query.filter_by(name=vname).first()
+                if c and getattr(c, "am_start", None) is None and getattr(c, "pm_start", None) is None:
+                    c.am_start, c.pm_start = am, pm
+            db.session.add(SeedFlag(_TIMES_FLAG))
+            db.session.commit()
+            print("[venue_times] demo session times set")
+    except Exception as e:  # noqa: BLE001
+        db.session.rollback()
+        print(f"[venue_times] section failed (continuing): {e}")
+
     try:
         if SeatingArrangement.query.count() == 0:
             room = ExamRoom.query.first()

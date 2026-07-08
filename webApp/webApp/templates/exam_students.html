@@ -44,6 +44,7 @@
                         <thead>
                             <tr>
                                 <th>Candidate Number</th>
+                                <th>Exam Centre</th>
                                 <th>Student Name</th>
                                 <th>Files</th>
                                 <th>Paid</th>
@@ -59,13 +60,22 @@
                             {% for student in collapsed_students %}
                             <tr>
                                 <tr class="{% if not student[1].paid %}unpaid-highlight{% endif %}">
-                                    <td>         
+                                    <td>
                                         <input type="text" id="candidateNumber-{{ student[0].id }}" value="{{ student[1].candidate_number }}">
-                                        <button onclick="updateCandidateNumber({{ student[0].id }})" class="btn btn-primary">Update</button>  
+                                        <button onclick="updateCandidateNumber({{ student[0].id }})" class="btn btn-primary">Update</button>
+                                    </td>
+                                    <td>
+                                        <select id="studentCentre-{{ student[0].id }}" class="form-control form-control-sm"
+                                                onchange="updateStudentCentre({{ student[0].id }})">
+                                            <option value="">— not set —</option>
+                                            {% for c in centres %}
+                                            <option value="{{ c.centreID }}" {% if student[1].centreID == c.centreID %}selected{% endif %}>{{ c.name }}</option>
+                                            {% endfor %}
+                                        </select>
                                     </td>
                                     <td>
                                         <a href="javascript:void(0)" onclick="showUCASReferenceDetails({{ student[0].id }})">
-                                            {{ student[0].firstName }} {{student[0].secondName }}  
+                                            {{ student[0].firstName }} {{student[0].secondName }}
                                         </a>
                                     </td>
                             
@@ -172,6 +182,7 @@
                 <thead>
                     <tr>
                         <th> Candidate Number </th>
+                        <th>Exam Centre</th>
                         <th>Student Name</th>
                         <th> Files </th>
 
@@ -194,13 +205,23 @@
                 <tbody id="studentTableBody">
                     {% for student in exam_students %}
                     <tr class="{% if not student[1].paid %}unpaid-highlight{% endif %}" data-paid="{{ student[1].paid }}" data-declaration="{{ student[0].declaration_date }}" data-name="{{ student[0].firstName }} {{ student[0].secondName }}">
-                        <td>         
+                        <td>
                             <input type="text" id="candidateNumber-{{ student[0].id }}" value="{{ student[1].candidate_number }}">
-                            <button onclick="updateCandidateNumber({{ student[0].id }})" class="btn btn-primary">Update</button>  
+                            <button onclick="updateCandidateNumber({{ student[0].id }})" class="btn btn-primary">Update</button>
+                        </td>
+                        <td>
+                            <!-- drives the timetable email's address + session times -->
+                            <select id="studentCentre-{{ student[0].id }}" class="form-control form-control-sm"
+                                    onchange="updateStudentCentre({{ student[0].id }})">
+                                <option value="">— not set —</option>
+                                {% for c in centres %}
+                                <option value="{{ c.centreID }}" {% if student[1].centreID == c.centreID %}selected{% endif %}>{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
                         </td>
                         <td>
                             <a href="javascript:void(0)" onclick="showUCASReferenceDetails({{ student[0].id }})">
-                                {{ student[0].firstName }} {{student[0].secondName }}  
+                                {{ student[0].firstName }} {{student[0].secondName }}
                             </a>
                         </td>
                 
@@ -789,6 +810,25 @@
             },
             error: function(error) {
                 alert("Error updating candidate number");
+            }
+        });
+    }
+
+    function updateStudentCentre(studentID) {
+        // Saves the candidate's exam centre; the timetable email's address and
+        // session start times follow from it.
+        var sel = document.getElementById('studentCentre-' + studentID);
+        $.ajax({
+            url: '/updateStudentCentre/' + studentID.toString(),
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ centreID: sel.value }),
+            success: function(response) {
+                sel.style.borderColor = '#1cc88a';  // quiet confirmation, no alert
+                setTimeout(function(){ sel.style.borderColor = ''; }, 1200);
+            },
+            error: function(error) {
+                alert("Error updating the exam centre");
             }
         });
     }

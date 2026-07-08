@@ -1950,6 +1950,23 @@ def generate_html_exam_timetable(student_id, start_date=datetime.datetime.strpti
     student_dob = getStudentDOB(student_id)
     candidate_number = getCandidateNumber(student_id)
 
+    # The candidate's exam centre drives the venue block (the address used to be
+    # hardcoded to one site, wrong for anyone sitting elsewhere) and, when the
+    # centre defines its own session start times, the displayed paper times.
+    profile = exam_student.query.filter_by(studentID=student_id).first()
+    centre = (Centre.query.filter_by(centreID=profile.centreID).first()
+              if profile and profile.centreID else None)
+
+    def _display_time(paper_start):
+        if paper_start is None:
+            return None
+        if centre is not None:
+            session_start = (centre.am_start if paper_start < datetime.time(12, 0)
+                             else centre.pm_start)
+            if session_start:
+                return session_start.strftime("%H:%M")
+        return paper_start.strftime("%H:%M")
+
     # Collect exams and their papers
     exams = []
     for exam_id in exam_ids:
@@ -1962,7 +1979,7 @@ def generate_html_exam_timetable(student_id, start_date=datetime.datetime.strpti
                     "paper_code": paper.paperCode,
                     "paper_no": paper.paperNo,
                     "date": paper.date.strftime("%d-%m-%Y") if paper.date else None,
-                    "start_time": paper.startTime.strftime("%H:%M") if paper.startTime else None,
+                    "start_time": _display_time(paper.startTime),
                     "duration": paper.duration,
                     "extra_info": paper.extra_info if paper.extra_info else None,
                 }
@@ -1978,6 +1995,10 @@ def generate_html_exam_timetable(student_id, start_date=datetime.datetime.strpti
         student_dob=student_dob,
         candidate_number=candidate_number,
         exams=exams,
+        centre_name=centre.name if centre else None,
+        centre_address=(centre.address or "").strip() if centre else None,
+        centre_am_start=centre.am_start.strftime("%H:%M") if centre and centre.am_start else None,
+        centre_pm_start=centre.pm_start.strftime("%H:%M") if centre and centre.pm_start else None,
     )
     return html_content
 

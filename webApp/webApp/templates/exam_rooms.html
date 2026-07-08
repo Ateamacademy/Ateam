@@ -59,7 +59,9 @@
     <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">Exam Centres</h6></div>
     <div class="card-body">
         <p class="small text-muted mb-3">These are the centre options rooms can be assigned to.
-            Rename one if it's wrong, or add the venue you actually use.</p>
+            Rename one if it's wrong, or add the venue you actually use.
+            AM/PM are when this centre's morning and afternoon exam sessions start —
+            the timetable email shows these times to candidates sitting here.</p>
         {% for c in centres %}
         <form method="POST" action="/edit_centre" class="form-row align-items-center mb-2">
             <input type="hidden" name="centreID" value="{{ c.centreID }}">
@@ -67,9 +69,17 @@
             <div class="col-sm-3 mb-1">
                 <input type="text" name="name" class="form-control form-control-sm" value="{{ c.name }}" maxlength="30" required>
             </div>
-            <div class="col-sm-5 mb-1">
+            <div class="col-sm-4 mb-1">
                 <input type="text" name="address" class="form-control form-control-sm"
                        value="{{ c.address or '' }}" placeholder="Address" maxlength="100">
+            </div>
+            <div class="col-auto mb-1">
+                <input type="time" name="am_start" class="form-control form-control-sm" title="Morning session start"
+                       value="{{ c.am_start.strftime('%H:%M') if c.am_start else '' }}">
+            </div>
+            <div class="col-auto mb-1">
+                <input type="time" name="pm_start" class="form-control form-control-sm" title="Afternoon session start"
+                       value="{{ c.pm_start.strftime('%H:%M') if c.pm_start else '' }}">
             </div>
             <div class="col-auto mb-1">
                 <button type="submit" class="btn btn-sm btn-primary">Save</button>

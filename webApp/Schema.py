@@ -1524,6 +1524,11 @@ class Centre(db.Model):
     admin_id = Column(Integer, ForeignKey("user.id"))
     alias = Column(String)
     email = Column(String)
+    # When this centre's morning/afternoon exam sessions start. Used by the
+    # timetable email: papers display the centre's session time when set
+    # (centres genuinely start at different times), else the paper's own time.
+    am_start = Column(Time)
+    pm_start = Column(Time)
     
     def __init__(self, name, capacity, room_number=0, address="", admin_id=1, alias = "", email = ""):
         self.name = name
