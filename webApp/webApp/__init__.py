@@ -3465,7 +3465,17 @@ def generate_available_times(event):
 
 @app.route('/register_exam_interest')
 def iframe():
-    return render_template('iframe_exam_student.html')
+    # Structured options for the public registration form: the exams we actually
+    # run (grouped by qualification client-side) and the centres we sit them at,
+    # so parents pick from real entries instead of describing them in free text.
+    exam_options = []
+    for exam in Exams.query.filter_by(active=True).order_by(Exams.tier, Exams.title).all():
+        label = " ".join(part for part in [exam.tier, exam.title, exam.examBoard, exam.Option] if part)
+        if exam.code:
+            label += f" ({exam.code})"
+        exam_options.append({'examID': exam.examID, 'tier': exam.tier or 'Other', 'label': label})
+    centres = [{'id': c.centreID, 'name': c.name} for c in Centre.query.order_by(Centre.name).all()]
+    return render_template('iframe_exam_student.html', exam_options=exam_options, centres=centres)
 
 @app.route('/enquiry', methods=['GET', 'POST'])
 @login_required
@@ -5106,6 +5116,10 @@ def register_student():
 @app.route("/register_potential_exam_student", methods=['POST'])
 def register_potential_exam_student():
     try:
+        # Honeypot: real users never see/fill this field; bots do. Pretend success.
+        if request.form.get('website'):
+            return jsonify({'message': 'The Student was added as an Exam Student'}), 200
+
         # Get form data
         firstName = request.form.get('firstName')
         secondName = request.form.get('secondName')
@@ -5118,7 +5132,61 @@ def register_potential_exam_student():
         contactNo = request.form.get('contactNo')
         subjects = request.form.get('subjects')
         accessArrangements = request.form.get('access_arrangements')
-        
+        centre_id = _resolve_centre_id(request.form.get('centreID'))
+
+        # Parse the date instead of trusting the raw string into a Date column.
+        if dob:
+            try:
+                dob = datetime.strptime(dob, '%Y-%m-%d').date()
+            except (ValueError, TypeError):
+                return jsonify({'error': 'Date of birth must be a valid date.'}), 400
+        else:
+            dob = None
+
+        # Structured exam picks from the new form: JSON [{examID, label}] — the
+        # officer no longer has to parse free text to work out the entries.
+        # Public endpoint, so: cap the number of picks, guard every type, and
+        # resolve all exam ids with ONE bulk query instead of one per entry.
+        requested = []
+        try:
+            picks = json.loads(request.form.get('examSelections') or '[]')
+            picks = [p for p in picks if isinstance(p, dict)][:20] if isinstance(picks, list) else []
+
+            def _pick_id(pick):
+                try:
+                    return int(pick.get('examID'))
+                except (TypeError, ValueError):
+                    return None
+
+            wanted_ids = {i for i in (_pick_id(p) for p in picks) if i is not None}
+            exams_by_id = ({e.examID: e for e in Exams.query.filter(Exams.examID.in_(wanted_ids)).all()}
+                           if wanted_ids else {})
+            for pick in picks:
+                exam = exams_by_id.get(_pick_id(pick))
+                if exam:
+                    label = " ".join(p for p in [exam.tier, exam.title, exam.examBoard, exam.Option] if p)
+                    if exam.code:
+                        label += f" ({exam.code})"
+                    requested.append({'examID': exam.examID, 'label': label})
+                    continue
+                label = str(pick.get('label') or '').strip()[:200]
+                if label:  # "my exam isn't listed" free-text row
+                    requested.append({'examID': None, 'label': label})
+        except (ValueError, TypeError):
+            pass
+
+        # Readable summary for the officer's review screens (the old free-text
+        # 'subjects' box becomes the notes line; old-form posts still work).
+        message_lines = []
+        if requested:
+            message_lines.append("Requested exams:")
+            message_lines += [f"- {r['label']}" + ("" if r['examID'] else " [not in our list]")
+                              for r in requested]
+        if centre_id:
+            message_lines.append(f"Preferred centre: {_centre_name(centre_id)}")
+        if subjects and subjects.strip():
+            message_lines.append(("Notes: " if requested else "") + subjects.strip())
+        message = "\n".join(message_lines)
 
         # Validate required fields
         if not firstName or not secondName or not studentEmail or not request.files.get('fileUpload'):
@@ -5127,15 +5195,18 @@ def register_potential_exam_student():
         studentEntry = gen_exam_student(firstName, secondName, gender, dob, studentEmail, parentEmail, contactNo, username=gen_username(firstName, secondName), password=generate_password_hash(gen_random_password(8)))
         db.session.add(studentEntry)
         db.session.commit()
-        
+
         raw_password = gen_random_password(8)
         password = generate_password_hash(raw_password)
-        
+
         user = User(role="student", otherID = studentEntry.id, email = studentEmail, password = password)
         db.session.add(user)
         db.session.commit()
-        
-        user_files_path = '/var/www/webApp/webApp/userFiles/' + str(user.id)
+
+        # Overridable so hosted environments without /var/www (e.g. Render) work;
+        # defaults to the production path.
+        files_base = os.environ.get('USER_FILES_DIR') or '/var/www/webApp/webApp/userFiles'
+        user_files_path = os.path.join(files_base, str(user.id))
         os.makedirs(user_files_path, exist_ok=True)
 
         # Save identification file
@@ -5160,8 +5231,20 @@ def register_potential_exam_student():
             access_doc_extension = os.path.splitext(access_doc_filename)[1]  # Get the file extension
             access_doc_file_path = os.path.join(user_files_path, f'access_arrangements{access_doc_extension}')
             access_doc_file.save(access_doc_file_path)
-        
-        db.session.add(exam_student(studentID = studentEntry.id, uci = uci, uln = uln, access_arrangements = accessArrangements, message=subjects, approved = False))
+
+        # Any additional documents (the form allows several)
+        for i, extra in enumerate(request.files.getlist('extraDocuments'), start=1):
+            if extra and extra.filename:
+                extra_name = secure_filename(extra.filename)
+                extra_ext = os.path.splitext(extra_name)[1]
+                extra.save(os.path.join(user_files_path, f'extra_doc_{i}{extra_ext}'))
+
+        db.session.add(exam_student(studentID = studentEntry.id, uci = uci, uln = uln,
+                                    access_arrangements = accessArrangements,
+                                    message = message,
+                                    centreID = centre_id,
+                                    requested_exams = (json.dumps(requested) if requested else None),
+                                    approved = False))
         db.session.commit()
         
         db.session.add(log(role = "anonymous", message= f"Student Registration: {firstName} {secondName} has just been registered as a potential exam Student", date=datetime.utcnow()))
@@ -5185,6 +5268,7 @@ def register_potential_exam_student():
         return jsonify(response), 200
 
     except Exception as e:
+        db.session.rollback()  # keep the session usable for the next request
         print(e)
         return jsonify({'error': str(e)}), 400
 

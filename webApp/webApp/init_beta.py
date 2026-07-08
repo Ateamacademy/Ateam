@@ -3073,7 +3073,9 @@ def generate_available_times(event):
 
 @beta.route('/beta/register_exam_interest')
 def iframe():
-    return render_template('iframe_exam_student.html')
+    # The rewritten form template needs exam/centre context that only the main
+    # route builds — send beta traffic there instead of rendering without it.
+    return redirect('/register_exam_interest')
 
 @beta.route('/beta/enquiry', methods=['GET', 'POST'])
 @login_required

@@ -35,7 +35,7 @@ def _grant_all_permissions(obj):
 # Render's) these have to be added by hand. Idempotent: only adds what's missing.
 _ADDED_COLUMNS = {
     "exam_rooms": [("centreID", "INTEGER")],
-    "exam_student": [("centreID", "INTEGER")],
+    "exam_student": [("centreID", "INTEGER"), ("requested_exams", "TEXT")],
 }
 
 

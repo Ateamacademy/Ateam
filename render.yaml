@@ -38,3 +38,7 @@ services:
       # Idempotent — skipped once the database already has students.
       - key: SEED_DEMO
         value: "1"
+      # Where the public registration form stores uploads. Relative to the app
+      # dir; production keeps its default /var/www/... path when this is unset.
+      - key: USER_FILES_DIR
+        value: "userFiles"

@@ -723,19 +723,10 @@ class StaffStrikes(db.Model):
 
 
 def gen_date_schema():
-    day = datetime.date.today()
-    
-    if int(day.day) < 10:
-        dayString = "0"+ str(day.day)
-    else: 
-        dayString = str(day.day)
-        
-    if int(day.month) < 10:
-        monthString = "0" + str(day.month)
-    else: 
-        monthString = str(day.month)
-        
-    return str(day.year) + "-" + monthString + "-" + dayString
+    # Every caller assigns this to a Date column (declaration_date), so return a
+    # real date object — SQLAlchemy requires it on SQLite and it is equivalent on
+    # Postgres (which previously just coerced the "YYYY-MM-DD" string this built).
+    return datetime.date.today()
 
 
 
@@ -1354,6 +1345,10 @@ class exam_student(db.Model):
     # The exam centre where this candidate sits their exams. Used by the seating
     # planner to only seat a centre's own candidates (Birmingham vs London/Manchester).
     centreID = Column(Integer, ForeignKey('centres.centreID'))
+    # JSON list of the exams picked on the registration form
+    # ([{"examID": 3, "label": "GCSE Mathematics Edexcel..."}]) so approval can
+    # register the actual exams instead of an officer re-parsing free text.
+    requested_exams = Column(String)
 
 def get_exam_students():
     # Join Students and ExamStudent, but only for those students where exam_student is True
@@ -2721,14 +2716,14 @@ def gen_Student(firstName, secondName, username, password, email):
         parent_email = " ",
         middleName = " ",
         gender = " " ,
-        date_of_birth = "2000-01-01" ,
+        date_of_birth = datetime.date(2000, 1, 1) ,
         country_of_birth = " " ,
         known_as = " " ,
         nationality = " " ,
         year_group = " " ,
         ethnic_origin = " " ,
         mother_tongue = " " ,
-        date_of_entry_uk = "2000-01-01" ,
+        date_of_entry_uk = datetime.date(2000, 1, 1) ,
         post_code = " " ,
         house_number = " " ,
         street_name = " " ,
@@ -2737,38 +2732,38 @@ def gen_Student(firstName, secondName, username, password, email):
         mode_of_travelling = " " ,
         
         current_school_1 = " " ,
-        current_school_1_date_from = "2000-01-01" ,
+        current_school_1_date_from = datetime.date(2000, 1, 1) ,
         school_2 = " " ,
-        school_2_date_from = "2000-01-01" ,
-        school_2_date_until = "2000-01-01" ,
+        school_2_date_from = datetime.date(2000, 1, 1) ,
+        school_2_date_until = datetime.date(2000, 1, 1) ,
         school_3 = " " ,
-        school_3_date_from = "2000-01-01" ,
-        school_3_date_until = "2000-01-01" ,
+        school_3_date_from = datetime.date(2000, 1, 1) ,
+        school_3_date_until = datetime.date(2000, 1, 1) ,
         school_4 = " " ,
-        school_4_date_from = "2000-01-01" ,
-        school_4_date_until = "2000-01-01" ,
+        school_4_date_from = datetime.date(2000, 1, 1) ,
+        school_4_date_until = datetime.date(2000, 1, 1) ,
         
         sibling_1_forename = " " ,
         sibling_1_surname = " " ,
-        sibling_1_date_of_birth = "2000-01-01" ,
+        sibling_1_date_of_birth = datetime.date(2000, 1, 1) ,
         sibling_1_gender = " " ,
         sibling_1_year_group = " " ,
         sibling_1_id = None,
         sibling_2_forename = " " ,
         sibling_2_surname = " " ,
-        sibling_2_date_of_birth = "2000-01-01" ,
+        sibling_2_date_of_birth = datetime.date(2000, 1, 1) ,
         sibling_2_gender = " " ,
         sibling_2_year_group = " " ,
         sibling_2_id = None,
         sibling_3_forename = " " ,
         sibling_3_surname = " " ,
-        sibling_3_date_of_birth = "2000-01-01" ,
+        sibling_3_date_of_birth = datetime.date(2000, 1, 1) ,
         sibling_3_gender = " " ,
         sibling_3_year_group = " " ,
         sibling_3_id = None,
         sibling_4_forename = " " ,
         sibling_4_surname = " " ,
-        sibling_4_date_of_birth = "2000-01-01" ,
+        sibling_4_date_of_birth = datetime.date(2000, 1, 1) ,
         sibling_4_gender = " " ,
         sibling_4_year_group = " " ,
         sibling_4_id = None,
@@ -2869,7 +2864,7 @@ def gen_exam_student(firstName, secondName, gender, dob, email, parent_email, co
         year_group = " " ,
         ethnic_origin = " " ,
         mother_tongue = " " ,
-        date_of_entry_uk = "2000-01-01" ,
+        date_of_entry_uk = datetime.date(2000, 1, 1) ,
         post_code = " " ,
         house_number = " " ,
         street_name = " " ,
@@ -2878,38 +2873,38 @@ def gen_exam_student(firstName, secondName, gender, dob, email, parent_email, co
         mode_of_travelling = " " ,
         
         current_school_1 = " " ,
-        current_school_1_date_from = "2000-01-01" ,
+        current_school_1_date_from = datetime.date(2000, 1, 1) ,
         school_2 = " " ,
-        school_2_date_from = "2000-01-01" ,
-        school_2_date_until = "2000-01-01" ,
+        school_2_date_from = datetime.date(2000, 1, 1) ,
+        school_2_date_until = datetime.date(2000, 1, 1) ,
         school_3 = " " ,
-        school_3_date_from = "2000-01-01" ,
-        school_3_date_until = "2000-01-01" ,
+        school_3_date_from = datetime.date(2000, 1, 1) ,
+        school_3_date_until = datetime.date(2000, 1, 1) ,
         school_4 = " " ,
-        school_4_date_from = "2000-01-01" ,
-        school_4_date_until = "2000-01-01" ,
+        school_4_date_from = datetime.date(2000, 1, 1) ,
+        school_4_date_until = datetime.date(2000, 1, 1) ,
         
         sibling_1_forename = " " ,
         sibling_1_surname = " " ,
-        sibling_1_date_of_birth = "2000-01-01" ,
+        sibling_1_date_of_birth = datetime.date(2000, 1, 1) ,
         sibling_1_gender = " " ,
         sibling_1_year_group = " " ,
         sibling_1_id = None,
         sibling_2_forename = " " ,
         sibling_2_surname = " " ,
-        sibling_2_date_of_birth = "2000-01-01" ,
+        sibling_2_date_of_birth = datetime.date(2000, 1, 1) ,
         sibling_2_gender = " " ,
         sibling_2_year_group = " " ,
         sibling_2_id = None,
         sibling_3_forename = " " ,
         sibling_3_surname = " " ,
-        sibling_3_date_of_birth = "2000-01-01" ,
+        sibling_3_date_of_birth = datetime.date(2000, 1, 1) ,
         sibling_3_gender = " " ,
         sibling_3_year_group = " " ,
         sibling_3_id = None,
         sibling_4_forename = " " ,
         sibling_4_surname = " " ,
-        sibling_4_date_of_birth = "2000-01-01" ,
+        sibling_4_date_of_birth = datetime.date(2000, 1, 1) ,
         sibling_4_gender = " " ,
         sibling_4_year_group = " " ,
         sibling_4_id = None,

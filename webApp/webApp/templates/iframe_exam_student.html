@@ -4,57 +4,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Make New Exam Student</title>
+    <title>Register Exam Interest</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #f8f9fc;
-        }
-
-        .card {
-            border-radius: 0.75rem;
-            border: 2px solid #e74a3b;
-        }
-
-        .card-header {
-            background-color: #6d53ec;
-            color: white;
-            text-align: center;
-            font-size: 1.5rem;
-            border-bottom: 2px solid #e74a3b;
-        }
-
-        .card-body {
-            padding: 2rem;
-        }
-
-        .form-group label {
-            font-weight: bold;
-        }
-
-        .form-control {
-            border-radius: 0.25rem;
-        }
-
-        .btn-primary {
-            background-color: #6d53ec;
-            border: none;
-        }
-
-        .btn-primary:hover {
-            background-color: #5b41d6;
-        }
-
-        .form-text {
-            font-size: 0.875rem;
-            color: #858796;
-        }
-
-        .recaptcha-container {
-            text-align: center;
-            margin-top: 1rem;
-        }
+        body { background-color: #f8f9fc; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        .card { border-radius: .75rem; border: 0; box-shadow: 0 .25rem 1.25rem rgba(58, 59, 69, .12); }
+        .card-body { padding: 2rem; }
+        h1.form-title { font-size: 1.4rem; font-weight: 700; color: #3a3b45; margin-bottom: .25rem; }
+        .form-sub { color: #858796; font-size: .9rem; margin-bottom: 1.5rem; }
+        .section-title { font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+            color: #6d53ec; border-bottom: 2px solid #eceafd; padding-bottom: .35rem;
+            margin: 1.75rem 0 1rem; }
+        .section-title:first-of-type { margin-top: 0; }
+        .form-group label { font-weight: 600; color: #3a3b45; }
+        .form-text { font-size: .8rem; color: #858796; }
+        .btn-primary { background-color: #6d53ec; border: none; }
+        .btn-primary:hover { background-color: #5b41d6; }
+        .btn-outline-primary { color: #6d53ec; border-color: #6d53ec; }
+        .btn-outline-primary:hover { background-color: #6d53ec; border-color: #6d53ec; }
+        .exam-row { display: flex; gap: .5rem; margin-bottom: .5rem; align-items: flex-start; }
+        .exam-row .exam-select { flex: 1 1 auto; }
+        .exam-row .exam-other { flex: 1 1 auto; display: none; }
+        .access-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .25rem .75rem; }
+        #successPanel { display: none; text-align: center; padding: 2.5rem 1rem; }
+        #successPanel .fa-check-circle { font-size: 3rem; color: #1cc88a; margin-bottom: 1rem; }
+        .hp-field { position: absolute; left: -9999px; top: -9999px; }
     </style>
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
@@ -62,142 +37,305 @@
 
 <body>
 
-
-    <div class="container mt-5">
+    <div class="container mt-4 mb-5" style="max-width: 860px;">
         <div class="card">
             <div class="card-body">
-                <div class="form-group row">
-                    <div class="col-md-6">
-                        <label for="firstName">First Name</label>
-                        <input type="text" class="form-control" id="firstName" placeholder="John" required>
+
+                <div id="formPanel">
+                    <h1 class="form-title">Register Exam Interest</h1>
+                    <p class="form-sub">Tell us who is sitting the exams, which exams you'd like to take and where.
+                        We'll come back to you to confirm entries, dates and fees.</p>
+
+                    <div id="formError" class="alert alert-danger" style="display:none;"></div>
+
+                    <!-- Honeypot: humans never see this; bots fill it -->
+                    <div class="hp-field" aria-hidden="true">
+                        <label for="website">Website</label>
+                        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
                     </div>
-                    <div class="col-md-6">
-                        <label for="secondName">Second Name</label>
-                        <input type="text" class="form-control" id="secondName" placeholder="Smith" required>
+
+                    <div class="section-title">Student details</div>
+                    <div class="form-group row">
+                        <div class="col-md-6">
+                            <label for="firstName">First Name *</label>
+                            <input type="text" class="form-control" id="firstName" placeholder="John" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="secondName">Last Name *</label>
+                            <input type="text" class="form-control" id="secondName" placeholder="Smith" required>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group row">
-                    <div class="col-md-6">
-                        <label for="gender">Gender</label>
-                        <select class="form-control" id="gender">
-                            <option value="" selected>Choose an option</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
+                    <div class="form-group row">
+                        <div class="col-md-6">
+                            <label for="gender">Gender</label>
+                            <select class="form-control" id="gender">
+                                <option value="" selected>Choose an option</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="dob">Date of Birth *</label>
+                            <input type="date" class="form-control" id="dob" required>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-md-6">
+                            <label for="UCI">UCI</label>
+                            <input type="text" class="form-control" id="UCI" placeholder="999990140001X">
+                            <small class="form-text">From a previous exam entry — leave blank if unsure.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ULN">ULN</label>
+                            <input type="text" class="form-control" id="ULN" placeholder="1234567891">
+                            <small class="form-text">10-digit Unique Learner Number — leave blank if unsure.</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-md-6">
+                            <label for="studentEmail">Student Email *</label>
+                            <input type="email" class="form-control" id="studentEmail" placeholder="johnsmith@gmail.com" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="parentEmail">Parent Email</label>
+                            <input type="email" class="form-control" id="parentEmail" placeholder="marysmith@gmail.com">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactNo">Emergency Contact No</label>
+                        <input type="text" class="form-control" id="contactNo" placeholder="07123 456789">
+                    </div>
+
+                    <div class="section-title">Which exams?</div>
+                    <p class="form-text mb-2">Pick each exam from the list — these are the exams we run.
+                        Choose “My exam isn't listed” if you can't find yours.</p>
+                    <div id="examRows"></div>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="addExamRow">
+                        <i class="fas fa-plus"></i> Add another exam
+                    </button>
+                    <div class="form-group mt-3">
+                        <label for="subjects">Questions or extra information</label>
+                        <textarea class="form-control" id="subjects" rows="2"
+                                  placeholder="Anything you'd like to ask or tell us (optional)"></textarea>
+                    </div>
+
+                    <div class="section-title">Exam centre</div>
+                    <div class="form-group">
+                        <label for="centre">Where would you like to sit the exams? *</label>
+                        <select class="form-control" id="centre" required>
+                            <option value="" selected>Choose a centre…</option>
+                            {% for c in centres %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-6">
-                        <label for="dob">Date of Birth</label>
-                        <input type="date" class="form-control" id="dob" required>
+
+                    <div class="section-title">Access arrangements</div>
+                    <p class="form-text mb-2">Tick anything the student has in place at school or has evidence for
+                        (e.g. a JCQ Form 8 or school report). Leave blank if none.</p>
+                    <div class="access-grid mb-2" id="accessOptions">
+                        <div class="form-check"><input class="form-check-input access-opt" type="checkbox" value="25% extra time" id="acc1"><label class="form-check-label" for="acc1">25% extra time</label></div>
+                        <div class="form-check"><input class="form-check-input access-opt" type="checkbox" value="Reader" id="acc2"><label class="form-check-label" for="acc2">Reader</label></div>
+                        <div class="form-check"><input class="form-check-input access-opt" type="checkbox" value="Scribe" id="acc3"><label class="form-check-label" for="acc3">Scribe</label></div>
+                        <div class="form-check"><input class="form-check-input access-opt" type="checkbox" value="Separate room" id="acc4"><label class="form-check-label" for="acc4">Separate / smaller room</label></div>
+                        <div class="form-check"><input class="form-check-input access-opt" type="checkbox" value="Rest breaks" id="acc5"><label class="form-check-label" for="acc5">Supervised rest breaks</label></div>
+                        <div class="form-check"><input class="form-check-input access-opt" type="checkbox" value="Word processor" id="acc6"><label class="form-check-label" for="acc6">Word processor / laptop</label></div>
+                        <div class="form-check"><input class="form-check-input" type="checkbox" id="accOtherChk"><label class="form-check-label" for="accOtherChk">Other</label></div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="UCI">UCI</label>
-                    <input type="text" class="form-control" id="UCI" placeholder="999990140001X">
-                </div>
-                <div class="form-group">
-                    <label for="ULN">ULN</label>
-                    <input type="text" class="form-control" id="ULN" placeholder="12345678910">
-                </div>
-                <div class="form-group">
-                    <label for="studentEmail">Student Email</label>
-                    <input type="email" class="form-control" id="studentEmail" placeholder="johnsmith@gmail.com" required>
-                </div>
-                <div class="form-group">
-                    <label for="parentEmail">Parent Email</label>
-                    <input type="email" class="form-control" id="parentEmail" placeholder="MarySmith@gmail.com">
-                </div>
-                <div class="form-group">
-                    <label for="contactNo">Emergency Contact No</label>
-                    <input type="text" class="form-control" id="contactNo" placeholder="07 123 456789">
-                </div>
-                <div class="form-group">
-                    <label for="subjects">Which Subjects / Specification would you like to do? Also include any questions you would like to be answered. Please be specific with which exams you wish to take including information such as tier (GCSE / A-LEVEL) subject (Maths/English) difficulty (Higher/Foundation) and exam code if known (8MA0)</label>
-                    <textarea class="form-control" id="subjects" rows="4" placeholder="Subjects and questions"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="access_arrangements">Special Access Arrangements</label>
-                    <input type="text" class="form-control" id="access_arrangements" placeholder="Exam Reader / Extra Time">
-                </div>
-                <div class="form-group">
-                    <label for="fileUpload">Identification upload (Passport, Drivers License etc)</label>
-                    <input type="file" class="form-control-file" id="fileUpload" required>
-                </div>
-                <div class="form-group">
-                    <label for="prevResults">Previous Results Upload (e.g., Previous Exam Certificates)</label>
-                    <input type="file" class="form-control-file" id="prevResults">
+                    <input type="text" class="form-control mb-2" id="accOtherText" placeholder="Describe the other arrangement" style="display:none;">
+
+                    <div class="section-title">Documents</div>
+                    <div class="form-group">
+                        <label for="fileUpload">Identification upload (Passport, Driving Licence etc) *</label>
+                        <input type="file" class="form-control-file" id="fileUpload" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="prevResults">Previous results (e.g. exam certificates)</label>
+                        <input type="file" class="form-control-file" id="prevResults">
+                    </div>
+                    <div class="form-group">
+                        <label for="accessDoc">Access arrangements evidence (e.g. JCQ Form 8 / school report)</label>
+                        <input type="file" class="form-control-file" id="accessDoc">
+                    </div>
+                    <div class="form-group">
+                        <label for="extraDocuments">Additional documents (optional, several allowed)</label>
+                        <input type="file" class="form-control-file" id="extraDocuments" multiple
+                               accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                    </div>
+
+                    <button type="button" class="btn btn-primary btn-lg mt-3" id="submitBtn" onclick="createStudent()">
+                        Register Exam Interest
+                    </button>
                 </div>
 
-                <div class="form-group">
-                    <label for="prevResults">Access Arrangements supporting documents Upload (e.g.JCQ / School Report)</label>
-                    <input type="file" class="form-control-file" id="accessDoc">
+                <div id="successPanel">
+                    <i class="fas fa-check-circle"></i>
+                    <h4>Thank you — we've received your registration.</h4>
+                    <p class="text-muted">Our exams officer will be in touch to confirm the entries, dates and fees.</p>
                 </div>
 
-                <button type="button" class="btn btn-primary mt-4" onclick="createStudent()">Register Exam Interest</button>
             </div>
         </div>
     </div>
-    
+
 
     <script>
-        function createStudent() {
-            var firstName = document.getElementById("firstName").value;
-            var secondName = document.getElementById("secondName").value;
-            var gender = document.getElementById("gender").value;
-            var dob = document.getElementById("dob").value;
-            var uci = document.getElementById("UCI").value;
-            var uln = document.getElementById("ULN").value;
-            var studentEmail = document.getElementById("studentEmail").value;
-            var parentEmail = document.getElementById("parentEmail").value;
-            var contactNo = document.getElementById("contactNo").value;
-            var subjects = document.getElementById("subjects").value;
-            var access_arrangements = document.getElementById("access_arrangements").value;
-            var fileUpload = document.getElementById("fileUpload").files[0];
-            var prevResults = document.getElementById("prevResults").files[0];
-            var accessDoc = document.getElementById("accessDoc").files[0];
+        var EXAM_OPTIONS = {{ exam_options | tojson }};
 
-        
+        function esc(s) {
+            return (s == null ? '' : String(s)).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        function examSelectHTML() {
+            // options grouped by qualification (GCSE / A-Level / ...)
+            var groups = {};
+            EXAM_OPTIONS.forEach(function (o) {
+                (groups[o.tier] = groups[o.tier] || []).push(o);
+            });
+            var html = '<option value="" selected>Choose an exam…</option>';
+            Object.keys(groups).sort().forEach(function (tier) {
+                html += '<optgroup label="' + esc(tier) + '">';
+                groups[tier].forEach(function (o) {
+                    html += '<option value="' + o.examID + '">' + esc(o.label) + '</option>';
+                });
+                html += '</optgroup>';
+            });
+            html += '<option value="other">My exam isn\'t listed…</option>';
+            return html;
+        }
+
+        function addExamRow() {
+            var row = document.createElement('div');
+            row.className = 'exam-row';
+            row.innerHTML =
+                '<select class="form-control exam-select">' + examSelectHTML() + '</select>' +
+                '<input type="text" class="form-control exam-other" placeholder="Tell us the exam (qualification, subject, board)">' +
+                '<button type="button" class="btn btn-outline-secondary btn-sm remove-row" title="Remove">&times;</button>';
+            document.getElementById('examRows').appendChild(row);
+
+            row.querySelector('.exam-select').addEventListener('change', function () {
+                row.querySelector('.exam-other').style.display =
+                    this.value === 'other' ? 'block' : 'none';
+            });
+            row.querySelector('.remove-row').addEventListener('click', function () {
+                if (document.querySelectorAll('#examRows .exam-row').length > 1) row.remove();
+            });
+        }
+
+        function collectExamSelections() {
+            var picks = [];
+            document.querySelectorAll('#examRows .exam-row').forEach(function (row) {
+                var val = row.querySelector('.exam-select').value;
+                if (val === 'other') {
+                    var text = row.querySelector('.exam-other').value.trim();
+                    if (text) picks.push({ examID: null, label: text });
+                } else if (val) {
+                    picks.push({ examID: parseInt(val, 10), label: '' });
+                }
+            });
+            return picks;
+        }
+
+        function collectAccess() {
+            var chosen = [];
+            document.querySelectorAll('.access-opt:checked').forEach(function (c) { chosen.push(c.value); });
+            if (document.getElementById('accOtherChk').checked) {
+                var other = document.getElementById('accOtherText').value.trim();
+                chosen.push(other ? 'Other: ' + other : 'Other');
+            }
+            return chosen.join(', ');
+        }
+
+        function showError(msg) {
+            var el = document.getElementById('formError');
+            el.textContent = msg;
+            el.style.display = 'block';
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function createStudent() {
+            document.getElementById('formError').style.display = 'none';
+
+            var firstName = document.getElementById('firstName').value.trim();
+            var secondName = document.getElementById('secondName').value.trim();
+            var dob = document.getElementById('dob').value;
+            var studentEmail = document.getElementById('studentEmail').value.trim();
+            var fileUpload = document.getElementById('fileUpload').files[0];
+            var centre = document.getElementById('centre').value;
+            var exams = collectExamSelections();
+
             if (!firstName || !secondName || !dob || !studentEmail || !fileUpload) {
-                alert('Please fill in all required fields.');
+                showError('Please fill in the required fields: name, date of birth, student email and ID upload.');
                 return;
             }
-        
-            if (!studentEmail && !parentEmail) {
-                alert('Please provide at least one email address.');
+            if (!exams.length) {
+                showError('Please pick at least one exam (or choose "My exam isn\'t listed" and describe it).');
                 return;
             }
-        
+            if (!centre) {
+                showError('Please choose the centre where you would like to sit the exams.');
+                return;
+            }
+
             var formData = new FormData();
-            formData.append("firstName", firstName);
-            formData.append("secondName", secondName);
-            formData.append("gender", gender);
-            formData.append("dob", dob);
-            formData.append("uci", uci);
-            formData.append("uln", uln);
-            formData.append("studentEmail", studentEmail);
-            formData.append("parentEmail", parentEmail);
-            formData.append("contactNo", contactNo);
-            formData.append("subjects", subjects);
-            formData.append("access_arrangements", access_arrangements);
-            formData.append("fileUpload", fileUpload);
-            formData.append("prevResults", prevResults);
-            formData.append("accessDoc", accessDoc)
-        
+            formData.append('website', document.getElementById('website').value);  // honeypot
+            formData.append('firstName', firstName);
+            formData.append('secondName', secondName);
+            formData.append('gender', document.getElementById('gender').value);
+            formData.append('dob', dob);
+            formData.append('uci', document.getElementById('UCI').value.trim());
+            formData.append('uln', document.getElementById('ULN').value.trim());
+            formData.append('studentEmail', studentEmail);
+            formData.append('parentEmail', document.getElementById('parentEmail').value.trim());
+            formData.append('contactNo', document.getElementById('contactNo').value.trim());
+            formData.append('examSelections', JSON.stringify(exams));
+            formData.append('subjects', document.getElementById('subjects').value.trim());
+            formData.append('centreID', centre);
+            formData.append('access_arrangements', collectAccess());
+            formData.append('fileUpload', fileUpload);
+            var prevResults = document.getElementById('prevResults').files[0];
+            if (prevResults) formData.append('prevResults', prevResults);
+            var accessDoc = document.getElementById('accessDoc').files[0];
+            if (accessDoc) formData.append('accessDoc', accessDoc);
+            Array.prototype.forEach.call(document.getElementById('extraDocuments').files, function (f) {
+                formData.append('extraDocuments', f);
+            });
+
+            var btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = 'Sending…';
+
             $.ajax({
                 url: '/register_potential_exam_student',
                 type: 'POST',
                 data: formData,
                 contentType: false,
                 processData: false,
-                success: function (response) {
-                    alert("The Enquiry was sent");
-                    location.reload();
+                success: function () {
+                    document.getElementById('formPanel').style.display = 'none';
+                    document.getElementById('successPanel').style.display = 'block';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 },
-                error: function (error) {
+                error: function (xhr) {
+                    btn.disabled = false;
+                    btn.textContent = 'Register Exam Interest';
+                    var msg = 'Something went wrong — please try again.';
+                    try { msg = JSON.parse(xhr.responseText).error || msg; } catch (e) {}
+                    showError(msg);
                 }
             });
         }
-        
+
+        document.addEventListener('DOMContentLoaded', function () {
+            addExamRow();  // start with one exam row
+            document.getElementById('addExamRow').addEventListener('click', addExamRow);
+            document.getElementById('accOtherChk').addEventListener('change', function () {
+                document.getElementById('accOtherText').style.display = this.checked ? 'block' : 'none';
+            });
+        });
     </script>
 
 </body>
