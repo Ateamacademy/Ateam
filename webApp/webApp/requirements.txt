@@ -6,3 +6,5 @@ werkzeug
 flask_login
 numpy
 matplotlib
+stripe
+requests

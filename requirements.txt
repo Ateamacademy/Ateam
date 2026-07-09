@@ -29,4 +29,7 @@ reportlab
 pdf2image
 pdfminer.six
 Pillow
+
+# --- external integrations (both env-gated; dormant without their keys) ---
 stripe
+requests

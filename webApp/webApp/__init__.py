@@ -17,6 +17,7 @@ from Schema import *
 from functions import *
 from seating import plan_seating
 from clashes import group_clashes, time_range_str
+import ghl
 from predicted_paper_generation import *
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, current_user, logout_user, login_required, UserMixin, LoginManager, AnonymousUserMixin
@@ -5152,6 +5153,7 @@ def register_potential_exam_student():
         # Public endpoint, so: cap the number of picks, guard every type, and
         # resolve all exam ids with ONE bulk query instead of one per entry.
         requested = []
+        tier_tags = set()   # e.g. {"gcse", "a-level"} — used for the CRM sync
         try:
             picks = json.loads(request.form.get('examSelections') or '[]')
             picks = [p for p in picks if isinstance(p, dict)][:20] if isinstance(picks, list) else []
@@ -5176,6 +5178,8 @@ def register_potential_exam_student():
                     if exam.examID in seen_exam_ids:
                         continue  # the same entry can only be sat (and charged) once
                     seen_exam_ids.add(exam.examID)
+                    if exam.tier and exam.tier.strip():
+                        tier_tags.add(exam.tier.strip().lower())
                     label = " ".join(p for p in [exam.tier, exam.title, exam.examBoard, exam.Option] if p)
                     if exam.code:
                         label += f" ({exam.code})"
@@ -5292,6 +5296,29 @@ def register_potential_exam_student():
                 checkout_url = checkout.url
             except Exception as stripe_err:
                 print(f"stripe checkout failed (non-fatal): {stripe_err}")
+
+        # CRM sync: push the registrant into GoHighLevel so follow-up
+        # automations fire without re-typing the lead. Env-gated; best-effort.
+        try:
+            ghl_tags = ["exam interest"] + sorted(tier_tags)
+            if centre_id:
+                centre_tag = (_centre_name(centre_id) or "").strip().lower()
+                if centre_tag:
+                    ghl_tags.append(centre_tag)
+            # structured lines FIRST — the note is truncated from the end, and
+            # free text must never push the quote/parent email off the note
+            note_lines = []
+            if quoted_total:
+                note_lines.append(f"Quoted: £{quoted_total:.2f}")
+            if parentEmail and parentEmail.strip():
+                note_lines.append(f"Parent email: {parentEmail.strip()}")
+            if message:
+                note_lines.append(message[:4000])
+            ghl.sync_exam_interest(firstName, secondName, studentEmail,
+                                   phone=contactNo, tags=ghl_tags,
+                                   note="\n".join(note_lines))
+        except Exception as ghl_err:
+            print(f"GHL sync skipped (non-fatal): {ghl_err}")
         
         db.session.add(log(role = "anonymous", message= f"Student Registration: {firstName} {secondName} has just been registered as a potential exam Student", date=datetime.utcnow()))
         db.session.commit()

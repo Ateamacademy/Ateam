@@ -29,3 +29,7 @@ reportlab
 pdf2image           # needs system binary: poppler-utils
 pdfminer.six
 Pillow
+
+# --- external integrations (env-gated; dormant without their keys) ---
+stripe
+requests
