@@ -33,13 +33,15 @@ def _grant_all_permissions(obj):
 # Columns added after the initial deploy. db.create_all() creates missing *tables*
 # but never alters an existing one, so on an already-provisioned database (e.g.
 # Render's) these have to be added by hand. Idempotent: only adds what's missing.
+# DOUBLE PRECISION (not REAL) for money/float columns so they match the models'
+# Column(Float); single-precision REAL can misrepresent 2dp prices.
 _ADDED_COLUMNS = {
     "exam_rooms": [("centreID", "INTEGER")],
     "exam_student": [("centreID", "INTEGER"), ("requested_exams", "TEXT"),
-                     ("quoted_total", "REAL"), ("paid_total", "REAL"),
+                     ("quoted_total", "DOUBLE PRECISION"), ("paid_total", "DOUBLE PRECISION"),
                      ("ghl_contact_id", "TEXT")],
     "centres": [("am_start", "TIME"), ("pm_start", "TIME")],
-    "exams": [("price", "REAL")],
+    "exams": [("price", "DOUBLE PRECISION")],
 }
 
 
