@@ -1355,6 +1355,10 @@ class exam_student(db.Model):
     # Exact amount (GBP, 2dp) collected via Stripe — the legacy paid_amount
     # column is Integer and cannot hold pence.
     paid_total = Column(Float)
+    # The GoHighLevel contact id for this candidate — the shared identity key
+    # between the platform and the CRM, set by whichever direction syncs first,
+    # so the same person is never duplicated on either side.
+    ghl_contact_id = Column(String)
 
 def get_exam_students():
     # Join Students and ExamStudent, but only for those students where exam_student is True

@@ -10,6 +10,7 @@ from flask import Flask, render_template, redirect, request, flash, send_from_di
 from flask_sqlalchemy import SQLAlchemy 
 from flask_migrate import Migrate
 from flask_cors import CORS
+import hmac
 from sqlalchemy import select, insert, update, delete, and_, or_, distinct, case
 from sqlalchemy.orm import aliased
 from sqlalchemy.exc import SQLAlchemyError
@@ -5314,9 +5315,16 @@ def register_potential_exam_student():
                 note_lines.append(f"Parent email: {parentEmail.strip()}")
             if message:
                 note_lines.append(message[:4000])
-            ghl.sync_exam_interest(firstName, secondName, studentEmail,
-                                   phone=contactNo, tags=ghl_tags,
-                                   note="\n".join(note_lines))
+            ghl_id = ghl.sync_exam_interest(firstName, secondName, studentEmail,
+                                            phone=contactNo, tags=ghl_tags,
+                                            note="\n".join(note_lines))
+            if ghl_id:
+                # shared identity key: the CRM contact and the platform candidate
+                # now point at each other, so neither side can duplicate them
+                profile_row = exam_student.query.filter_by(studentID=studentEntry.id).first()
+                if profile_row:
+                    profile_row.ghl_contact_id = ghl_id
+                    db.session.commit()
         except Exception as ghl_err:
             print(f"GHL sync skipped (non-fatal): {ghl_err}")
         
@@ -5403,6 +5411,142 @@ def stripe_webhook():
     return jsonify({'status': 'ok'}), 200
 
 
+@app.route('/ghl_inbound', methods=['POST'])
+def ghl_inbound():
+    # GoHighLevel -> platform: a GHL workflow's Webhook action posts contact
+    # data here (lead from a funnel/ad/manual entry) and it appears on the
+    # platform as a pending exam student within seconds. Secured by a shared
+    # secret sent in the X-Webhook-Key HEADER only — never in the URL, where
+    # it would end up in access logs. Identity mirrors the outbound sync:
+    # matched by GHL contact id first, then by email — the same person is
+    # never duplicated on either side.
+    secret = os.environ.get('GHL_INBOUND_SECRET')
+    if not secret:
+        return jsonify({'error': 'inbound webhook not configured'}), 503
+    supplied = request.headers.get('X-Webhook-Key') or ''
+    if not hmac.compare_digest(supplied.encode('utf-8'), secret.encode('utf-8')):
+        return jsonify({'error': 'invalid key'}), 403
+
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'a JSON object body is required'}), 400
+    # GHL webhook payloads vary by trigger; some nest the contact
+    contact = data.get('contact') if isinstance(data.get('contact'), dict) else data
+
+    def _field(*names):
+        for name in names:
+            value = contact.get(name)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+        return ''
+
+    email = _field('email').lower()
+    if not email or '@' not in email:
+        return jsonify({'error': 'a contact email is required'}), 400
+    if len(email) > 50:  # Students.email is String(50); don't corrupt by truncating
+        print(f"ghl_inbound: rejected over-long email ({len(email)} chars)")
+        return jsonify({'error': 'email too long for this system (max 50 chars)'}), 400
+
+    contact_id = _field('contact_id', 'contactId', 'id')[:80]
+    first_name = _field('first_name', 'firstName')[:50]
+    last_name = _field('last_name', 'lastName')[:50]
+    if not (first_name or last_name):
+        full = _field('full_name', 'name') or email.split('@')[0]
+        parts = full.split() or ['-']
+        first_name, last_name = parts[0][:50], (" ".join(parts[1:]) or "-")[:50]
+    first_name = first_name or "-"
+    last_name = last_name or "-"
+    phone = _field('phone')[:30]
+    raw_tags = contact.get('tags')
+    if isinstance(raw_tags, str):
+        tags = [t.strip().lower()[:60] for t in raw_tags.split(',') if t.strip()][:20]
+    elif isinstance(raw_tags, list):
+        tags = [str(t).strip().lower()[:60] for t in raw_tags if str(t).strip()][:20]
+    else:
+        tags = []
+
+    try:
+        # match: GHL contact id first, then email (case-insensitive)
+        profile = (exam_student.query.filter_by(ghl_contact_id=contact_id).first()
+                   if contact_id else None)
+        student = Students.query.filter_by(id=profile.studentID).first() if profile else None
+        if student is None:
+            student = Students.query.filter(func.lower(Students.email) == email).first()
+            profile = (exam_student.query.filter_by(studentID=student.id).first()
+                       if student else None)
+
+        # a tag naming one of our centres sets the candidate's centre,
+        # mirroring the centre tag the outbound sync writes
+        centre_id = None
+        if tags:
+            for centre in Centre.query.all():
+                if (centre.name or '').strip().lower() in tags:
+                    centre_id = centre.centreID
+                    break
+
+        if student is not None:
+            # existing person: enrich, never duplicate
+            if profile is None:
+                profile = exam_student(studentID=student.id, uci=None, uln=None,
+                                       access_arrangements="",
+                                       message="Lead from GoHighLevel"
+                                               + ("\nTags: " + ", ".join(tags) if tags else ""),
+                                       approved=False)
+                db.session.add(profile)
+                # the officer's exam-students page filters on this flag — an
+                # existing tuition student upselling to exams must become visible
+                student.exam_student = True
+                db.session.add(log(role="system", message=f"GHL lead matched existing student {getStudent(student.id)} — now listed as a potential exam student", date=datetime.utcnow()))
+            if contact_id and not profile.ghl_contact_id:
+                profile.ghl_contact_id = contact_id
+            if centre_id and not profile.centreID:
+                profile.centreID = centre_id
+            if phone and not (student.priority_contact_1_mobile_telephone or '').strip():
+                student.priority_contact_1_mobile_telephone = phone
+            db.session.commit()
+            return jsonify({'status': 'updated', 'student_id': student.id}), 200
+
+        # an email already owned by a non-student account (staff/parent/tutor)
+        # must never gain a shadow student login — flag it for a human instead
+        if User.query.filter(func.lower(User.email) == email).first() is not None:
+            db.session.add(log(role="system", message=f"GHL lead skipped: {email} already belongs to an existing account (not a student record) — review manually", date=datetime.utcnow()))
+            db.session.commit()
+            return jsonify({'status': 'skipped',
+                            'reason': 'email belongs to an existing account'}), 200
+
+        # brand-new lead from the CRM: create the same shape a form
+        # registration creates, minus documents — pending officer approval
+        studentEntry = gen_exam_student(first_name, last_name, "", None, email, "", phone,
+                                        username=gen_username(first_name, last_name),
+                                        password=generate_password_hash(gen_random_password(8)))
+        db.session.add(studentEntry)
+        db.session.commit()
+
+        user = User(role="student", otherID=studentEntry.id, email=email,
+                    password=generate_password_hash(gen_random_password(8)))
+        db.session.add(user)
+        db.session.commit()
+
+        message_lines = ["Lead from GoHighLevel"]
+        if tags:
+            message_lines.append("Tags: " + ", ".join(tags))
+        db.session.add(exam_student(studentID=studentEntry.id, uci=None, uln=None,
+                                    access_arrangements="",
+                                    message="\n".join(message_lines),
+                                    centreID=centre_id,
+                                    ghl_contact_id=(contact_id or None),
+                                    approved=False))
+        db.session.commit()
+
+        db.session.add(log(role="system", message=f"GHL lead: {first_name} {last_name} ({email}) created as a potential exam student", date=datetime.utcnow()))
+        db.session.commit()
+        return jsonify({'status': 'created', 'student_id': studentEntry.id}), 200
+    except Exception as exc:
+        db.session.rollback()
+        print(f"ghl_inbound failed: {exc}")
+        return jsonify({'error': 'could not process the contact'}), 400
+
+
 @app.route("/register_exam_student", methods=['POST', 'GET'])
 @login_required
 def register_exam_student():
@@ -5413,7 +5557,9 @@ def register_exam_student():
     firstName = data['firstName']
     secondName = data['secondName']
     gender = data['gender']
-    dob = datetime.strptime(data['dob'], "%d/%m/%Y").strftime("%Y-%m-%d")
+    # keep the parsed date object — date_of_birth is a Date column, and a
+    # string only works by driver coercion (crashes on strict drivers)
+    dob = datetime.strptime(data['dob'], "%d/%m/%Y").date()
     uci = data['uci']
     uln = data['uln']
     studentEmail = data['studentEmail']
@@ -5436,7 +5582,10 @@ def register_exam_student():
     studentIDs = [student.id for student in studentList]
     studentID = max(studentIDs)
 
-    db.session.add(exam_student(studentID, uci, uln, access_arrangements))
+    # exam_student has no positional constructor (declarative model) — the old
+    # positional call raised TypeError and crashed the officer's manual-add page
+    db.session.add(exam_student(studentID=studentID, uci=uci, uln=uln,
+                                access_arrangements=access_arrangements))
 
 
     db.session.add(log(role = "anonymous", message= f"Student Registration: {data['firstName']} {data['secondName']} has just been registered as an exam Student", date=datetime.utcnow()))
